@@ -1,4 +1,4 @@
-from state import State
+from State import State
 import random
 
 
@@ -12,13 +12,20 @@ def test_hash_distribution(n_trials):
 
 
 def main():
-    # print(test_hash_distribution(1000000))
-    state = State(2, 10)
+    d = 20 # depth
+    b = 3  # branching factor
+    state = State(b, d)
     print(state)
     
+    i = 0
     while not state.is_terminal():
         print(state.actions())
-        state = state.make(random.randint(0, 1))
+        state.make(i)
+        if random.random() < 0.5:
+            state.undo()
+        else:
+            i = (i + 1) % 3
         print(state)
+        
 
 main()
