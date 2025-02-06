@@ -68,3 +68,29 @@ def test_deterministic(b, d):
     if not test_result:
         for step in zip(steps1, steps2):
             print(step)
+
+
+def test_deterministic_graph(seed: int=0):
+    b = 5
+    d = 15
+    state = State(b, d, seed=seed, retain_tree=True)
+    while not state.is_terminal():
+        while state.hasher.next_random() < 0.5 and not state.is_root():
+            state.undo()
+        while state.hasher.next_random() < 0.6 and not state.is_terminal():
+            state.make_random()
+            state._current.generate_children()
+    state.draw_tree()
+
+
+def test_random_graph():
+    b = random.randint(2, 5)
+    d = random.randint(5, 15)
+    state = State(b, d, retain_tree=True)
+    while not state.is_terminal():
+        while random.random() < 0.5 and not state.is_root():
+            state.undo()
+        while random.random() < 0.6 and not state.is_terminal():
+            state.make(random.randint(0, b-1))
+            state._current.generate_children()
+    state.draw_tree()
