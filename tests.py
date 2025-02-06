@@ -70,10 +70,10 @@ def test_deterministic(b, d):
             print(step)
 
 
-def test_deterministic_graph(seed: int=0):
+def test_deterministic_graph(seed: int=0, retain_tree: bool=True):
     b = 5
     d = 15
-    state = State(b, d, seed=seed, retain_tree=True)
+    state = State(b, d, seed=seed, retain_tree=retain_tree)
     while not state.is_terminal():
         while state.hasher.next_random() < 0.5 and not state.is_root():
             state.undo()
@@ -83,10 +83,10 @@ def test_deterministic_graph(seed: int=0):
     state.draw_tree()
 
 
-def test_random_graph():
+def test_random_graph(retain_tree: bool=True):
     b = random.randint(2, 5)
     d = random.randint(5, 15)
-    state = State(b, d, retain_tree=True)
+    state = State(b, d, retain_tree=retain_tree)
     while not state.is_terminal():
         while random.random() < 0.5 and not state.is_root():
             state.undo()

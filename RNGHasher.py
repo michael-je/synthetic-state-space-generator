@@ -2,7 +2,7 @@ import mmh3
 from utils import TMAX_32BIT
 
 
-class UniformHasher():
+class RNGHasher():
     def __init__(self, seed_str: str='', seed_int: int=0):
         self.seed_str = seed_str
         self.seed_int = seed_int

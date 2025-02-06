@@ -1,5 +1,5 @@
 from utils import *
-from UniformHasher import UniformHasher
+from RNGHasher import RNGHasher
 import mmh3
 
 
@@ -22,7 +22,7 @@ class StateNode():
         self.node_type: NodeType = None
         
         self.children: list["StateNode"] = []
-        self.hasher = UniformHasher(seed_int=self.seed)
+        self.hasher = RNGHasher(seed_int=self.seed)
 
     def is_terminal(self) -> bool:
         """Return true if the state is a terminal."""
