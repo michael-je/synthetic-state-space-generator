@@ -28,7 +28,6 @@ class State():
     def is_terminal(self) -> bool:
         """Return true if the state is a terminal."""
         return self._current.is_terminal()
-    
 
     def is_root(self) -> bool:
         """Return true if the state is the root."""
@@ -52,8 +51,8 @@ class State():
     
     def make_random(self):
         """Take a pseudo-random deterministic choice."""
-        i = int(self.hasher.next_random() * self.branching_factor)
-        self.make(i)
+        self.make(int(self.hasher.next_random() * self.branching_factor))
+        return self
 
     def undo(self):
         """Move back to previous state."""
@@ -61,19 +60,20 @@ class State():
         if not self.retain_tree:
             self._current.reset() # release memory as we climb back up the tree
         return self
-    
-    def _draw_tree_recur(self, graph: Digraph, node: StateNode):
-        graph.node(name=node.id, label=node.id.split('.')[-1])
-        if node.is_terminal():
-            return
-        for child in node.children:
-            graph.edge(node.id, child.id)
-            self._draw_tree_recur(graph, child)
 
     def draw_tree(self):
+        """Draw the current node tree. Best used when retaining the tree."""
+        def draw_tree_recur(graph: Digraph, node: StateNode):
+            graph.node(name=node.id, label=node.id.split('.')[-1])
+            if node.is_terminal():
+                return
+            for child in node.children:
+                graph.edge(node.id, child.id)
+                draw_tree_recur(graph, child)
+        
         graph = Digraph(format="png")
-        self._draw_tree_recur(graph, self._root)
-        graph.render('tree_visualization', view=True)  
+        draw_tree_recur(graph, self._root)
+        graph.render(f"trees/tree_seed_{self.seed}" , view=True)  
     
     def __str__(self):
         return self._current.__str__()
