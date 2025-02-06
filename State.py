@@ -28,12 +28,14 @@ class State():
 
     def make(self, i: int):
         """Transition to the next state via action i."""
+        if self._current.children is None:
+            self._current.generate_children()
         self._current = self._current.children[i]
         return self
 
     def undo(self):
         """Move back to previous state."""
-        self._current.children = None # free memory on the way back up
+        self._current.reset() # release memory as we climb back up the tree
         self._current = self._current.parent
         return self
     

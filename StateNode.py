@@ -19,35 +19,24 @@ class StateNode():
         self.player: Player = None
         self.node_type: NodeType = None
         
-        self.children: list["StateNode"] = None 
+        self.children: list["StateNode"] | None = None 
         self._times_hashed = 0 # used to ensure the state will not regnerate hash values
 
     def is_terminal(self) -> bool:
-        """Return whether the current state is terminal."""
-        if self.children is None:
-            self._generate_children()
-        if self.children == []:
-            return True
-        return False
+        """Return true if the state is a terminal."""
+        return self.depth == self.max_depth
 
-    def actions(self) -> list["StateNode"]:
-        """Return values of all children."""
+    def actions(self) -> list[int]:
+        """Return values of children."""
         if self.children is None:
-            self._generate_children()
+            self.generate_children()
         return [child.value for child in self.children]
+    
+    def reset(self):
+        """Reset state to before an action on it was taken."""
+        self.children = None
+        self._times_hashed = 0
 
-    # def make(self, i: int) -> "StateNode":
-    #     """Take action i."""
-    #     self = self.children[i]
-    #     return self
-    
-    # def undo(self):
-    #     """Walk back up the tree."""
-    #     # if not self.globals["store_traversed"]:
-    #     #     self.children = []
-    #     self = self.parent
-    #     return self
-    
     def set_id(self, sibling_id: int):
         """Generate unique id for the state."""
         self.id = f"{self.parent.id}.{sibling_id}"
@@ -59,11 +48,12 @@ class StateNode():
         return hash_32bit / TMAX_32BIT
     
     def _get_next_random(self):
+        """Uniform pseudo-randomness function that retains determinism."""
         hash_input = f"{self.id}+{self._times_hashed}"
         self._times_hashed += 1
         return self._uniform_hash(hash_input)
 
-    def _generate_children(self) -> None:
+    def generate_children(self) -> None:
         """Generate child states."""
         new_children: list["StateNode"] = []
         if self.depth >= self.max_depth:
@@ -78,7 +68,8 @@ class StateNode():
             child.set_id(i)
             child.depth = self.depth + 1
             child.player = Player(-self.player.value)
-            child.node_type = NodeType.CHOICE if self._get_next_random() < self.node_type_ratio else NodeType.FORCED
+            child.node_type = NodeType.CHOICE if \
+                self._get_next_random() < self.node_type_ratio else NodeType.FORCED
             new_children.append(child)
         
         if self.node_type == NodeType.FORCED:
@@ -93,9 +84,3 @@ class StateNode():
                 # assumes values have an even chance of being -1 or 1
                 new_children[i].value = 1 if self._get_next_random() < 0.5 else -1
         self.children = new_children
-
-    def __str__(self):
-        return f"{self.id=}, {self.depth=}, {self.is_terminal()=}, {self.player.name=}, {self.node_type.name=}, {self.actions()=}"
-
-    def __repr__(self):
-        return str(self)
