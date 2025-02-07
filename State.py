@@ -50,7 +50,7 @@ class State():
         return self
     
     def make_random(self):
-        """Take a pseudo-random deterministic choice."""
+        """Take a deterministic pseudo-random choice."""
         self.make(int(self.hasher.next_random() * self.branching_factor))
         return self
 
