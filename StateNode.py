@@ -39,7 +39,7 @@ class StateNode():
     def reset(self):
         """Reset state to before an action on it was taken."""
         self.children = []
-        self._times_hashed = 0
+        self.hasher.reset()
         return self
 
     def set_id(self, sibling_id: int):

@@ -5,11 +5,11 @@ from utils import *
 
 
 class State():
-    """Wrapper class for state nodes."""
+    """Wrapper class for state nodes. Should be used as the main API."""
     def __init__(self, branching_factor: int, max_depth: int,
                  node_type_ratio: float=0.5, seed: int=0, retain_tree: bool=False):
-        self.branching_factor: int = branching_factor
-        self.max_depth: int = max_depth
+        self.branching_factor = branching_factor
+        self.max_depth = max_depth
         self.seed = seed
         self.node_type_ratio = node_type_ratio # choice / forced
         self.retain_tree = retain_tree

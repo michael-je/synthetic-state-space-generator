@@ -20,7 +20,6 @@ def test_hash_average(n_trials):
     for i in range(1, n_trials+1):
         tot += hasher.next_random()
     print("test_hash_average:", tot/n_trials)
-    print()
 
 
 def test_hash_uniformity(n_trials):
@@ -45,7 +44,6 @@ def test_undo():
     print("test_undo:", test_result)
     if not test_result:
         print(results)
-    print()
 
 
 def test_deterministic(b, d):
