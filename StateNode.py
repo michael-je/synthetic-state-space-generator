@@ -1,6 +1,5 @@
 from utils import *
 from RNGHasher import RNGHasher
-import mmh3
 
 
 class StateNode():

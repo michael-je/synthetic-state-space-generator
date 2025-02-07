@@ -1,5 +1,6 @@
 import random
 from State import State
+from RNGHasher import RNGHasher
 
 
 def state_representative(state: State):
@@ -14,10 +15,10 @@ def compare_representatives(state1: State, state2: State):
 
 def test_hash_average(n_trials):
     tot = 0
-    seed_offset = random.randint(1, 10000000)
+    seed = random.randint(1, 10000000)
+    hasher = RNGHasher(seed_int=seed)
     for i in range(1, n_trials+1):
-        state = State(2, 1, seed=i+seed_offset,)
-        tot += state._current._uniform_hash("hello")
+        tot += hasher.next_random()
     print("test_hash_average:", tot/n_trials)
     print()
 
