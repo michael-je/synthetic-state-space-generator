@@ -71,8 +71,8 @@ def test_deterministic(b, d):
 
 def test_deterministic_graph(seed: int=0, retain_tree: bool=True):
     d = 30
-    state = State(max_depth=d, branching_function=lambda x, y: 1+int(y*5), seed=seed, retain_tree=retain_tree, max_states=10000000)
-    while not state.is_terminal():
+    state = State(max_depth=d, branching_function=lambda x, y: int(y*5), seed=seed, retain_tree=retain_tree, max_states=10000000)
+    while state._current.depth < d:
         while state.hasher.next_uniform() < 0.5 and not state.is_root():
             state.undo()
         while state.hasher.next_uniform() < 0.6 and not state.is_terminal():
