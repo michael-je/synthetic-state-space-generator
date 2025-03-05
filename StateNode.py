@@ -3,18 +3,10 @@ from RNGHasher import RNGHasher
 
 
 class StateNode():
-    def __init__(self, nodeid: int, branching_factor: int, max_depth: int, max_states: int,
-                 node_type_ratio: float=0.5, seed: int=0, retain_tree: int=False):
-        # globals
-        self.id: int = nodeid
-        self.branching_factor: int = branching_factor
-        self.max_depth: int = max_depth
-        self.max_states = max_states
-        self.seed = seed
-        self.node_type_ratio = node_type_ratio # choice / forced
-        self.retain_tree = retain_tree
-
-        # locals
+    def __init__(self, nodeid: int, globals: GlobalParameters):
+        self.globals = globals
+        self.id = nodeid
+        
         self.parent: "StateNode" = None
         self.value: int = None
         self.depth: int = None
@@ -22,14 +14,14 @@ class StateNode():
         self.node_type: NodeType = None
         
         self.children: list["StateNode"] = []
-        self.hasher = RNGHasher(self.id, self.seed)
+        self.hasher = RNGHasher(self.id, self.globals.seed)
     
     def __repr__(self):
         return f"id:{self.id}, depth:{self.depth}, children:{len(self.children)}"
 
     def is_terminal(self) -> bool:
         """Return true if the state is a terminal."""
-        return self.depth == self.max_depth
+        return self.depth == self.globals.max_depth
     
     def is_root(self) -> bool:
         """Return true if the state is the root."""
@@ -53,16 +45,14 @@ class StateNode():
         if self.children:
             return
         new_children: list["StateNode"] = []
-        for i in range(self.branching_factor):
-            child_id = self.hasher.next_int() % self.max_states
-            child: StateNode = StateNode(
-                child_id, self.branching_factor, self.max_depth, self.max_states, self.node_type_ratio, self.seed
-            )
+        for i in range(self.globals.branching_factor):
+            child_id = self.hasher.next_int() % self.globals.max_states
+            child: StateNode = StateNode(child_id, self.globals)
             child.parent = self
             child.depth = self.depth + 1
             child.player = Player(-self.player.value)
             child.node_type = NodeType.CHOICE if \
-                self.hasher.next_uniform() < self.node_type_ratio else NodeType.FORCED
+                self.hasher.next_uniform() < self.globals.node_type_ratio else NodeType.FORCED
             if child.id not in [child.id for child in self.children]:
                 new_children.append(child)
         
@@ -70,9 +60,9 @@ class StateNode():
             for child in new_children:
                 child.value = self.value
         else:
-            random_child_idx = int(self.hasher.next_uniform() * self.branching_factor)
+            random_child_idx = int(self.hasher.next_uniform() * self.globals.branching_factor)
             new_children[random_child_idx].value = self.value
-            for i in range(self.branching_factor):
+            for i in range(self.globals.branching_factor):
                 if i == random_child_idx:
                     continue
                 # assumes values have an even chance of being -1 or 1

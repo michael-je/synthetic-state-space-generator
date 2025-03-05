@@ -8,14 +8,16 @@ class State():
     """Wrapper class for state nodes. Should be used as the main API."""
     def __init__(self, branching_factor: int, max_depth: int, max_states: int=TMAX_32BIT,
                  node_type_ratio: float=0.5, seed: int=0, retain_tree: bool=False):
-        self.branching_factor = branching_factor
-        self.max_depth = max_depth
-        self.max_states = max_states # maximum number of different states
-        self.seed = seed
-        self.node_type_ratio = node_type_ratio # choice / forced
-        self.retain_tree = retain_tree
+        self.globals = GlobalParameters(
+            branching_factor = branching_factor,
+            max_depth = max_depth,
+            max_states = max_states, # maximum number of different states,
+            seed = seed,
+            node_type_ratio = node_type_ratio, # choice / forced,
+            retain_tree = retain_tree,
+        )
         
-        self._current = StateNode(0, branching_factor, max_depth, max_states, node_type_ratio, seed)
+        self._current = StateNode(0, self.globals)
         self._root = self._current
         self._current.parent = None
         self._current.value = 1
@@ -23,7 +25,7 @@ class State():
         self._current.player = Player.MAX
         self._current.node_type = NodeType.CHOICE
         
-        self.hasher = RNGHasher(seed_int=self.seed)
+        self.hasher = RNGHasher(seed_int=self.globals.seed)
 
     def is_terminal(self) -> bool:
         """Return true if the state is a terminal."""
@@ -45,19 +47,19 @@ class State():
         """Transition to the next state via action i."""
         self._current.generate_children()
         self._current = self._current.children[i]
-        if not self.retain_tree:
+        if not self.globals.retain_tree:
             self._current.parent.children = [self._current]
         return self
     
     def make_random(self):
         """Take a deterministic pseudo-random choice."""
-        self.make(int(self.hasher.next_uniform() * self.branching_factor))
+        self.make(int(self.hasher.next_uniform() * self.globals.branching_factor))
         return self
 
     def undo(self):
         """Move back to previous state."""
         self._current = self._current.parent
-        if not self.retain_tree:
+        if not self.globals.retain_tree:
             self._current.reset() # release memory as we climb back up the tree
         return self
 
@@ -77,7 +79,7 @@ class State():
         
         graph = Digraph(format="png")
         draw_tree_recur(graph, self._root)
-        graph.render(f"trees/tree_seed_{self.seed}" , view=True)  
+        graph.render(f"trees/tree_seed_{self.globals.seed}" , view=True)  
     
     def __str__(self):
         return self._current.__str__()
