@@ -6,15 +6,16 @@ from utils import *
 
 class State():
     """Wrapper class for state nodes. Should be used as the main API."""
-    def __init__(self, branching_factor: int, max_depth: int,
+    def __init__(self, branching_function: int, max_depth: int,
                  node_type_ratio: float=0.5, seed: int=0, retain_tree: bool=False):
-        self.branching_factor = branching_factor
+        self.branching_function = branching_function
         self.max_depth = max_depth
         self.seed = seed
         self.node_type_ratio = node_type_ratio # choice / forced
         self.retain_tree = retain_tree
         
-        self._current = StateNode(branching_factor, max_depth, node_type_ratio, seed)
+        self._current = StateNode(branching_function, branching_function(0), max_depth, node_type_ratio, seed)
+
         self._root = self._current
         self._current.parent = None
         self._current.value = 1
@@ -51,7 +52,7 @@ class State():
     
     def make_random(self):
         """Take a deterministic pseudo-random choice."""
-        self.make(int(self.hasher.next_random() * self.branching_factor))
+        self.make(int(self.hasher.next_random() * self._current.branching_factor))
         return self
 
     def undo(self):

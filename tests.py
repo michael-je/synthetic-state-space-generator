@@ -71,6 +71,10 @@ def test_deterministic(b, d):
 
 def test_deterministic_graph(seed: int=0, retain_tree: bool=True):
     b = 5
+    
+    def b(x):
+        return 5
+    
     d = 15
     state = State(b, d, seed=seed, retain_tree=retain_tree)
     while not state.is_terminal():
@@ -92,4 +96,43 @@ def test_random_graph(retain_tree: bool=True):
         while random.random() < 0.6 and not state.is_terminal():
             state.make(random.randint(0, b-1))
             state._current.generate_children()
+    state.draw_tree()
+
+
+
+
+def test_hrafn(retain_tree: bool = True):
+    """
+    Test function for the Hrafn state tree.
+    
+    - Uses a predefined branching function.
+    - Creates a State object and iterates through actions multiple times.
+    - Draws the final state tree.
+    """
+
+    def branching_function(x):
+        """Exponential branching function."""
+        return 2 ** (x + 1)
+
+    def branching_function_2(x):
+        """Return a predefined branching value based on input x."""
+        values = {0: 1, 1: 2, 2: 3, 3: 4, 4: 3, 5: 2, 6: 1}
+        return values.get(x, None)  # Returns None if x is not in the dictionary
+    
+    def branching_function_3(x):
+        """Return a random number between 1 and 3."""
+        return random.randint(1, 3)
+
+    # Initialize state with a depth of 10
+    depth = 10
+    state = State(branching_function, depth, retain_tree=retain_tree)
+
+    # Perform multiple state transitions using random choices
+    num_iterations = 7  # Adjust as needed
+    for _ in range(num_iterations):
+        actions = state.actions()
+        if actions:  # Ensure there are valid actions available
+            state.make(random.choice(actions))
+
+    # Draw the final tree structure
     state.draw_tree()

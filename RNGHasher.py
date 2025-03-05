@@ -21,6 +21,11 @@ class RNGHasher():
         self._times_hashed += 1
         return self.uniform_hash(hash_input)
     
+
+    def next_gaussian(self, mean=0, std_dev=1):
+        """Generate a normally distributed value using random.gauss()."""
+        return 0 #random.gauss(mean, std_dev)
+    
     def reset(self):
         """Reset the RNG."""
         self._times_hashed = 0

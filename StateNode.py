@@ -3,9 +3,10 @@ from RNGHasher import RNGHasher
 
 
 class StateNode():
-    def __init__(self, branching_factor: int, max_depth: int,
+    def __init__(self, branching_fuction, branching_factor: int, max_depth: int,
                  node_type_ratio: float=0.5, seed: int=0, retain_tree: int=False):
         # globals
+        self.branching_function = branching_fuction
         self.branching_factor: int = branching_factor
         self.max_depth: int = max_depth
         self.seed = seed
@@ -34,7 +35,7 @@ class StateNode():
     def actions(self) -> list[int]:
         """Return values of children."""
         self.generate_children()
-        return [child.value for child in self.children]
+        return list(range(len(self.children)))
     
     def reset(self):
         """Reset state to before an action on it was taken."""
@@ -57,7 +58,7 @@ class StateNode():
         new_children: list["StateNode"] = []
         for i in range(self.branching_factor):
             child: StateNode = StateNode(
-                self.branching_factor, self.max_depth, self.node_type_ratio, self.seed
+                self.branching_function, self.branching_function(self.depth), self.max_depth, self.node_type_ratio, self.seed
             )
             child.parent = self
             child.set_id(i)
