@@ -4,13 +4,14 @@ from RNGHasher import RNGHasher
 
 class StateNode():
     def __init__(self, nodeid: int, globals: GlobalParameters,
-                 node_type: NodeType=None, value: int=0, parent: "StateNode"=None, 
-                 depth: int=None, player: Player=None):
+                 node_type: NodeType|None=None, value: int=0, parent: "StateNode|None"=None, 
+                 depth: int|None=None, player: Player|None=None):
         self.id = nodeid
         self.globals = globals
         self.node_type = node_type
         self.value = value
         self.parent = parent
+        self.depth = depth
         self.player = player
         
         if depth is None:
@@ -44,7 +45,7 @@ class StateNode():
         self.hasher.reset()
         return self
 
-    def generate_children(self) -> None:
+    def generate_children(self):
         """Generate child states."""
         if self.is_terminal():
             return

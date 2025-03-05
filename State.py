@@ -6,8 +6,9 @@ from utils import *
 
 class State():
     """Wrapper class for state nodes. Should be used as the main API."""
-    def __init__(self, max_depth: int, branching_function: Callable[[int, float], int]=None, max_states: int=TMAX_32BIT,
-                 node_type_ratio: float=0.5, seed: int=0, retain_tree: bool=False):
+    def __init__(self, max_depth: int, branching_function: Callable[[int, float], int]|None=None, 
+                 max_states: int=TMAX_32BIT, node_type_ratio: float=0.5, seed: int=0, 
+                 retain_tree: bool=False):
         if branching_function is None:
             branching_function = lambda depth, rand: 2 # binary tree by default
         self.globals = GlobalParameters(
@@ -19,7 +20,7 @@ class State():
             retain_tree = retain_tree,
         )
         
-        self._current = StateNode(0, self.globals)
+        self._current: StateNode = StateNode(0, self.globals)
         self._root = self._current
         self._current.parent = None
         self._current.value = 1
@@ -49,7 +50,7 @@ class State():
         """Transition to the next state via action idx."""
         self._current.generate_children()
         self._current = self._current.children[idx]
-        if not self.globals.retain_tree:
+        if not self.globals.retain_tree and not self.is_root():
             self._current.parent.children = [self._current]
         return self
     
@@ -62,6 +63,8 @@ class State():
 
     def undo(self):
         """Move back to previous state."""
+        if self._current.parent is None:
+            return self
         self._current = self._current.parent
         if not self.globals.retain_tree:
             self._current.reset() # release memory as we climb back up the tree
@@ -69,7 +72,7 @@ class State():
 
     def draw_tree(self):
         """Draw the current node tree. Best used when retaining the tree."""
-        visited = set()
+        visited: set[tuple[int, int]] = set()
         def draw_tree_recur(graph: Digraph, node: StateNode):
             graph.node(name=str(node.id))
             if node.is_terminal():
