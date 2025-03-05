@@ -1,4 +1,5 @@
 from enum import Enum
+from collections.abc import Callable
 from dataclasses import dataclass
 
 TMAX_32BIT = 2**32 - 1
@@ -13,7 +14,7 @@ class Player(Enum):
 
 @dataclass
 class GlobalParameters:
-    branching_factor: int
+    branching_function: Callable[[int, float], int]
     max_depth: int
     max_states: int
     node_type_ratio: float

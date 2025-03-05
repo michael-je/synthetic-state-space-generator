@@ -6,10 +6,12 @@ from utils import *
 
 class State():
     """Wrapper class for state nodes. Should be used as the main API."""
-    def __init__(self, branching_factor: int, max_depth: int, max_states: int=TMAX_32BIT,
+    def __init__(self, max_depth: int, branching_function: Callable[[int, float], int]=None, max_states: int=TMAX_32BIT,
                  node_type_ratio: float=0.5, seed: int=0, retain_tree: bool=False):
+        if branching_function is None:
+            branching_function = lambda depth, rand: 2 # binary tree by default
         self.globals = GlobalParameters(
-            branching_factor = branching_factor,
+            branching_function = branching_function,
             max_depth = max_depth,
             max_states = max_states, # maximum number of different states,
             seed = seed,
@@ -35,25 +37,27 @@ class State():
         """Return true if the state is the root."""
         return self._current.is_root()
 
-    def id(self):
+    def id(self) -> int:
         """Return the id of the current state."""
         return self._current.id
 
     def actions(self):
-        """Return values of the current state's children."""
+        """Return indices of the current state's children."""
         return self._current.actions()
 
-    def make(self, i: int):
-        """Transition to the next state via action i."""
+    def make(self, idx: int):
+        """Transition to the next state via action idx."""
         self._current.generate_children()
-        self._current = self._current.children[i]
+        self._current = self._current.children[idx]
         if not self.globals.retain_tree:
             self._current.parent.children = [self._current]
         return self
     
     def make_random(self):
         """Take a deterministic pseudo-random choice."""
-        self.make(int(self.hasher.next_uniform() * self.globals.branching_factor))
+        actions = self.actions()
+        i = int(self.hasher.next_uniform() * len(actions))
+        self.make(actions[i])
         return self
 
     def undo(self):
