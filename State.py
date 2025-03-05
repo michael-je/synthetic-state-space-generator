@@ -6,19 +6,19 @@ from utils import *
 
 class State():
     """Wrapper class for state nodes. Should be used as the main API."""
-    def __init__(self, branching_factor: int, max_depth: int,
+    def __init__(self, branching_factor: int, max_depth: int, max_states: int=TMAX_32BIT,
                  node_type_ratio: float=0.5, seed: int=0, retain_tree: bool=False):
         self.branching_factor = branching_factor
         self.max_depth = max_depth
+        self.max_states = max_states # maximum number of different states
         self.seed = seed
         self.node_type_ratio = node_type_ratio # choice / forced
         self.retain_tree = retain_tree
         
-        self._current = StateNode(branching_factor, max_depth, node_type_ratio, seed)
+        self._current = StateNode(0, branching_factor, max_depth, max_states, node_type_ratio, seed)
         self._root = self._current
         self._current.parent = None
         self._current.value = 1
-        self._current.id = '0'
         self._current.depth = 0
         self._current.player = Player.MAX
         self._current.node_type = NodeType.CHOICE
@@ -51,7 +51,7 @@ class State():
     
     def make_random(self):
         """Take a deterministic pseudo-random choice."""
-        self.make(int(self.hasher.next_random() * self.branching_factor))
+        self.make(int(self.hasher.next_uniform() * self.branching_factor))
         return self
 
     def undo(self):
@@ -63,12 +63,16 @@ class State():
 
     def draw_tree(self):
         """Draw the current node tree. Best used when retaining the tree."""
+        visited = set()
         def draw_tree_recur(graph: Digraph, node: StateNode):
-            graph.node(name=node.id, label=node.id.split('.')[-1])
+            graph.node(name=str(node.id))
             if node.is_terminal():
                 return
             for child in node.children:
-                graph.edge(node.id, child.id)
+                edge = (node.id, child.id)
+                if edge not in visited:
+                    visited.add(edge)
+                    graph.edge(str(node.id), str(child.id))
                 draw_tree_recur(graph, child)
         
         graph = Digraph(format="png")

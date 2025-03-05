@@ -4,22 +4,25 @@ from utils import TMAX_32BIT
 
 class RNGHasher():
     """Deterministic random number generator. Outputs uniform values from given input"""
-    def __init__(self, seed_str: str='', seed_int: int=0):
-        self.seed_str = seed_str
+    def __init__(self, nodeid: int=0, seed_int: int=0):
+        self.nodeid = nodeid
         self.seed_int = seed_int
         self._times_hashed: int = 0
     
-    def uniform_hash(self, input: str) -> float:
-        """Return a uniformly distributed value based on the input string and global 
-        seed."""
-        hash_32bit = mmh3.hash(input, seed=self.seed_int, signed=False)
-        return hash_32bit / TMAX_32BIT
-    
-    def next_random(self):
-        """Uniform pseudo-RNG function that retains determinism."""
-        hash_input = f"{self.seed_str}+{self._times_hashed}"
+    def hash(self) -> float:
+        """Return a pseudo random integer value based on the nodeid and global seed."""
+        hash_input = f"{self.nodeid}+{self._times_hashed}"
+        hash_32bit = mmh3.hash(hash_input, seed=self.seed_int, signed=False)
         self._times_hashed += 1
-        return self.uniform_hash(hash_input)
+        return hash_32bit
+    
+    def next_uniform(self):
+        """Return a uniform pseudo-random value."""
+        return self.hash() / TMAX_32BIT
+    
+    def next_int(self):
+        """Return a pseudo-random integer."""
+        return self.hash()
     
     def reset(self):
         """Reset the RNG."""

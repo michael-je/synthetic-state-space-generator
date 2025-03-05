@@ -18,7 +18,7 @@ def test_hash_average(n_trials):
     seed = random.randint(1, 10000000)
     hasher = RNGHasher(seed_int=seed)
     for i in range(1, n_trials+1):
-        tot += hasher.next_random()
+        tot += hasher.next_uniform()
     print("test_hash_average:", tot/n_trials)
 
 
@@ -71,12 +71,12 @@ def test_deterministic(b, d):
 
 def test_deterministic_graph(seed: int=0, retain_tree: bool=True):
     b = 5
-    d = 15
-    state = State(b, d, seed=seed, retain_tree=retain_tree)
+    d = 20
+    state = State(b, d, seed=seed, retain_tree=retain_tree, max_states=20)
     while not state.is_terminal():
-        while state.hasher.next_random() < 0.5 and not state.is_root():
+        while state.hasher.next_uniform() < 0.5 and not state.is_root():
             state.undo()
-        while state.hasher.next_random() < 0.6 and not state.is_terminal():
+        while state.hasher.next_uniform() < 0.6 and not state.is_terminal():
             state.make_random()
             state._current.generate_children()
     state.draw_tree()
