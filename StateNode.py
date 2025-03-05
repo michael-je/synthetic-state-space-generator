@@ -51,9 +51,9 @@ class StateNode():
     def generate_children(self) -> None:
         """Generate child states."""
         if self.is_terminal():
-            return
+            return self
         if self.children:
-            return
+            return self
         new_children: list["StateNode"] = []
         for i in range(self.branching_factor):
             child: StateNode = StateNode(
