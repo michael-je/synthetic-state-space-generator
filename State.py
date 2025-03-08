@@ -8,29 +8,31 @@ from utils import *
 
 class State():
     """Wrapper class for state nodes. Should be used as the main API."""
-    def __init__(self, max_depth: int, branching_function: Callable[[int, float], int]|None=None, 
-                 max_states: int=TMAX_32BIT, node_type_ratio: float=0.5, seed: int=0, 
+    def __init__(self, max_depth: int,
+                 branching_function: Callable[[int, float], int]=default_branching_function, 
+                 value_function: Callable[[int, float], int]=default_value_function, 
+                 transition_function: Callable[[int, int], int]=default_transition_function,
+                 max_states: int=TMAX_32BIT, 
+                 seed: int=0, 
                  retain_tree: bool=False):
-        if branching_function is None:
-            branching_function = lambda depth, rand: 2 # binary tree by default
+        
         self.globals = GlobalParameters(
             branching_function = branching_function,
+            value_function = value_function,
+            transition_function = transition_function,
             max_depth = max_depth,
             max_states = max_states, # maximum number of different states,
             seed = seed,
-            node_type_ratio = node_type_ratio, # choice / forced,
             retain_tree = retain_tree,
         )
         
         self._current: StateNode = StateNode(0, self.globals)
         self._root = self._current
         self._current.parent = None
-        self._current.value = 1
         self._current.depth = 0
         self._current.player = Player.MAX
-        self._current.node_type = NodeType.CHOICE
         
-        self.hasher = RNGHasher(seed_int=self.globals.seed)
+        self._RNG = RNGHasher(seed_int=self.globals.seed)
 
     def is_terminal(self) -> bool:
         """Return true if the state is a terminal."""
@@ -51,15 +53,15 @@ class State():
     def make(self, idx: int) -> Self:
         """Transition to the next state via action idx."""
         self._current.generate_children()
-        self._current = self._current.children[idx]
+        self._current = self._current._children[idx]
         if not self.globals.retain_tree and not self.is_root():
-            self._current.parent.children = [self._current]
+            self._current.parent._children = [self._current]
         return self
     
     def make_random(self) -> Self:
         """Take a deterministic pseudo-random choice."""
         actions = self.actions()
-        i = int(self.hasher.next_uniform() * len(actions))
+        i = int(self._RNG.next_uniform() * len(actions))
         self.make(actions[i])
         return self
 
@@ -79,7 +81,7 @@ class State():
             graph.node(name=str(node.id))
             if node.is_terminal():
                 return
-            for child in node.children:
+            for child in node._children:
                 edge = (node.id, child.id)
                 if edge not in visited:
                     visited.add(edge)
