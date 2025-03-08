@@ -46,9 +46,12 @@ class State():
         """Return the id of the current state."""
         return self._current.id
 
-    def actions(self):
+    def actions(self) -> list[int]:
         """Return indices of the current state's children."""
         return self._current.actions()
+    
+    def value(self) -> int:
+        return self._current.value()
 
     def make(self, idx: int) -> Self:
         """Transition to the next state via action idx."""

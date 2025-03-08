@@ -36,7 +36,7 @@ class StateNode():
     
     def is_root(self) -> bool:
         """Return true if the state is the root."""
-        return self.move_number == 0
+        return self.parent is None
 
     def actions(self) -> list[int]:
         """Return indices of children."""
