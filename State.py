@@ -1,4 +1,6 @@
 from graphviz import Digraph
+from typing import Self
+
 from StateNode import StateNode
 from RNGHasher import RNGHasher
 from utils import *
@@ -46,7 +48,7 @@ class State():
         """Return indices of the current state's children."""
         return self._current.actions()
 
-    def make(self, idx: int):
+    def make(self, idx: int) -> Self:
         """Transition to the next state via action idx."""
         self._current.generate_children()
         self._current = self._current.children[idx]
@@ -54,14 +56,14 @@ class State():
             self._current.parent.children = [self._current]
         return self
     
-    def make_random(self):
+    def make_random(self) -> Self:
         """Take a deterministic pseudo-random choice."""
         actions = self.actions()
         i = int(self.hasher.next_uniform() * len(actions))
         self.make(actions[i])
         return self
 
-    def undo(self):
+    def undo(self) -> Self:
         """Move back to previous state."""
         if self._current.parent is None:
             return self
@@ -70,7 +72,7 @@ class State():
             self._current.reset() # release memory as we climb back up the tree
         return self
 
-    def draw_tree(self):
+    def draw_tree(self) -> None:
         """Draw the current node tree. Best used when retaining the tree."""
         visited: set[tuple[int, int]] = set()
         def draw_tree_recur(graph: Digraph, node: StateNode):
@@ -88,8 +90,8 @@ class State():
         draw_tree_recur(graph, self._root)
         graph.render(f"trees/tree_seed_{self.globals.seed}" , view=True)  
     
-    def __str__(self):
+    def __str__(self) -> str:
         return self._current.__str__()
     
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self._current.__repr__()

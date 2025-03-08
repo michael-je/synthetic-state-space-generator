@@ -1,3 +1,5 @@
+from typing import Self
+
 from utils import *
 from RNGHasher import RNGHasher
 
@@ -23,7 +25,7 @@ class StateNode():
         self.hasher = RNGHasher(self.id, self.globals.seed)
         self.branching_factor = self.globals.branching_function(self.depth, self.hasher.next_uniform())
     
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"id:{self.id}, depth:{self.depth}, children:{len(self.children)}"
 
     def is_terminal(self) -> bool:
@@ -39,18 +41,18 @@ class StateNode():
         self.generate_children()
         return list(range(len(self.children)))
     
-    def reset(self):
+    def reset(self) -> Self:
         """Reset state to before an action on it was taken."""
         self.children = []
         self.hasher.reset()
         return self
 
-    def generate_children(self):
+    def generate_children(self) -> Self:
         """Generate child states."""
         if self.is_terminal():
-            return
+            return self
         if self.children:
-            return
+            return self
         new_children: list["StateNode"] = []
         for i in range(self.branching_factor):
             child_id = self.hasher.next_int() % self.globals.max_states
