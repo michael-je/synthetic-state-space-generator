@@ -6,37 +6,37 @@ from RNGHasher import RNGHasher
 
 class StateNode():
     def __init__(self, nodeid: int, globals: GlobalParameters, parent: "StateNode|None"=None, 
-                 depth: int|None=None, player: Player|None=None):
+                 move_number: int|None=None, player: Player|None=None):
         self.id = nodeid
         self.globals = globals
         self.parent = parent
-        self.depth = depth
+        self.move_number = move_number
         self.player = player
         
-        if depth is None:
-            self.depth = self.parent.depth + 1 if self.parent else 0
+        if move_number is None:
+            self.move_number = self.parent.move_number + 1 if self.parent else 0
         if player is None:
             self.player = Player(-self.parent.player.value) if self.parent else Player.MAX
         
         self._children: list["StateNode"] = []
         self._RNG = RNGHasher(self.id, self.globals.seed)
-        self._branching_factor = self.globals.branching_function(self.depth, self._RNG.next_uniform())
+        self._branching_factor = self.globals.branching_function(self.move_number, self._RNG.next_uniform())
         parent_value = 1 if self.parent is None else self.parent.value() # set root value to 1 by default
         self._value = self.globals.value_function(parent_value, self._RNG.next_uniform())
     
     def __repr__(self) -> str:
-        return f"id:{self.id}, depth:{self.depth}, children:{len(self._children)}"
+        return f"id:{self.id}, depth:{self.move_number}, children:{len(self._children)}"
     
     def _generate_child_id(self) -> int:
-        return self.globals.transition_function(self._RNG.next_int(), self.globals.max_states)
+        return self.globals.transition_function(self.move_number, self._RNG.next_int(), self.globals.max_states, self.globals.max_depth)
 
     def is_terminal(self) -> bool:
         """Return true if the state is a terminal."""
-        return self.depth == self.globals.max_depth or self.branching_factor() < 1
+        return self.move_number == self.globals.max_depth or self.branching_factor() < 1
     
     def is_root(self) -> bool:
         """Return true if the state is the root."""
-        return self.depth == 0
+        return self.move_number == 0
 
     def actions(self) -> list[int]:
         """Return indices of children."""

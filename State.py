@@ -11,7 +11,7 @@ class State():
     def __init__(self, max_depth: int,
                  branching_function: Callable[[int, float], int]=default_branching_function, 
                  value_function: Callable[[int, float], int]=default_value_function, 
-                 transition_function: Callable[[int, int], int]=default_transition_function,
+                 transition_function: Callable[[int, int, int, int], int]=default_transition_function,
                  max_states: int=TMAX_32BIT, 
                  seed: int=0, 
                  retain_tree: bool=False):
@@ -29,7 +29,7 @@ class State():
         self._current: StateNode = StateNode(0, self.globals)
         self._root = self._current
         self._current.parent = None
-        self._current.depth = 0
+        self._current.move_number = 0
         self._current.player = Player.MAX
         
         self._RNG = RNGHasher(seed_int=self.globals.seed)
