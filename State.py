@@ -29,7 +29,7 @@ class State():
         self._current: StateNode = StateNode(0, self.globals)
         self._root = self._current
         self._current.parent = None
-        self._current.move_number = 0
+        self._current.move_number = [0]
         self._current.player = Player.MAX
         
         self._RNG = RNGHasher(seed_int=self.globals.seed)

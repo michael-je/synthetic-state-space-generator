@@ -52,3 +52,8 @@ def uniformly_binned_transitions_with_cycles(current_move_number: int, randint: 
     child_id = randint % binsize
     child_id += child_bin_start
     return child_id
+
+def uniformaly_id_to_move_number(id: int, max_states: int, max_depth: int):
+    binsize = max_states // max_depth
+    bucket_nr = id // binsize
+    return bucket_nr + 1
