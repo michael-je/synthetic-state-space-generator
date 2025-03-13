@@ -73,8 +73,9 @@ def test_deterministic(b, d):
 def test_deterministic_graph(seed: int=0, retain_tree: bool=True):
     md = 15
     ms = md*10
-    # state = State(max_depth=d, branching_function=lambda x, y: int(y*5), seed=seed, retain_tree=retain_tree, max_states=10000000)
-    state = State(seed=1, max_depth=md, max_states=ms, branching_function=lambda x, y: 1+int(y*5), retain_tree=True, transition_function=utils.uniformly_binned_transitions_with_cycles)
+    state = State(max_depth=100, branching_function=lambda x, y: int(y*5), seed=seed, retain_tree=retain_tree, max_states=10000)
+    # state = State(seed=1, max_depth=md, max_states=ms, branching_function=lambda x, y: 1+int(y*5), retain_tree=True, transition_function=utils.uniformly_binned_transitions_with_cycles)
+    # state = State(seed=1, max_depth=20, max_states=20, branching_function=lambda x, y: 50, retain_tree=True, transition_function=utils.uniformly_binned_transitions_with_cycles)
     while state._current.move_number < md:
         while state._RNG.next_uniform() < 0.7 and not state.is_root():
             state.undo()
