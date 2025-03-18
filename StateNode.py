@@ -5,34 +5,46 @@ from RNGHasher import RNGHasher
 
 
 class StateNode():
-    def __init__(self, nodeid: int, globals: GlobalParameters, parent: "StateNode|None"=None, 
-                 move_number: int|None=None, player: Player|None=None):
-        self.id = nodeid
+    def __init__(self, stateid: int,
+                 value: int,
+                 depth: int,
+                 globals: GlobalParameters, 
+                 parent: "StateNode|None"=None):
+        self.id: int = stateid
+        self._branching_factor: int|None = None
+        self.value = value
+        self.depth = depth
         self.globals = globals
         self.parent = parent
-        self.move_number = move_number
-        self.player = player
         
-        if move_number is None:
-            self.move_number = self.parent.move_number + 1 if self.parent else 0
-        if player is None:
-            self.player = Player(-self.parent.player.value) if self.parent else Player.MAX
-        
-        self._children: list["StateNode"] = []
-        self._RNG = RNGHasher(self.id, self.globals.seed)
-        self._branching_factor = self.globals.branching_function(self.move_number, self._RNG.next_uniform())
-        parent_value = 1 if self.parent is None else self.parent.value() # set root value to 1 by default
-        self._value = self.globals.value_function(parent_value, self._RNG.next_uniform())
+        self.children: list["StateNode"] = []
+        self._RNG: RNGHasher = RNGHasher(self.id, self.globals.seed)
     
+    def __str__(self) -> str:
+        random_id_bits_mask = (1 << (ID_BITS_SIZE - self.globals.id_depth_bits_size)) - 1
+        return f"{self.depth}-{self.id & random_id_bits_mask}"
+
     def __repr__(self) -> str:
-        return f"id:{self.id}, depth:{self.move_number}, children:{len(self._children)}"
+        return str(self)
+    
+    def kill_siblings(self) -> None:
+        """Deallocate sibling memory."""
+        if self.parent is None:
+            return # in case we are root
+        self.parent.children = [self]
     
     def _generate_child_id(self) -> int:
-        return self.globals.transition_function(self.move_number, self._RNG.next_int(), self.globals.max_states, self.globals.max_depth)
+        """Generate a child id using values for depth and random bits."""
+        if self.depth >= (1 << self.globals.id_depth_bits_size):
+            raise IdOverflow(f"Depth {self.depth} too large for {self.globals.id_depth_bits_size} bits")
+        child_depth = self.depth + 1
+        depth_bits = child_depth << ((ID_BITS_SIZE) - self.globals.id_depth_bits_size)
+        random_bits = self._RNG.next_int() % self.globals.transposition_space_map[child_depth]
+        return depth_bits | random_bits
 
     def is_terminal(self) -> bool:
         """Return true if the state is a terminal."""
-        return self.move_number == self.globals.max_depth or self.branching_factor() < 1
+        return self.depth == self.globals.max_depth or self.branching_factor() < 1
     
     def is_root(self) -> bool:
         """Return true if the state is the root."""
@@ -41,31 +53,33 @@ class StateNode():
     def actions(self) -> list[int]:
         """Return indices of children."""
         self.generate_children()
-        return list(range(len(self._children)))
+        return list(range(len(self.children)))
     
     def reset(self) -> Self:
         """Reset state to before an action on it was taken."""
-        self._children = []
+        self.children = []
         self._RNG.reset()
         return self
     
     def branching_factor(self) -> int:
+        """Get or set branching factor."""
+        if self._branching_factor is None:
+            self._branching_factor = self.globals.branching_function(self.depth, self._RNG.next_uniform())
         return self._branching_factor
-    
-    def value(self) -> int:
-        return self._value
 
     def generate_children(self) -> Self:
         """Generate child states."""
         if self.is_terminal():
             return self
-        if self._children:
+        if self.children:
             return self
         
         new_children: list["StateNode"] = []
         for _ in range(self.branching_factor()):
             child_id = self._generate_child_id()
-            new_child = StateNode(nodeid=child_id, globals=self.globals, parent=self)
+            child_value = self.globals.child_value_function(self.value, self._RNG.next_uniform())
+            child_depth = self.globals.child_depth_function(self.depth, self._RNG.next_int())
+            new_child = StateNode(stateid=child_id, value=child_value, depth=child_depth, globals=self.globals, parent=self)
             new_children.append(new_child)
-        self._children = new_children
+        self.children = new_children
         return self

@@ -17,7 +17,7 @@ def compare_representatives(state1: State, state2: State):
 def test_hash_average(n_trials):
     tot = 0
     seed = random.randint(1, 10000000)
-    hasher = RNGHasher(seed_int=seed)
+    hasher = RNGHasher(seed=seed)
     for i in range(1, n_trials+1):
         tot += hasher.next_uniform()
     print("test_hash_average:", tot/n_trials)
@@ -73,16 +73,20 @@ def test_deterministic(b, d):
 def test_deterministic_graph(seed: int=0, retain_tree: bool=True):
     md = 15
     ms = md*10
-    state = State(max_depth=100, branching_function=lambda x, y: int(y*5), seed=seed, retain_tree=retain_tree, max_states=10000)
+    # state = State(max_depth=100, branching_function=lambda x, y: int(y*5), seed=seed, retain_tree=retain_tree, max_states=10000)
     # state = State(seed=1, max_depth=md, max_states=ms, branching_function=lambda x, y: 1+int(y*5), retain_tree=True, transition_function=utils.uniformly_binned_transitions_with_cycles)
-    # state = State(seed=1, max_depth=20, max_states=20, branching_function=lambda x, y: 50, retain_tree=True, transition_function=utils.uniformly_binned_transitions_with_cycles)
-    while state._current.move_number < md:
-        while state._RNG.next_uniform() < 0.7 and not state.is_root():
-            state.undo()
-        while state._RNG.next_uniform() < 0.6 and not state.is_terminal():
-            state.make_random()
-            state._current.generate_children()
-    state.draw_tree()
+    state = State(seed=0, max_depth=20, retain_tree=True)
+    try:
+        while state._current.depth < md:
+            while state._RNG.next_uniform() < 0.7 and not state.is_root():
+                state.undo()
+            while state._RNG.next_uniform() < 0.6 and not state.is_terminal():
+                state.make_random()
+                state._current.generate_children()
+    except KeyboardInterrupt:
+        pass
+    finally:
+        state.draw_tree()
 
 
 def test_random_graph(retain_tree: bool=True):
@@ -95,4 +99,12 @@ def test_random_graph(retain_tree: bool=True):
         while random.random() < 0.6 and not state.is_terminal():
             state.make(random.randint(0, b-1))
             state._current.generate_children()
+    state.draw_tree()
+
+
+def test_ids(seed: int=0):
+    state=State(seed=random.randint(0, 100), retain_tree=True)
+    for _ in range(40):
+        state.make_random()
+        print(state)
     state.draw_tree()

@@ -8,61 +8,76 @@ from utils import *
 
 class State():
     """Wrapper class for state nodes. Should be used as the main API."""
-    def __init__(self, max_depth: int,
+    def __init__(self,
+                 max_depth: int=2**8-1,
+                 root_value: int=1,
                  branching_function: Callable[[int, float], int]=default_branching_function, 
-                 value_function: Callable[[int, float], int]=default_value_function, 
-                 transition_function: Callable[[int, int, int, int], int]=default_transition_function,
-                 max_states: int=TMAX_32BIT, 
+                 child_value_function: Callable[[int, float], int]=default_child_value_function, 
+                 child_depth_function: Callable[[int, int], int]=default_child_depth_function,
+                 transposition_space_function: Callable[[int, float, int], dict[int, int]]=default_transposition_space_function,
                  seed: int=0, 
                  retain_tree: bool=False):
         
+        self._RNG = RNGHasher(seed=seed)
+        state_distribution_map = transposition_space_function(
+            self._RNG.next_int(), self._RNG.next_uniform(), max_depth)
+        id_depth_bits_size = bit_size(max_depth)
+        
         self.globals = GlobalParameters(
             branching_function = branching_function,
-            value_function = value_function,
-            transition_function = transition_function,
+            child_value_function = child_value_function,
+            child_depth_function = child_depth_function,
+            transposition_space_map=state_distribution_map,
             max_depth = max_depth,
-            max_states = max_states, # maximum number of different states,
+            id_depth_bits_size=id_depth_bits_size,
             seed = seed,
             retain_tree = retain_tree,
         )
-        
-        self._current: StateNode = StateNode(0, self.globals)
-        self._root = self._current
-        self._current.parent = None
-        self._current.move_number = 0
-        self._current.player = Player.MAX
-        
-        self._RNG = RNGHasher(seed_int=self.globals.seed)
+
+        self._root: StateNode = StateNode(stateid=0, value=root_value, depth=0, globals=self.globals, parent=None)
+        self._current: StateNode = self._root
+    
+    def __str__(self) -> str:
+        return str(self._current)
+    
+    def __repr__(self) -> str:
+        return self._current.__repr__()
 
     def is_terminal(self) -> bool:
         """Return true if the state is a terminal."""
         return self._current.is_terminal()
-
+    
     def is_root(self) -> bool:
         """Return true if the state is the root."""
         return self._current.is_root()
 
     def id(self) -> int:
         """Return the id of the current state."""
+        if self._current.id is None:
+            raise PropertyNotSet()
         return self._current.id
 
     def actions(self) -> list[int]:
-        """Return indices of the current state's children."""
+        """Return the current state's possible actions."""
         return self._current.actions()
     
     def value(self) -> int:
-        return self._current.value()
+        if self._current.value is None:
+            raise PropertyNotSet
+        return self._current.value
 
-    def make(self, idx: int) -> Self:
-        """Transition to the next state via action idx."""
+    def make(self, action: int) -> Self:
+        """Transition to the next state via action (represented as an index into the states children)."""
         self._current.generate_children()
-        self._current = self._current._children[idx]
-        if not self.globals.retain_tree and not self.is_root():
-            self._current.parent._children = [self._current]
+        self._current = self._current.children[action]
+        if not self.globals.retain_tree:
+            if self._current.parent is None:
+                raise RootHasNoParent() # can't happen, but suppresses type warning
+            self._current.parent.kill_siblings()
         return self
     
     def make_random(self) -> Self:
-        """Take a deterministic pseudo-random choice."""
+        """Make a random action."""
         actions = self.actions()
         i = int(self._RNG.next_uniform() * len(actions))
         self.make(actions[i])
@@ -71,7 +86,7 @@ class State():
     def undo(self) -> Self:
         """Move back to previous state."""
         if self._current.parent is None:
-            return self
+            raise RootHasNoParent()
         self._current = self._current.parent
         if not self.globals.retain_tree:
             self._current.reset() # release memory as we climb back up the tree
@@ -81,10 +96,10 @@ class State():
         """Draw the current node tree. Best used when retaining the tree."""
         visited: set[tuple[int, int]] = set()
         def draw_tree_recur(graph: Digraph, node: StateNode):
-            graph.node(name=str(node.id))
+            graph.node(name=str(node.id), label=str(node))
             if node.is_terminal():
                 return
-            for child in node._children:
+            for child in node.children:
                 edge = (node.id, child.id)
                 if edge not in visited:
                     visited.add(edge)
@@ -94,9 +109,3 @@ class State():
         graph = Digraph(format="png")
         draw_tree_recur(graph, self._root)
         graph.render(f"trees/tree_seed_{self.globals.seed}" , view=True)  
-    
-    def __str__(self) -> str:
-        return self._current.__str__()
-    
-    def __repr__(self) -> str:
-        return self._current.__repr__()
