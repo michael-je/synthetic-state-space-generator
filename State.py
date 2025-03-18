@@ -53,8 +53,6 @@ class State():
 
     def id(self) -> int:
         """Return the id of the current state."""
-        if self._current.id is None:
-            raise PropertyNotSet()
         return self._current.id
 
     def actions(self) -> list[int]:
@@ -62,8 +60,6 @@ class State():
         return self._current.actions()
     
     def value(self) -> int:
-        if self._current.value is None:
-            raise PropertyNotSet
         return self._current.value
 
     def make(self, action: int) -> Self:
