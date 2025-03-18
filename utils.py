@@ -26,7 +26,7 @@ RandomIntFunc = Callable[[], int]
 RandomFloatFunc = Callable[[], float]
 BranchingFunc = Callable[[RandomIntFunc, RandomFloatFunc, int], int]
 ChildValueFunc = Callable[[RandomIntFunc, RandomFloatFunc, int], int]
-ChildDepthFunc = Callable[[RandomIntFunc, RandomFloatFunc, int], int]
+ChildDepthFunc = Callable[[RandomIntFunc, RandomFloatFunc, int, int], int]
 TranspositionSpaceFunc = Callable[[RandomIntFunc, RandomFloatFunc, int], dict[int, int]]
 
 @dataclass
@@ -48,12 +48,6 @@ def bit_size(n: int) -> int:
         bits += 1
     return bits
 
-# TODO: refactor so that randint and randf are accessible, and the first arguments of every function here
-# TODO: maybe rather consider passing the RNG along with some exposed function, with a predetermined seed?
-# this way the functions can generate as many random variables as they need, and we wouldn't have to calculate
-# unnecessary and expensive uniform values, f.x -> after refactor to use single global hasher, pass
-# a wrapped hashing function so that the function correctly uses the stateId -> after refactoring the hashing
-# wrapper functions into state, just pass the state itself into the function
 # TODO re-implement logic of discarded transition functions
 def default_branching_function(randint: RandomIntFunc, randf: RandomFloatFunc, depth: int) -> int:
     """Generates a binary tree."""
@@ -63,13 +57,19 @@ def default_child_value_function(randint: RandomIntFunc, randf: RandomFloatFunc,
     """Randomly generate a value of either 0 or 1."""
     return int(randf() * 2)
 
-def default_child_depth_function(randint: RandomIntFunc, randf: RandomFloatFunc, parent_depth: int) -> int:
+def default_child_depth_function(randint: RandomIntFunc, randf: RandomFloatFunc, parent_depth: int, max_depth: int) -> int:
     """Ensures no cycles, and an even stride."""
     return parent_depth + 1
 
-# def default_transition_function(current_move_number: int, randint: int, max_states: int, max_depth: int) -> int:
-#     """Generate children anywhere in the entire state space."""
-#     return randint % max_states
+def child_depth_function_example_1(randint: RandomIntFunc, randf: RandomFloatFunc, parent_depth: int, max_depth: int) -> int:
+    """Generate children anywhere in the entire state space."""
+    return randint() % max_depth
+
+def child_depth_function_example_2(randint: RandomIntFunc, randf: RandomFloatFunc, parent_depth: int, max_depth: int) -> int:
+    """Generate children anywhere in the entire state space."""
+    if randf() < 0.3:
+        return max(1, parent_depth - 3)
+    return parent_depth + 1
 
 def default_transposition_space_function(randint: RandomIntFunc, randf: RandomFloatFunc, max_depth: int) -> dict[int, int]:
     """Maximum number of different states per depth, ensuring minimal transpositions."""

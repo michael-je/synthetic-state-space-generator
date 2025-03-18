@@ -19,9 +19,10 @@ class State():
                  retain_tree: bool=False):
         
         self._RNG = RNGHasher(seed=seed)
+        id_depth_bits_size = bit_size(max_depth)
         state_distribution_map = transposition_space_function(
             self._RNG.next_int, self._RNG.next_uniform, max_depth)
-        id_depth_bits_size = bit_size(max_depth)
+        # TODO: verify state space bits size
         
         self.globals = GlobalParameters(
             branching_function = branching_function,
@@ -34,7 +35,8 @@ class State():
             retain_tree = retain_tree,
         )
 
-        self._root: StateNode = StateNode(stateid=0, value=root_value, depth=0, globals=self.globals, parent=None)
+        self._root: StateNode = StateNode(
+            stateid=0, value=root_value, depth=0, globals=self.globals, parent=None)
         self._current: StateNode = self._root
     
     def __str__(self) -> str:
