@@ -1,3 +1,5 @@
+from typing import Callable
+
 from enum import Enum
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -19,11 +21,19 @@ class Player(Enum):
     MAX = 1
     MIN = -1
 
+
+RandomIntFunc = Callable[[], int]
+RandomFloatFunc = Callable[[], float]
+BranchingFunc = Callable[[RandomIntFunc, RandomFloatFunc, int], int]
+ChildValueFunc = Callable[[RandomIntFunc, RandomFloatFunc, int], int]
+ChildDepthFunc = Callable[[RandomIntFunc, RandomFloatFunc, int], int]
+TranspositionSpaceFunc = Callable[[RandomIntFunc, RandomFloatFunc, int], dict[int, int]]
+
 @dataclass
 class GlobalParameters:
-    branching_function: Callable[[int, float], int]
-    child_value_function: Callable[[int, float], int]
-    child_depth_function: Callable[[int, int], int]
+    branching_function: BranchingFunc
+    child_value_function: ChildValueFunc
+    child_depth_function: ChildDepthFunc
     transposition_space_map: dict[int, int]
     max_depth: int
     id_depth_bits_size: int
@@ -45,15 +55,15 @@ def bit_size(n: int) -> int:
 # a wrapped hashing function so that the function correctly uses the stateId -> after refactoring the hashing
 # wrapper functions into state, just pass the state itself into the function
 # TODO re-implement logic of discarded transition functions
-def default_branching_function(depth: int, randf: float) -> int:
+def default_branching_function(randint: RandomIntFunc, randf: RandomFloatFunc, depth: int) -> int:
     """Generates a binary tree."""
     return 2
 
-def default_child_value_function(parent_val: int, randf: float) -> int:
+def default_child_value_function(randint: RandomIntFunc, randf: RandomFloatFunc, parent_val: int) -> int:
     """Randomly generate a value of either 0 or 1."""
-    return int(randf * 2)
+    return int(randf() * 2)
 
-def default_child_depth_function(parent_depth:int, randint: int) -> int:
+def default_child_depth_function(randint: RandomIntFunc, randf: RandomFloatFunc, parent_depth: int) -> int:
     """Ensures no cycles, and an even stride."""
     return parent_depth + 1
 
@@ -61,13 +71,13 @@ def default_child_depth_function(parent_depth:int, randint: int) -> int:
 #     """Generate children anywhere in the entire state space."""
 #     return randint % max_states
 
-def default_transposition_space_function(randint: int, randf: float, max_depth: int) -> dict[int, int]:
+def default_transposition_space_function(randint: RandomIntFunc, randf: RandomFloatFunc, max_depth: int) -> dict[int, int]:
     """Maximum number of different states per depth, ensuring minimal transpositions."""
     max_states = 1 << (ID_BITS_SIZE - bit_size(max_depth))
     constant_states_per_depth = max_states // max_depth
     return {d: constant_states_per_depth for d in range(max_depth)}
 
-def transposition_space_function_example_1(randint: int, randf: float, max_depth: int) -> dict[int, int]:
+def transposition_space_function_example_1(randint: RandomIntFunc, randf: RandomFloatFunc, max_depth: int) -> dict[int, int]:
     """Example showing only 5 possible transpositions per depth."""
     constant_states_per_depth = 5
     return {d: constant_states_per_depth for d in range(max_depth)}

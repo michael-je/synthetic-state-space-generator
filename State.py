@@ -11,16 +11,16 @@ class State():
     def __init__(self,
                  max_depth: int=2**8-1,
                  root_value: int=1,
-                 branching_function: Callable[[int, float], int]=default_branching_function, 
-                 child_value_function: Callable[[int, float], int]=default_child_value_function, 
-                 child_depth_function: Callable[[int, int], int]=default_child_depth_function,
-                 transposition_space_function: Callable[[int, float, int], dict[int, int]]=default_transposition_space_function,
+                 branching_function: BranchingFunc=default_branching_function, 
+                 child_value_function: ChildValueFunc=default_child_value_function, 
+                 child_depth_function: ChildDepthFunc=default_child_depth_function,
+                 transposition_space_function: TranspositionSpaceFunc=default_transposition_space_function,
                  seed: int=0, 
                  retain_tree: bool=False):
         
         self._RNG = RNGHasher(seed=seed)
         state_distribution_map = transposition_space_function(
-            self._RNG.next_int(), self._RNG.next_uniform(), max_depth)
+            self._RNG.next_int, self._RNG.next_uniform, max_depth)
         id_depth_bits_size = bit_size(max_depth)
         
         self.globals = GlobalParameters(
