@@ -20,15 +20,18 @@ class State():
         
         self._RNG = RNGHasher(seed=seed)
         id_depth_bits_size = bit_size(max_depth)
-        state_distribution_map = transposition_space_function(
+        transposition_space_map = transposition_space_function(
             self._RNG.next_int, self._RNG.next_uniform, max_depth)
-        # TODO: verify state space bits size
+        # TODO: test
+        for depth in transposition_space_map:
+            if bit_size(transposition_space_map[depth]) > (ID_BITS_SIZE - id_depth_bits_size):
+                raise IdOverflow(f"Transposition space value {transposition_space_map[depth]} at depth {depth} too large.")
         
         self.globals = GlobalParameters(
             branching_function = branching_function,
             child_value_function = child_value_function,
             child_depth_function = child_depth_function,
-            transposition_space_map=state_distribution_map,
+            transposition_space_map=transposition_space_map,
             max_depth = max_depth,
             id_depth_bits_size=id_depth_bits_size,
             seed = seed,
