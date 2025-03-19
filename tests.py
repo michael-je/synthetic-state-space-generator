@@ -71,20 +71,21 @@ def test_deterministic(b, d):
 
 
 def test_deterministic_graph(seed: int=0, retain_tree: bool=True):
-    md = 100
+    md = 10
     # state = State(max_depth=100, branching_function=lambda x, y: int(y*5), seed=seed, retain_tree=retain_tree, max_states=10000)
     # state = State(seed=1, max_depth=md, max_states=ms, branching_function=lambda x, y: 1+int(y*5), retain_tree=True, transition_function=utils.uniformly_binned_transitions_with_cycles)
-    state = State(
-        seed=0, 
-        max_depth=md, 
-        retain_tree=True, 
-        child_depth_function=utils.child_depth_function_example_2,
-        transposition_space_function=utils.transposition_space_function_example_1
-    )
+    # state = State(
+    #     seed=0, 
+    #     max_depth=md, 
+    #     retain_tree=True, 
+    #     child_depth_function=utils.child_depth_function_example_2,
+    #     transposition_space_function=utils.transposition_space_function_example_1
+    # )
+    state = State(seed=0, max_depth=md, retain_tree=True, child_depth_function=utils.child_depth_function_example_2, transposition_space_function=utils.transposition_space_function_example_1)
     try:
         while state._current.depth < md - 1:
-            while state._RNG.next_uniform() < 0.3 and not state.is_root():
-                state.undo()
+            # while state._RNG.next_uniform() < 0.3 and not state.is_root():
+            #     state.undo()
             while state._RNG.next_uniform() < 0.6 and not state.is_terminal():
                 state.make_random()
                 state._current.generate_children()
