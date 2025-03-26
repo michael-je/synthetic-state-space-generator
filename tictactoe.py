@@ -12,11 +12,6 @@ class Cell(Enum):
     O = Player.O.value
     X = Player.X.value
 
-
-def all_same(ls: list[Cell]) -> bool:
-    return all(cell == ls[0] and cell != Cell.E for cell in ls)
-
-
 class Node:
     def __init__(self, player: Player, depth: int, transposition_number: int, state: list[Cell]|None=None):
         if state is None:
@@ -27,6 +22,7 @@ class Node:
         self.depth = depth
         self.children: list[Node] = []
         self.transposition_number = transposition_number
+        self.winner: Player | None = None
     
     def draw(self):
         out: str = ""
@@ -46,25 +42,37 @@ class Node:
                     state=new_state
                 )
                 self.children.append(node)
-                
-                
+    
+    def _same_cells(self, ls: list[Cell]) -> Cell | None:
+        if all(cell == ls[0] for cell in ls) and ls[0] != Cell.E:
+            return ls[0]
+        else:
+            return None
+    
+    def check_set_winner(self) -> Player | None:
+        for i in range(3):
+            if cells := self._same_cells(self.state[i*3: i*3+3]):
+                self.winner = Player(cells.value)
+                return self.winner
+            if cells := self._same_cells([self.state[i], self.state[i+3], self.state[i+6]]):
+                self.winner = Player(cells.value)
+                return self.winner
+        if cells := self._same_cells([self.state[0], self.state[4], self.state[8]]):
+            self.winner = Player(cells.value)
+            return self.winner
+        if cells := self._same_cells([self.state[2], self.state[4], self.state[6]]):
+            self.winner = Player(cells.value)
+            return self.winner
+        return self.winner
+
     def _other_player(self) -> Literal[Player.O] | Literal[Player.X]:
         return Player.O if self.player == Player.X else Player.X
     
-    def game_over(self) -> None | Literal[True]:
-        for i in range(3):
-            if all_same(self.state[i*3: i*3+3]):
-                return True
-            if all_same([self.state[i], self.state[i+3], self.state[i+6]]):
-                return True
-        if all_same([self.state[0], self.state[4], self.state[8]]):
-            return True
-        if all_same([self.state[2], self.state[4], self.state[6]]):
-            return True
+    def game_over(self) -> bool:
+        return self.check_set_winner() is not None
 
-
-def hash_node(node: Node) -> int:
-    return hash(str(node.state))
+    def __hash__(self) -> int:
+        return hash(str(self.state))
 
 
 nodes_memo: dict[int, Node] = dict()
@@ -73,7 +81,7 @@ def BFS(root: Node):
     bfs_queue = [root]
     while bfs_queue:
         node = bfs_queue.pop(0)
-        node_hash = hash_node(node)
+        node_hash = hash(node)
         node_memo = nodes_memo.get(node_hash)
         if node_memo is not None:
             node_memo.transposition_number += node.transposition_number
@@ -84,49 +92,50 @@ def BFS(root: Node):
         node.generate_children()
         bfs_queue += node.children
 
+
+################ Calculations #####################
+
 root = Node(player=Player.X, depth=0, transposition_number=1) 
 BFS(root)
-
 
 depth_sorted_nodes: list[list[Node]] = [[] for _ in range(10)]
 for node in nodes_memo.values():
     depth_sorted_nodes[node.depth].append(node)
 
+
+print("###############################################")
+print("branching factor by depth")
 bf_by_depth_unique = [[0] * 10 for _ in range(10)]
 bf_by_depth_nonunique = [[0] * 10 for _ in range(10)]
 for depth, nodes  in enumerate(depth_sorted_nodes):
     for node in nodes:
         bf_by_depth_unique[depth][len(node.children)] += 1
         bf_by_depth_nonunique[depth][len(node.children)] += node.transposition_number
-
-
-print("###############################################")
-print("branching factor by depth")
 print()
 print("unique:")
-for depth, cnt in enumerate(bf_by_depth_unique):
-    print(depth, cnt)
+for depth, stats in enumerate(bf_by_depth_unique):
+    print(depth, stats)
 print()
 print("non-unique:")
-for depth, cnt in enumerate(bf_by_depth_nonunique):
-    print(depth, cnt)
+for depth, stats in enumerate(bf_by_depth_nonunique):
+    print(depth, stats)
 
 print()
 print("###############################################")
 print("terminal state density by depth")
 print()
 print("unique:")
-for depth, cnt in enumerate(bf_by_depth_unique):
+for depth, stats in enumerate(bf_by_depth_unique):
     try:
-        ratio = cnt[0] / sum(cnt[1:])
+        ratio = stats[0] / sum(stats[1:])
     except ZeroDivisionError:
         ratio = 1
     print(depth, float(ratio))
 print()
 print("non-unique:")
-for depth, cnt in enumerate(bf_by_depth_nonunique):
+for depth, stats in enumerate(bf_by_depth_nonunique):
     try:
-        ratio = cnt[0] / sum(cnt[1:])
+        ratio = stats[0] / sum(stats[1:])
     except ZeroDivisionError:
         ratio = 1
     print(depth, float(ratio))
@@ -157,7 +166,6 @@ print("non-unique:", total / terminals_cnt)
 print()
 print("###############################################")
 print("transposition density by depth")
-
 transposition_density_by_depth: list[defaultdict[int, int]] = [defaultdict(lambda: 0) for _ in range(10)]
 for depth, nodes  in enumerate(depth_sorted_nodes):
     for node in nodes:
@@ -165,3 +173,32 @@ for depth, nodes  in enumerate(depth_sorted_nodes):
 
 for depth, d in enumerate(transposition_density_by_depth):
     print(depth, ', '.join(f"{d[k]:>4} states with {k:>4} transpositions" for k in d))
+
+
+print()
+print("###############################################")
+print("outcome distribution by depth")
+
+outcomes_by_depth_unique: list[tuple[int, int, int]] = []
+outcomes_by_depth_nonunique: list[tuple[int, int, int]] = []
+for nodes  in depth_sorted_nodes:
+    outcomes_by_depth_unique.append((
+        sum(1 for node in nodes if node.winner == Player.X),
+        sum(1 for node in nodes if node.winner == Player.O),
+        sum(1 for node in nodes if node.winner == None)
+    ))
+    outcomes_by_depth_nonunique.append((
+        sum(node.transposition_number for node in nodes if node.winner == Player.X),
+        sum(node.transposition_number for node in nodes if node.winner == Player.O),
+        sum(node.transposition_number for node in nodes if node.winner == None)
+    ))
+print()
+print("unique:")
+for depth, stats in enumerate(outcomes_by_depth_unique):
+    total = sum(stats)
+    print(depth, f"X: {stats[0]:<6} ({100*stats[0]/total:6.2f}%), O: {stats[1]:<6} ({100*stats[1]/total:6.2f}%), Tie: {stats[2]:<6} ({100*stats[2]/total:6.2f}%)")
+print()
+print("non-unique:")
+for depth, stats in enumerate(outcomes_by_depth_nonunique):
+    total = sum(stats)
+    print(depth, f"X: {stats[0]:<6} ({100*stats[0]/total:6.2f}%), O: {stats[1]:<6} ({100*stats[1]/total:6.2f}%), Tie: {stats[2]:<6} ({100*stats[2]/total:6.2f}%)")
