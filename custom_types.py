@@ -1,0 +1,52 @@
+from enum import Enum
+from collections.abc import Callable
+from dataclasses import dataclass
+
+
+class Player(Enum):
+    MAX = 1
+    MIN = -1
+
+@dataclass
+class InfoDumpParent:
+    id: int
+    value: int
+    depth: int
+    branching_factor: int
+@dataclass
+class InfoDumpSelf:
+    id: int
+    value: int
+    depth: int
+    branching_factor: int|None
+@dataclass
+class InfoDumpSiblings:
+    id: list[int]
+    value: list[int]
+    depth: list[int]
+    branching_factor: Callable[[], list[int]]
+# TODO: rename
+@dataclass
+class InfoDump:
+    parent: InfoDumpParent|None
+    self: InfoDumpSelf
+    siblings: InfoDumpSiblings|None
+    max_depth: int
+
+RandomIntFunc = Callable[[], int]
+RandomFloatFunc = Callable[[], float]
+BranchingFunc = Callable[[RandomIntFunc, RandomFloatFunc, InfoDump], int]
+ChildValueFunc = Callable[[RandomIntFunc, RandomFloatFunc, InfoDump], int]
+ChildDepthFunc = Callable[[RandomIntFunc, RandomFloatFunc, InfoDump], int]
+TranspositionSpaceFunc = Callable[[RandomIntFunc, RandomFloatFunc, int], dict[int, int]]
+
+@dataclass
+class GlobalParameters:
+    branching_function: BranchingFunc
+    child_value_function: ChildValueFunc
+    child_depth_function: ChildDepthFunc
+    transposition_space_map: dict[int, int]
+    max_depth: int
+    id_depth_bits_size: int
+    seed: int
+    retain_tree: bool

@@ -1,5 +1,5 @@
 import mmh3
-from utils import HASH_OUTPUT_TMAX
+from constants import HASH_OUTPUT_TMAX
 
 
 class RNGHasher():

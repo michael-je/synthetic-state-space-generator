@@ -1,7 +1,9 @@
 from typing import Self
 
-from utils import *
 from RNGHasher import RNGHasher
+from custom_types import *
+from constants import ID_BITS_SIZE
+from exceptions import IdOverflow
 
 
 class StateNode():

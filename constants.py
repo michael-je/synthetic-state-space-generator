@@ -1,0 +1,3 @@
+HASH_OUTPUT_BIT_SIZE = 64
+HASH_OUTPUT_TMAX = 2**HASH_OUTPUT_BIT_SIZE - 1
+ID_BITS_SIZE = HASH_OUTPUT_BIT_SIZE - 1 # because Python only has signed ints

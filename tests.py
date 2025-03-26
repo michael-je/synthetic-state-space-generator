@@ -2,6 +2,7 @@ import random
 from State import State
 from RNGHasher import RNGHasher
 import utils
+from example_functions import *
 
 
 def state_representative(state: State):
@@ -81,7 +82,7 @@ def test_deterministic_graph(seed: int=0, retain_tree: bool=True):
     #     child_depth_function=utils.child_depth_function_example_2,
     #     transposition_space_function=utils.transposition_space_function_example_1
     # )
-    state = State(seed=0, max_depth=md, retain_tree=True, child_depth_function=utils.child_depth_function_example_2, transposition_space_function=utils.transposition_space_function_example_1)
+    state = State(seed=0, max_depth=md, retain_tree=True, child_depth_function=child_depth_function_example_2, transposition_space_function=transposition_space_function_example_1)
     try:
         while state._current.depth < md - 1:
             # while state._RNG.next_uniform() < 0.3 and not state.is_root():
