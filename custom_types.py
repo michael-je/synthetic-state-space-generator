@@ -39,6 +39,7 @@ BranchingFunc = Callable[[RandomIntFunc, RandomFloatFunc, InfoDump], int]
 ChildValueFunc = Callable[[RandomIntFunc, RandomFloatFunc, InfoDump], int]
 ChildDepthFunc = Callable[[RandomIntFunc, RandomFloatFunc, InfoDump], int]
 TranspositionSpaceFunc = Callable[[RandomIntFunc, RandomFloatFunc, int], dict[int, int]]
+HeuristicValueFunc = Callable[[RandomIntFunc, RandomFloatFunc, InfoDump], int]
 
 @dataclass
 class GlobalParameters:
@@ -46,6 +47,7 @@ class GlobalParameters:
     child_value_function: ChildValueFunc
     child_depth_function: ChildDepthFunc
     transposition_space_map: dict[int, int]
+    heuristic_value_function: HeuristicValueFunc
     max_depth: int
     id_depth_bits_size: int
     seed: int

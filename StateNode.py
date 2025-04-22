@@ -90,6 +90,10 @@ class StateNode():
     def is_root(self) -> bool:
         """Return true if the state is the root."""
         return self.parent is None
+    
+    def heuristic_value(self) -> int:
+        return self.globals.heuristic_value_function(
+            self._RNG.next_int, self._RNG.next_uniform, self.info_dump())
 
     def actions(self) -> list[int]:
         """Return indices of children."""

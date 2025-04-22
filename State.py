@@ -19,6 +19,7 @@ class State():
                  child_value_function: ChildValueFunc=default_child_value_function, 
                  child_depth_function: ChildDepthFunc=default_child_depth_function,
                  transposition_space_function: TranspositionSpaceFunc=default_transposition_space_function,
+                 heuristic_value_function: HeuristicValueFunc=default_heuristic_value_function,
                  seed: int=0, 
                  retain_tree: bool=False):
         
@@ -35,9 +36,10 @@ class State():
             branching_function = branching_function,
             child_value_function = child_value_function,
             child_depth_function = child_depth_function,
-            transposition_space_map=transposition_space_map,
+            transposition_space_map = transposition_space_map,
+            heuristic_value_function = heuristic_value_function,
             max_depth = max_depth,
-            id_depth_bits_size=id_depth_bits_size,
+            id_depth_bits_size = id_depth_bits_size,
             seed = seed,
             retain_tree = retain_tree,
         )
@@ -70,6 +72,9 @@ class State():
     
     def value(self) -> int:
         return self._current.value
+    
+    def heuristic_value(self) -> int:
+        return self._current.heuristic_value()
 
     def make(self, action: int) -> Self:
         """Transition to the next state via action (represented as an index into the states children)."""

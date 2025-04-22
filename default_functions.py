@@ -20,3 +20,8 @@ def default_transposition_space_function(randint: RandomIntFunc, randf: RandomFl
     max_states = 1 << (ID_BITS_SIZE - bit_size(max_depth))
     constant_states_per_depth = max_states // max_depth
     return {d: constant_states_per_depth for d in range(max_depth)}
+
+def default_heuristic_value_function(randint: RandomIntFunc, randf: RandomFloatFunc, info_dump: InfoDump) -> int:
+    """Simulates a heuristic function with 70%-85% accuracy depending on depth."""
+    accuracy = 0.7 + (0.15 * info_dump.self.depth / info_dump.max_depth)
+    return info_dump.self.value if randf() < accuracy else (info_dump.self.value + 1) % 2
