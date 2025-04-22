@@ -71,9 +71,11 @@ class State():
         return self._current.actions()
     
     def value(self) -> int:
+        """Return the current state's true value."""
         return self._current.value
     
     def heuristic_value(self) -> int:
+        """Return the estimated value of the current state using the heuristic evaluation function."""
         return self._current.heuristic_value()
 
     def make(self, action: int) -> Self:

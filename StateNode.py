@@ -31,6 +31,7 @@ class StateNode():
         return str(self)
     
     def _construct_info_package(self) -> InfoPackage:
+        """Construct an InfoPackage, this contains necessary information used by behavioral functions."""
         if self.parent is not None:
             info_package_parent = InfoPackageParent(
                 id=self.parent.id,
@@ -62,11 +63,13 @@ class StateNode():
         return info_package
     
     def info_package(self) -> InfoPackage:
+        """Construct an InfoPackage, if necessary, and return it."""
         if self._info_package is None:
             self._info_package = self._construct_info_package()
         return self._info_package
     
     def _calculate_child_depth(self) -> int:
+        """Calculate depth of a child node and ensure it stays within the allowed range."""
         child_depth = self.globals.child_depth_function(
             self._RNG.next_int, self._RNG.next_uniform, self.info_package())
         if child_depth >= (1 << self.globals.id_depth_bits_size):
@@ -96,6 +99,7 @@ class StateNode():
         return self.parent is None
     
     def heuristic_value(self) -> int:
+        """Return a heuristic value estimate based on the state's true value."""
         return self.globals.heuristic_value_function(
             self._RNG.next_int, self._RNG.next_uniform, self.info_package())
 
