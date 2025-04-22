@@ -8,38 +8,38 @@ class Player(Enum):
     MIN = -1
 
 @dataclass
-class InfoDumpParent:
+class InfoPackageParent:
     id: int
     value: int
     depth: int
     branching_factor: int
 @dataclass
-class InfoDumpSelf:
+class InfoPackageSelf:
     id: int
     value: int
     depth: int
     branching_factor: int|None
 @dataclass
-class InfoDumpSiblings:
+class InfoPackageSiblings:
     id: list[int]
     value: list[int]
     depth: list[int]
     branching_factor: Callable[[], list[int]]
 # TODO: rename
 @dataclass
-class InfoDump:
-    parent: InfoDumpParent|None
-    self: InfoDumpSelf
-    siblings: InfoDumpSiblings|None
+class InfoPackage:
+    parent: InfoPackageParent|None
+    self: InfoPackageSelf
+    siblings: InfoPackageSiblings|None
     max_depth: int
 
 RandomIntFunc = Callable[[], int]
 RandomFloatFunc = Callable[[], float]
-BranchingFunc = Callable[[RandomIntFunc, RandomFloatFunc, InfoDump], int]
-ChildValueFunc = Callable[[RandomIntFunc, RandomFloatFunc, InfoDump], int]
-ChildDepthFunc = Callable[[RandomIntFunc, RandomFloatFunc, InfoDump], int]
+BranchingFunc = Callable[[RandomIntFunc, RandomFloatFunc, InfoPackage], int]
+ChildValueFunc = Callable[[RandomIntFunc, RandomFloatFunc, InfoPackage], int]
+ChildDepthFunc = Callable[[RandomIntFunc, RandomFloatFunc, InfoPackage], int]
 TranspositionSpaceFunc = Callable[[RandomIntFunc, RandomFloatFunc, int], dict[int, int]]
-HeuristicValueFunc = Callable[[RandomIntFunc, RandomFloatFunc, InfoDump], int]
+HeuristicValueFunc = Callable[[RandomIntFunc, RandomFloatFunc, InfoPackage], int]
 
 @dataclass
 class GlobalParameters:
