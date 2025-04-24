@@ -1,7 +1,7 @@
 from custom_types import *
 
 
-def branching_function_midgame_heavy(randint: RandomIntFunc, randf: RandomFloatFunc, params: StateParams) -> int:
+def branching_function_midgame_heavy(randint: RandomIntFuncion, randf: RandomFloatFunction, params: StateParams) -> int:
     """Generate a larger mid-game state space using a parabolic curve."""
     x = 2 * params.self.depth / params.globals.max_depth
     y = -(x-1)**2 + 1

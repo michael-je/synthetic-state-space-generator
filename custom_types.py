@@ -13,7 +13,7 @@ class RandomnessDistribution(Enum):
     # TODO: add more distributions?
 
 @dataclass
-class StateParamsGlobals:
+class GlobalVars:
     root_value: int
     seed: int
     max_depth: int
@@ -27,6 +27,7 @@ class StateParamsGlobals:
     value_maximum: int
     child_depth_minumum: int # depth can be negative
     child_depth_maximum: int
+    id_depth_bits_size: int
 @dataclass
 class StateParamsParent:
     id: int
@@ -40,7 +41,7 @@ class StateParamsSelf:
     depth: int
     branching_factor: int|None
 @dataclass
-class StateParamsSiblins:
+class StateParamsSiblings:
     id: list[int]
     value: list[int]
     depth: list[int]
@@ -48,29 +49,29 @@ class StateParamsSiblins:
 # TODO: rename
 @dataclass
 class StateParams:
-    globals: StateParamsGlobals
+    globals: GlobalVars
     parent: StateParamsParent|None
     self: StateParamsSelf
-    siblings: StateParamsSiblins|None
+    siblings: StateParamsSiblings|None
 
-RandomIntFunc = Callable[[], int]
-RandomFloatFunc = Callable[[], float]
-BranchingFunc = Callable[[RandomIntFunc, RandomFloatFunc, StateParams], int]
-ChildValueFunc = Callable[[RandomIntFunc, RandomFloatFunc, StateParams], int]
-ChildDepthFunc = Callable[[RandomIntFunc, RandomFloatFunc, StateParams], int]
-TranspositionSpaceFunc = Callable[[RandomIntFunc, RandomFloatFunc, int], dict[int, int]]
-HeuristicValueFunc = Callable[[RandomIntFunc, RandomFloatFunc, StateParams], int]
+RandomIntFuncion = Callable[[], int]
+RandomFloatFunction = Callable[[], float]
+BranchingFunction = Callable[[RandomIntFuncion, RandomFloatFunction, StateParams], int]
+ChildValueFunction = Callable[[RandomIntFuncion, RandomFloatFunction, StateParams], int]
+ChildDepthFunction = Callable[[RandomIntFuncion, RandomFloatFunction, StateParams], int]
+TranspositionSpaceFunction = Callable[[RandomIntFuncion, RandomFloatFunction, int], dict[int, int]]
+HeuristicValueFunction = Callable[[RandomIntFuncion, RandomFloatFunction, StateParams], int]
+
+@dataclass
+class GlobalFuncs:
+    branching_function: BranchingFunction
+    child_value_function: ChildValueFunction
+    child_depth_function: ChildDepthFunction
+    transposition_space_map: dict[int, int]
+    heuristic_value_function: HeuristicValueFunction
 
 @dataclass
 class GlobalParameters:
-    root_value: int
-    seed: int
-    max_depth: int
-    distribution: RandomnessDistribution
+    vars: GlobalVars
+    funcs: GlobalFuncs
     retain_tree: bool
-    id_depth_bits_size: int
-    branching_function: BranchingFunc
-    child_value_function: ChildValueFunc
-    child_depth_function: ChildDepthFunc
-    transposition_space_map: dict[int, int]
-    heuristic_value_function: HeuristicValueFunc

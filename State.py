@@ -20,19 +20,18 @@ class State():
                  retain_tree: bool=False,
                  
                  branching_factor_base: int=2,
+                 branching_factor_variance: int=0,
                  terminal_minimum_depth: int=0,
-                #  terminal_minimum_density: float=0.0,
-                #  terminal_maximum_density: float=1.0,
                  value_minimum: int=0,
                  value_maximum: int=1,
                  child_depth_minumum: int=1,
-                 child_depth_maximum: int=0,
+                 child_depth_maximum: int=1,
 
-                 branching_function: BranchingFunc=default_branching_function, 
-                 child_value_function: ChildValueFunc=default_child_value_function, 
-                 child_depth_function: ChildDepthFunc=default_child_depth_function,
-                 transposition_space_function: TranspositionSpaceFunc=default_transposition_space_function,
-                 heuristic_value_function: HeuristicValueFunc=default_heuristic_value_function):
+                 branching_function: BranchingFunction=default_branching_function, 
+                 child_value_function: ChildValueFunction=default_child_value_function, 
+                 child_depth_function: ChildDepthFunction=default_child_depth_function,
+                 transposition_space_function: TranspositionSpaceFunction=default_transposition_space_function,
+                 heuristic_value_function: HeuristicValueFunction=default_heuristic_value_function):
         
         self._RNG = RNGHasher(distribution=distribution, seed=seed)
         id_depth_bits_size = bit_size(max_depth)
@@ -43,18 +42,31 @@ class State():
             if bit_size(transposition_space_map[depth]) > (ID_BITS_SIZE - id_depth_bits_size):
                 raise IdOverflow(f"Transposition space value {transposition_space_map[depth]} at depth {depth} too large.")
         
-        self.globals = GlobalParameters(
+        global_vars = GlobalVars(
             root_value = root_value,
             seed = seed,
             max_depth = max_depth,
             distribution = distribution,
-            retain_tree = retain_tree,
+            branching_factor_base = branching_factor_base,
+            branching_factor_variance = branching_factor_variance,
+            terminal_minimum_depth = terminal_minimum_depth,
+            value_minimum = value_minimum,
+            value_maximum = value_maximum,
+            child_depth_minumum = child_depth_minumum,
+            child_depth_maximum = child_depth_maximum,
             id_depth_bits_size = id_depth_bits_size,
+        )
+        global_funcs = GlobalFuncs(
             branching_function = branching_function,
             child_value_function = child_value_function,
             child_depth_function = child_depth_function,
             transposition_space_map = transposition_space_map,
-            heuristic_value_function = heuristic_value_function,
+            heuristic_value_function = heuristic_value_function
+        )
+        self.globals = GlobalParameters(
+            global_vars,
+            global_funcs,
+            retain_tree
         )
 
         self._root: StateNode = StateNode(
@@ -133,4 +145,6 @@ class State():
         
         graph = Digraph(format="png")
         draw_tree_recur(graph, self._root)
-        graph.render(f"trees/tree_seed_{self.globals.seed}" , view=True)  
+        graph.render(f"trees/tree_seed_{self.globals.vars.seed}" , view=True)  
+    
+    # TODO: add draw whole tree function
