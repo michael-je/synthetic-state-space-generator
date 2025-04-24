@@ -13,35 +13,48 @@ from default_functions import *
 class State():
     """Wrapper class for state nodes. Should be used as the main API."""
     def __init__(self,
-                 max_depth: int=2**8-1,
                  root_value: int=1,
+                 seed: int=0, 
+                 max_depth: int=2**8-1,
+                 distribution: RandomnessDistribution=RandomnessDistribution.UNIFORM,
+                 retain_tree: bool=False,
+                 
+                 branching_factor_base: int=2,
+                 terminal_minimum_depth: int=0,
+                #  terminal_minimum_density: float=0.0,
+                #  terminal_maximum_density: float=1.0,
+                 value_minimum: int=0,
+                 value_maximum: int=1,
+                 child_depth_minumum: int=1,
+                 child_depth_maximum: int=0,
+
                  branching_function: BranchingFunc=default_branching_function, 
                  child_value_function: ChildValueFunc=default_child_value_function, 
                  child_depth_function: ChildDepthFunc=default_child_depth_function,
                  transposition_space_function: TranspositionSpaceFunc=default_transposition_space_function,
-                 heuristic_value_function: HeuristicValueFunc=default_heuristic_value_function,
-                 seed: int=0, 
-                 retain_tree: bool=False):
+                 heuristic_value_function: HeuristicValueFunc=default_heuristic_value_function):
         
-        self._RNG = RNGHasher(seed=seed)
+        self._RNG = RNGHasher(distribution=distribution, seed=seed)
         id_depth_bits_size = bit_size(max_depth)
         transposition_space_map = transposition_space_function(
-            self._RNG.next_int, self._RNG.next_uniform, max_depth)
+            self._RNG.next_int, self._RNG.next_float, max_depth)
         # TODO: test
         for depth in transposition_space_map:
             if bit_size(transposition_space_map[depth]) > (ID_BITS_SIZE - id_depth_bits_size):
                 raise IdOverflow(f"Transposition space value {transposition_space_map[depth]} at depth {depth} too large.")
         
         self.globals = GlobalParameters(
+            root_value = root_value,
+            seed = seed,
+            max_depth = max_depth,
+            distribution = distribution,
+            retain_tree = retain_tree,
+            id_depth_bits_size = id_depth_bits_size,
             branching_function = branching_function,
             child_value_function = child_value_function,
             child_depth_function = child_depth_function,
             transposition_space_map = transposition_space_map,
             heuristic_value_function = heuristic_value_function,
-            max_depth = max_depth,
-            id_depth_bits_size = id_depth_bits_size,
-            seed = seed,
-            retain_tree = retain_tree,
         )
 
         self._root: StateNode = StateNode(
@@ -91,7 +104,7 @@ class State():
     def make_random(self) -> Self:
         """Make a random action."""
         actions = self.actions()
-        i = int(self._RNG.next_uniform() * len(actions))
+        i = int(self._RNG.next_float() * len(actions))
         self.make(actions[i])
         return self
 

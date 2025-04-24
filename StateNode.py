@@ -18,10 +18,11 @@ class StateNode():
         self.depth = depth
         self.globals = globals
         self.parent = parent
-        self._info_package: InfoPackage|None = None
+        self._info_package: StateParams|None = None
         
         self.children: list[StateNode] = []
-        self._RNG: RNGHasher = RNGHasher(self.id, self.globals.seed)
+        self._RNG: RNGHasher = RNGHasher(
+            distribution=self.globals.distribution, nodeid=self.id, seed=self.globals.seed)
     
     def __str__(self) -> str:
         random_id_bits_mask = (1 << (ID_BITS_SIZE - self.globals.id_depth_bits_size)) - 1
@@ -30,39 +31,39 @@ class StateNode():
     def __repr__(self) -> str:
         return str(self)
     
-    def _construct_info_package(self) -> InfoPackage:
-        """Construct an InfoPackage, this contains necessary information used by behavioral functions."""
+    def _construct_info_package(self) -> StateParams:
+        """Construct StateParams, this contains necessary information used by behavioral functions."""
         if self.parent is not None:
-            info_package_parent = InfoPackageParent(
+            state_params_parent = StateParamsParent(
                 id=self.parent.id,
                 value=self.parent.value,
                 depth=self.parent.depth,
                 branching_factor=self.parent.branching_factor()
             )
-            info_package_siblings = InfoPackageSiblings(
+            state_params_siblings = StateParamsSiblins(
                 id=[child.id for child in self.parent.children],
                 value=[child.value for child in self.parent.children],
                 depth=[child.depth for child in self.parent.children],
                 branching_factor=lambda : [child.branching_factor() for child in self.parent.children] if self.parent else []
             )
         else:
-            info_package_parent = None
-            info_package_siblings = None
-        info_package_self = InfoPackageSelf(
+            state_params_parent = None
+            state_params_siblings = None
+        state_params_self = StateParamsSelf(
             id=self.id,
             value=self.value,
             depth=self.depth,
             branching_factor=self._branching_factor
         )
-        info_package = InfoPackage(
-            parent=info_package_parent,
-            self=info_package_self,
-            siblings=info_package_siblings,
+        state_params = StateParams(
+            parent=state_params_parent,
+            self=state_params_self,
+            siblings=state_params_siblings,
             max_depth=self.globals.max_depth
         )
-        return info_package
+        return state_params
     
-    def info_package(self) -> InfoPackage:
+    def info_package(self) -> StateParams:
         """Construct an InfoPackage, if necessary, and return it."""
         if self._info_package is None:
             self._info_package = self._construct_info_package()
@@ -71,7 +72,7 @@ class StateNode():
     def _calculate_child_depth(self) -> int:
         """Calculate depth of a child node and ensure it stays within the allowed range."""
         child_depth = self.globals.child_depth_function(
-            self._RNG.next_int, self._RNG.next_uniform, self.info_package())
+            self._RNG.next_int, self._RNG.next_float, self.info_package())
         if child_depth >= (1 << self.globals.id_depth_bits_size):
             raise IdOverflow(f"Depth {self.depth} too large for {self.globals.id_depth_bits_size} bits")
         if child_depth < 0:
@@ -101,7 +102,7 @@ class StateNode():
     def heuristic_value(self) -> int:
         """Return a heuristic value estimate based on the state's true value."""
         return self.globals.heuristic_value_function(
-            self._RNG.next_int, self._RNG.next_uniform, self.info_package())
+            self._RNG.next_int, self._RNG.next_float, self.info_package())
 
     def actions(self) -> list[int]:
         """Return indices of children."""
@@ -118,7 +119,7 @@ class StateNode():
         """Get or set branching factor."""
         if self._branching_factor is None:
             self._branching_factor = self.globals.branching_function(
-                self._RNG.next_int, self._RNG.next_uniform, self.info_package())
+                self._RNG.next_int, self._RNG.next_float, self.info_package())
         return self._branching_factor
 
     def generate_children(self) -> Self:
@@ -133,7 +134,7 @@ class StateNode():
             child_depth = self._calculate_child_depth()
             child_id = self._generate_child_id(child_depth)
             child_value = self.globals.child_value_function(
-                self._RNG.next_int, self._RNG.next_uniform, self.info_package())
+                self._RNG.next_int, self._RNG.next_float, self.info_package())
             new_child = StateNode(
                 stateid=child_id, value=child_value, depth=child_depth, globals=self.globals, parent=self)
             new_children.append(new_child)

@@ -9,7 +9,7 @@ def test_hash_average(n_trials:int ):
     seed = random.randint(1, 10000000)
     hasher = RNGHasher(seed=seed)
     for _ in range(1, n_trials+1):
-        tot += hasher.next_uniform()
+        tot += hasher.next_float()
     print("test_hash_average:", tot/n_trials)
 
 
@@ -42,9 +42,9 @@ def test_deterministic_graph_3(seed: int=0):
 def test_deterministic_graph(state: State, max_depth: int):
     try:
         while state._current.depth < max_depth - 1:
-            while state._RNG.next_uniform() < 0.3 and not state.is_root():
+            while state._RNG.next_float() < 0.3 and not state.is_root():
                 state.undo()
-            while state._RNG.next_uniform() < 0.6 and not state.is_terminal():
+            while state._RNG.next_float() < 0.6 and not state.is_terminal():
                 state.make_random()
                 # state._current.generate_children()
     except KeyboardInterrupt:
