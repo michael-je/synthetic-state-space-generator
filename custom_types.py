@@ -1,3 +1,4 @@
+from typing import Protocol
 from enum import Enum
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -56,13 +57,16 @@ class StateParams:
     self: StateParamsSelf
     siblings: StateParamsSiblings|None
 
-RandomIntFuncion = Callable[[], int]
-RandomFloatFunction = Callable[[], float]
-BranchingFunction = Callable[[RandomIntFuncion, RandomFloatFunction, StateParams], int]
-ChildValueFunction = Callable[[RandomIntFuncion, RandomFloatFunction, StateParams], int]
-ChildDepthFunction = Callable[[RandomIntFuncion, RandomFloatFunction, StateParams], int]
-TranspositionSpaceFunction = Callable[[RandomIntFuncion, RandomFloatFunction, int], dict[int, int]]
-HeuristicValueFunction = Callable[[RandomIntFuncion, RandomFloatFunction, StateParams], int]
+# use Protocol to support type hints for keyword argument
+class RandomFloatFunction(Protocol):
+    def __call__(self, override_distribution: RandomnessDistribution|None=...) -> float: ...
+class RandomIntFunction(Protocol):
+    def __call__(self, low: int=..., high: int=..., override_distribution: RandomnessDistribution|None=...) -> int: ...
+BranchingFunction = Callable[[RandomIntFunction, RandomFloatFunction, StateParams], int]
+ChildValueFunction = Callable[[RandomIntFunction, RandomFloatFunction, StateParams], int]
+ChildDepthFunction = Callable[[RandomIntFunction, RandomFloatFunction, StateParams], int]
+TranspositionSpaceFunction = Callable[[RandomIntFunction, RandomFloatFunction, int], dict[int, int]]
+HeuristicValueFunction = Callable[[RandomIntFunction, RandomFloatFunction, StateParams], int]
 
 @dataclass
 class GlobalFuncs:

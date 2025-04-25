@@ -1,7 +1,7 @@
 from custom_types import *
 
 
-def branching_function_midgame_heavy(randint: RandomIntFuncion, randf: RandomFloatFunction, params: StateParams) -> int:
+def branching_function_midgame_heavy(randint: RandomIntFunction, randf: RandomFloatFunction, params: StateParams) -> int:
     """Generate a larger mid-game state space using a parabolic curve."""
     x = 2 * params.self.depth / params.globals.max_depth
     y = -(x-1)**2 + 1
@@ -16,17 +16,17 @@ def branching_function_midgame_heavy(randint: RandomIntFuncion, randf: RandomFlo
     return branching_factor
 
 
-def branching_function_simple_constant(randint: RandomIntFuncion, randf: RandomFloatFunction, params: StateParams) -> int:
+def branching_function_simple_constant(randint: RandomIntFunction, randf: RandomFloatFunction, params: StateParams) -> int:
     """Generates a tree with a constant branching factor."""
     return params.globals.branching_factor_base
 
 
-def child_depth_function_random(randint: RandomIntFuncion, randf: RandomFloatFunction, params: StateParams) -> int:
+def child_depth_function_random(randint: RandomIntFunction, randf: RandomFloatFunction, params: StateParams) -> int:
     """Generate children anywhere in the entire state space."""
     return randint() % params.globals.max_depth
 
 
-def child_depth_function_cycles_allowed(randint: RandomIntFuncion, randf: RandomFloatFunction, params: StateParams) -> int:
+def child_depth_function_cycles_allowed(randint: RandomIntFunction, randf: RandomFloatFunction, params: StateParams) -> int:
     """Allows children to create cycles by a few levels."""
     if params.parent is None:
         return 1
@@ -35,7 +35,7 @@ def child_depth_function_cycles_allowed(randint: RandomIntFuncion, randf: Random
     return params.self.depth + 1
 
 
-def transposition_space_function_simple_constant(randint: RandomIntFuncion, randf: RandomFloatFunction, max_depth: int) -> dict[int, int]:
+def transposition_space_function_simple_constant(randint: RandomIntFunction, randf: RandomFloatFunction, max_depth: int) -> dict[int, int]:
     """Example showing only 5 possible transpositions per depth."""
     max_states_per_depth = 10
     return {d: max_states_per_depth for d in range(max_depth)}
