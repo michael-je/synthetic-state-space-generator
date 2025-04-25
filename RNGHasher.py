@@ -1,4 +1,5 @@
 import mmh3
+import hashlib
 from constants import HASH_OUTPUT_TMAX
 
 
@@ -16,6 +17,14 @@ class RNGHasher():
         hash_64bit, _ = mmh3.mmh3_x64_128_utupledigest(hash_input_bytes, self.seed)
         self._times_hashed += 1
         return hash_64bit
+    
+    def hash_2(self) -> int:
+        hash_input = f"{self.nodeid}.{self._times_hashed}.{self.seed}"
+        hash_input_bytes = hash_input.encode()
+        h = hashlib.sha256(hash_input_bytes).digest()
+        hash_int = int.from_bytes(h, 'big')
+        self._times_hashed += 1
+        return hash_int
     
     def next_uniform(self) -> float:
         """Return a uniform pseudo-random value."""
