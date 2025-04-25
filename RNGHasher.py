@@ -1,7 +1,7 @@
 import math
 import mmh3
 from constants import HASH_OUTPUT_TMAX
-from custom_types import RandomnessDistribution
+from custom_types import RandomnessDistribution as Dist
 from exceptions import *
 
 # Acklam's Algorithm for computing the normal quantile function (inverse normal)
@@ -38,7 +38,7 @@ def inverse_normal(p: float) -> float:
 
 class RNGHasher():
     """Deterministic random number generator. Outputs uniform values from given input"""
-    def __init__(self, distribution: RandomnessDistribution, nodeid: int=0, seed: int=0):
+    def __init__(self, distribution: Dist, nodeid: int=0, seed: int=0):
         self.distribution = distribution
         self.nodeid = nodeid
         self.seed = seed
@@ -52,34 +52,41 @@ class RNGHasher():
         self._times_hashed += 1
         return hash_64bit
     
-    def next_float(self) -> float:
+    def next_float(self, override_distribution: Dist|None=None) -> float:
         """Return a pseudo-random float in range [0, 1]."""
-        match self.distribution:
-            case RandomnessDistribution.UNIFORM:
+        distribution = self.distribution
+        if override_distribution is not None:
+            distribution = override_distribution
+        match distribution:
+            case Dist.UNIFORM:
                 return self.hash() / HASH_OUTPUT_TMAX
-            case RandomnessDistribution.GAUSSIAN:
-                normal = inverse_normal(self.hash() / HASH_OUTPUT_TMAX)
-                result = (normal + 4) / 8 # fit the result to be in range [0, 1]
+            case Dist.GAUSSIAN:
+                normal = inverse_normal(self.next_float(override_distribution=Dist.UNIFORM))
+                result = (normal + 4) / 8 # scale result to [0, 1]
                 result = min(1, max(0, result)) # simply cut off extreme outliers
                 return result
-            case RandomnessDistribution.GEOMETRIC:
+            case Dist.GEOMETRIC:
                 return 0.0 # TODO
-            case RandomnessDistribution.PARABOLIC:
+            case Dist.PARABOLIC:
                 return 0.0 # TODO
     
-    def next_int(self, low: int=0, high: int=HASH_OUTPUT_TMAX) -> int:
+    def next_int(self, low: int=0, high: int=HASH_OUTPUT_TMAX, override_distribution: Dist|None=None) -> int:
         """Return a pseudo-random integer in range [low, high]."""
         if low < 0 or high > HASH_OUTPUT_TMAX:
             raise RangeOutOfBounds
-        range = high - low
-        match self.distribution:
-            case RandomnessDistribution.UNIFORM:
-                return self.hash() % range + low
-            case RandomnessDistribution.GAUSSIAN:
+        distribution = self.distribution
+        
+        if override_distribution is not None:
+            distribution = override_distribution
+        dist_range = high - low
+        match distribution:
+            case Dist.UNIFORM:
+                return self.hash() % dist_range + low
+            case Dist.GAUSSIAN:
+                return round(self.next_float(override_distribution=Dist.GAUSSIAN) * dist_range)
+            case Dist.GEOMETRIC:
                 return 0 # TODO
-            case RandomnessDistribution.GEOMETRIC:
-                return 0 # TODO
-            case RandomnessDistribution.PARABOLIC:
+            case Dist.PARABOLIC:
                 return 0 # TODO
     
     def reset(self) -> None:

@@ -6,6 +6,7 @@ from RNGHasher import RNGHasher
 from utils import bit_size
 from constants import ID_BITS_SIZE
 from custom_types import *
+from custom_types import RandomnessDistribution as Dist
 from exceptions import IdOverflow, RootHasNoParent
 from default_functions import *
 
@@ -16,7 +17,7 @@ class State():
                  root_value: int=1,
                  seed: int=0, 
                  max_depth: int=2**8-1,
-                 distribution: RandomnessDistribution=RandomnessDistribution.UNIFORM,
+                 distribution: RandomnessDistribution=Dist.UNIFORM,
                  retain_tree: bool=False,
                  
                  branching_factor_base: int=2,

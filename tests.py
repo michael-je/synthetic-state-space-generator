@@ -2,10 +2,11 @@ import random
 from State import State
 from RNGHasher import RNGHasher
 from custom_types import *
+from custom_types import RandomnessDistribution as Dist
 from example_functions import *
 from collections import defaultdict
 
-def print_histogram(hist: defaultdict[float, int]):
+def print_histogram(hist: defaultdict[float|int, int]):
     hist_width = 80
     high = max(hist.values())
     low = min(hist.values())
@@ -17,18 +18,27 @@ def print_histogram(hist: defaultdict[float, int]):
 def test_hash_average(n_trials: int):
     tot = 0
     seed = random.randint(1, 10000000)
-    hasher = RNGHasher(distribution=RandomnessDistribution.UNIFORM, seed=seed)
+    hasher = RNGHasher(distribution=Dist.UNIFORM, seed=seed)
     for _ in range(1, n_trials+1):
         tot += hasher.next_float()
     print("test_hash_average:", tot/n_trials)
 
 
-def test_gaussian_distribution(n_trials: int, decimal_accuracy: int=2, seed: int=0):
+def test_gaussian_float_distribution(n_trials: int, decimal_accuracy: int=2, seed: int=0):
     histogram: defaultdict[float, int] = defaultdict(lambda: 0)
-    hasher = RNGHasher(distribution=RandomnessDistribution.GAUSSIAN, seed=seed)
+    hasher = RNGHasher(distribution=Dist.GAUSSIAN, seed=seed)
     for _ in range(n_trials):
         result = hasher.next_float()
         histogram[round(result, decimal_accuracy)] += 1
+    print_histogram(histogram)
+
+
+def test_gaussian_int_distribution(n_trials: int, dist_range: int=50, seed: int=0):
+    histogram: defaultdict[float, int] = defaultdict(lambda: 0)
+    hasher = RNGHasher(distribution=Dist.GAUSSIAN, seed=seed)
+    for _ in range(n_trials):
+        result = hasher.next_int(low=0, high=dist_range)
+        histogram[result] += 1
     print_histogram(histogram)
 
 
