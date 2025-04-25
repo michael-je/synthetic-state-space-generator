@@ -3,9 +3,6 @@ from constants import ID_BITS_SIZE
 from utils import bit_size
 
 
-# def default_branching_function(randint: RandomIntFunc, randf: RandomFloatFunc, params: StateParams) -> int:
-#     """Generates a binary tree."""
-#     return 2
 def default_branching_function(randint: RandomIntFuncion, randf: RandomFloatFunction, params: StateParams) -> int:
     """Constant branching factor with variance."""
     variance = (randf() - 0.5) * 2 * params.globals.branching_factor_variance
@@ -15,22 +12,19 @@ def default_branching_function(randint: RandomIntFuncion, randf: RandomFloatFunc
         branching_factor = min(1, branching_factor)
     return branching_factor
 
-# def default_child_value_function(randint: RandomIntFunc, randf: RandomFloatFunc, params: StateParams) -> int:
-#     """Randomly generate a value of either 0 or 1."""
-#     return int(randf() * 2)
+
 def default_child_value_function(randint: RandomIntFuncion, randf: RandomFloatFunction, params: StateParams) -> int:
     """Randomly generate a value between minimum and maximum."""
     value_range = abs(params.globals.value_maximum - params.globals.value_minimum)
     return round(randf() * value_range) + params.globals.value_minimum
 
-# def default_child_depth_function(randint: RandomIntFunc, randf: RandomFloatFunc, params: StateParams) -> int:
-#     """Ensures no cycles, and an even stride."""
-#     return params.self.depth + 1
+
 def default_child_depth_function(randint: RandomIntFuncion, randf: RandomFloatFunction, params: StateParams) -> int:
     """Randomly generate a depth between minimum and maximum depth."""
     depth_range = abs(params.globals.child_depth_maximum - params.globals.child_depth_minumum)
     depth_offset = round(randf() * depth_range) + params.globals.child_depth_minumum
     return params.self.depth + depth_offset
+
 
 # TODO: maybe add params back to arguments
 def default_transposition_space_function(randint: RandomIntFuncion, randf: RandomFloatFunction, max_depth: int) -> dict[int, int]:
@@ -38,6 +32,7 @@ def default_transposition_space_function(randint: RandomIntFuncion, randf: Rando
     max_states = 1 << (ID_BITS_SIZE - bit_size(max_depth))
     constant_states_per_depth = max_states // max_depth
     return {d: constant_states_per_depth for d in range(max_depth)}
+
 
 def default_heuristic_value_function(randint: RandomIntFuncion, randf: RandomFloatFunction, params: StateParams) -> int:
     """Simulates a heuristic function with 70%-85% accuracy depending on depth."""

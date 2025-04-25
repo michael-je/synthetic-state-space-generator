@@ -16,19 +16,26 @@ def branching_function_midgame_heavy(randint: RandomIntFuncion, randf: RandomFlo
     return branching_factor
 
 
-# def child_depth_function_example_1(randint: RandomIntFunc, randf: RandomFloatFunc, params: StateParams) -> int:
-#     """Generate children anywhere in the entire state space."""
-#     return randint() % params.globals.max_depth
+def branching_function_simple_constant(randint: RandomIntFuncion, randf: RandomFloatFunction, params: StateParams) -> int:
+    """Generates a tree with a constant branching factor."""
+    return params.globals.branching_factor_base
 
-# def child_depth_function_example_2(randint: RandomIntFunc, randf: RandomFloatFunc, params: StateParams) -> int:
-#     """Allows children to create cycles by a few levels."""
-#     if params.parent is None:
-#         return 1
-#     if randf() < 0.1:
-#         return int(max(1, params.self.depth - 3))
-#     return params.self.depth + 1
 
-# def transposition_space_function_example_1(randint: RandomIntFunc, randf: RandomFloatFunc, max_depth: int) -> dict[int, int]:
-#     """Example showing only 5 possible transpositions per depth."""
-#     constant_states_per_depth = 10
-#     return {d: constant_states_per_depth for d in range(max_depth)}
+def child_depth_function_random(randint: RandomIntFuncion, randf: RandomFloatFunction, params: StateParams) -> int:
+    """Generate children anywhere in the entire state space."""
+    return randint() % params.globals.max_depth
+
+
+def child_depth_function_cycles_allowed(randint: RandomIntFuncion, randf: RandomFloatFunction, params: StateParams) -> int:
+    """Allows children to create cycles by a few levels."""
+    if params.parent is None:
+        return 1
+    if randf() < 0.1:
+        return int(max(1, params.self.depth - 3))
+    return params.self.depth + 1
+
+
+def transposition_space_function_simple_constant(randint: RandomIntFuncion, randf: RandomFloatFunction, max_depth: int) -> dict[int, int]:
+    """Example showing only 5 possible transpositions per depth."""
+    max_states_per_depth = 10
+    return {d: max_states_per_depth for d in range(max_depth)}
