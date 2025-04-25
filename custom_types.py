@@ -10,7 +10,9 @@ class Player(Enum):
 class RandomnessDistribution(Enum):
     UNIFORM = 0
     GAUSSIAN = 1
-    # TODO: add more distributions?
+    GEOMETRIC = 2
+    PARABOLIC = 3
+    # TODO: more distributions?
 
 @dataclass
 class GlobalVars:

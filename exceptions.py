@@ -6,3 +6,5 @@ class RootHasNoSiblings(Exception):
     pass
 class RootHasNoParent(Exception):
     pass
+class RangeOutOfBounds(Exception):
+    pass
