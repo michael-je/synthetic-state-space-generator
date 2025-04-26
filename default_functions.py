@@ -20,7 +20,9 @@ def default_child_value_function(randint: RandomIntFunction, randf: RandomFloatF
 
 def default_child_depth_function(randint: RandomIntFunction, randf: RandomFloatFunction, params: StateParams) -> int:
     """Randomly generate a depth between minimum and maximum depth."""
-    return randint(low=params.globals.child_depth_minumum, high=params.globals.child_depth_maximum)
+    min_depth = params.globals.child_depth_minumum + params.self.depth
+    max_depth = params.globals.child_depth_maximum + params.self.depth
+    return randint(low=min_depth, high=max_depth)
 
 
 # TODO: maybe add params back to arguments
