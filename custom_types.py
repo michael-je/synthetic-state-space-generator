@@ -28,6 +28,7 @@ class GlobalVariables:
     value_maximum: int
     child_depth_minumum: int # depth can be negative
     child_depth_maximum: int
+    cycle_chance: float
     id_depth_bits_size: int
 @dataclass
 class StateParamsParent:
@@ -57,7 +58,7 @@ class StateParams:
 
 # use Protocol to support type hints for keyword argument
 class RandomFloatFunction(Protocol):
-    def __call__(self, distribution: RandomnessDistribution|None=...) -> float: ...
+    def __call__(self, low: float=..., high: float=..., distribution: RandomnessDistribution|None=...) -> float: ...
 class RandomIntFunction(Protocol):
     def __call__(self, low: int=..., high: int=..., distribution: RandomnessDistribution|None=...) -> int: ...
 BranchingFunction = Callable[[RandomIntFunction, RandomFloatFunction, StateParams], int]

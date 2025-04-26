@@ -52,31 +52,36 @@ class RNGHasher():
         self._times_hashed += 1
         return hash_64bit
     
-    def next_float(self, distribution: Dist|None=None) -> float:
-        """Return a pseudo-random float in [0, 1]."""
+    def next_float(self, low: float=0, high: float=1, distribution: Dist|None=None) -> float:
+        """Return a pseudo-random float in [low, high]."""
+        dist_range = high - low
         if distribution is None:
             distribution = self.distribution
+        
         match distribution:
             case Dist.UNIFORM:
-                return self.hash() / HASH_OUTPUT_TMAX
+                return (self.hash() / HASH_OUTPUT_TMAX) * dist_range + low
             case Dist.GAUSSIAN:
+                MAX_DIST_FROM_MEAN = 4 # not a true maximum, but we don't care about extreme outliers
                 normal = inverse_normal(self.next_float(distribution=Dist.UNIFORM))
-                result = (normal + 4) / 8 # scale result to [0, 1]
-                result = min(1, max(0, result)) # simply cut off extreme outliers
+                result = (normal + MAX_DIST_FROM_MEAN) / (2*MAX_DIST_FROM_MEAN) # scale to [0, 1]
+                result = result * dist_range + low # scale to [low, high]
+                result = min(high, max(low, result)) # simply cut off the outliers
                 return result
     
     def next_int(self, low: int=0, high: int=HASH_OUTPUT_TMAX, distribution: Dist|None=None) -> int:
         """Return a pseudo-random integer in [low, high]."""
-        if low < 0 or high > HASH_OUTPUT_TMAX:
+        dist_range = high - low
+        if dist_range > HASH_OUTPUT_TMAX:
             raise ValueError("Range out of bounds.")
         if distribution is None:
             distribution = self.distribution
-        dist_range = high - low
+        
         match distribution:
             case Dist.UNIFORM:
                 return self.hash() % dist_range + low
             case Dist.GAUSSIAN:
-                return round(self.next_float(distribution=Dist.GAUSSIAN) * dist_range)
+                return round(self.next_float(low=low, high=high, distribution=Dist.GAUSSIAN))
     
     def reset(self) -> None:
         """Reset the RNG."""

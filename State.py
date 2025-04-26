@@ -27,6 +27,7 @@ class State():
                  value_maximum: int=1,
                  child_depth_minumum: int=1,
                  child_depth_maximum: int=1,
+                 cycle_chance: float=0,
 
                  branching_function: BranchingFunction=default_branching_function, 
                  child_value_function: ChildValueFunction=default_child_value_function, 
@@ -55,6 +56,7 @@ class State():
             value_maximum = value_maximum,
             child_depth_minumum = child_depth_minumum,
             child_depth_maximum = child_depth_maximum,
+            cycle_chance=cycle_chance,
             id_depth_bits_size = id_depth_bits_size,
         )
         global_funcs = GlobalFunctions(

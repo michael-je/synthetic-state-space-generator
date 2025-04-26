@@ -5,7 +5,7 @@ from utils import bit_size
 
 def default_branching_function(randint: RandomIntFunction, randf: RandomFloatFunction, params: StateParams) -> int:
     """Constant branching factor with variance."""
-    variance = (randf() - 0.5) * 2 * params.globals.branching_factor_variance
+    variance = randf(low=params.globals.branching_factor_variance, high=params.globals.branching_factor_variance)
     branching_factor = max(0, params.globals.branching_factor_base + round(variance))
     # make sure we do not prematurely create a terminal
     if params.self.depth < params.globals.terminal_minimum_depth:
@@ -15,15 +15,12 @@ def default_branching_function(randint: RandomIntFunction, randf: RandomFloatFun
 
 def default_child_value_function(randint: RandomIntFunction, randf: RandomFloatFunction, params: StateParams) -> int:
     """Randomly generate a value between minimum and maximum."""
-    value_range = abs(params.globals.value_maximum - params.globals.value_minimum)
-    return round(randf() * value_range) + params.globals.value_minimum
+    return randint(low=params.globals.value_minimum, high=params.globals.value_maximum)
 
 
 def default_child_depth_function(randint: RandomIntFunction, randf: RandomFloatFunction, params: StateParams) -> int:
     """Randomly generate a depth between minimum and maximum depth."""
-    depth_range = abs(params.globals.child_depth_maximum - params.globals.child_depth_minumum)
-    depth_offset = round(randf() * depth_range) + params.globals.child_depth_minumum
-    return params.self.depth + depth_offset
+    return randint(low=params.globals.child_depth_minumum, high=params.globals.child_depth_maximum)
 
 
 # TODO: maybe add params back to arguments
@@ -37,4 +34,4 @@ def default_transposition_space_function(randint: RandomIntFunction, randf: Rand
 def default_heuristic_value_function(randint: RandomIntFunction, randf: RandomFloatFunction, params: StateParams) -> int:
     """Simulates a heuristic function with 70%-85% accuracy depending on depth."""
     accuracy = 0.7 + (0.15 * params.self.depth / params.globals.max_depth)
-    return params.self.value if randf() < accuracy else (params.self.value + 1) % 2
+    return params.self.value if randf() < accuracy else -params.self.value

@@ -30,7 +30,7 @@ def child_depth_function_cycles_allowed(randint: RandomIntFunction, randf: Rando
     """Allows children to create cycles by a few levels."""
     if params.parent is None:
         return 1
-    if randf() < 0.1:
+    if randf() < params.globals.cycle_chance:
         return int(max(1, params.self.depth - 3))
     return params.self.depth + 1
 
