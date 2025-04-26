@@ -52,42 +52,31 @@ class RNGHasher():
         self._times_hashed += 1
         return hash_64bit
     
-    def next_float(self, override_distribution: Dist|None=None) -> float:
-        """Return a pseudo-random float in range [0, 1]."""
-        distribution = self.distribution
-        if override_distribution is not None:
-            distribution = override_distribution
+    def next_float(self, distribution: Dist|None=None) -> float:
+        """Return a pseudo-random float in [0, 1]."""
+        if distribution is None:
+            distribution = self.distribution
         match distribution:
             case Dist.UNIFORM:
                 return self.hash() / HASH_OUTPUT_TMAX
             case Dist.GAUSSIAN:
-                normal = inverse_normal(self.next_float(override_distribution=Dist.UNIFORM))
+                normal = inverse_normal(self.next_float(distribution=Dist.UNIFORM))
                 result = (normal + 4) / 8 # scale result to [0, 1]
                 result = min(1, max(0, result)) # simply cut off extreme outliers
                 return result
-            case Dist.GEOMETRIC:
-                return 0.0 # TODO
-            case Dist.PARABOLIC:
-                return 0.0 # TODO
     
-    def next_int(self, low: int=0, high: int=HASH_OUTPUT_TMAX, override_distribution: Dist|None=None) -> int:
-        """Return a pseudo-random integer in range [low, high]."""
+    def next_int(self, low: int=0, high: int=HASH_OUTPUT_TMAX, distribution: Dist|None=None) -> int:
+        """Return a pseudo-random integer in [low, high]."""
         if low < 0 or high > HASH_OUTPUT_TMAX:
-            raise RangeOutOfBounds
-        distribution = self.distribution
-        
-        if override_distribution is not None:
-            distribution = override_distribution
+            raise ValueError("Range out of bounds.")
+        if distribution is None:
+            distribution = self.distribution
         dist_range = high - low
         match distribution:
             case Dist.UNIFORM:
                 return self.hash() % dist_range + low
             case Dist.GAUSSIAN:
-                return round(self.next_float(override_distribution=Dist.GAUSSIAN) * dist_range)
-            case Dist.GEOMETRIC:
-                return 0 # TODO
-            case Dist.PARABOLIC:
-                return 0 # TODO
+                return round(self.next_float(distribution=Dist.GAUSSIAN) * dist_range)
     
     def reset(self) -> None:
         """Reset the RNG."""

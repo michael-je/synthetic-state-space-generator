@@ -11,12 +11,10 @@ class Player(Enum):
 class RandomnessDistribution(Enum):
     UNIFORM = 0
     GAUSSIAN = 1
-    GEOMETRIC = 2
-    PARABOLIC = 3
     # TODO: more distributions?
 
 @dataclass
-class GlobalVars:
+class GlobalVariables:
     root_value: int
     seed: int
     max_depth: int
@@ -52,16 +50,16 @@ class StateParamsSiblings:
 # TODO: rename
 @dataclass
 class StateParams:
-    globals: GlobalVars
+    globals: GlobalVariables
     parent: StateParamsParent|None
     self: StateParamsSelf
     siblings: StateParamsSiblings|None
 
 # use Protocol to support type hints for keyword argument
 class RandomFloatFunction(Protocol):
-    def __call__(self, override_distribution: RandomnessDistribution|None=...) -> float: ...
+    def __call__(self, distribution: RandomnessDistribution|None=...) -> float: ...
 class RandomIntFunction(Protocol):
-    def __call__(self, low: int=..., high: int=..., override_distribution: RandomnessDistribution|None=...) -> int: ...
+    def __call__(self, low: int=..., high: int=..., distribution: RandomnessDistribution|None=...) -> int: ...
 BranchingFunction = Callable[[RandomIntFunction, RandomFloatFunction, StateParams], int]
 ChildValueFunction = Callable[[RandomIntFunction, RandomFloatFunction, StateParams], int]
 ChildDepthFunction = Callable[[RandomIntFunction, RandomFloatFunction, StateParams], int]
@@ -69,7 +67,7 @@ TranspositionSpaceFunction = Callable[[RandomIntFunction, RandomFloatFunction, i
 HeuristicValueFunction = Callable[[RandomIntFunction, RandomFloatFunction, StateParams], int]
 
 @dataclass
-class GlobalFuncs:
+class GlobalFunctions:
     branching_function: BranchingFunction
     child_value_function: ChildValueFunction
     child_depth_function: ChildDepthFunction
@@ -78,6 +76,6 @@ class GlobalFuncs:
 
 @dataclass
 class GlobalParameters:
-    vars: GlobalVars
-    funcs: GlobalFuncs
+    vars: GlobalVariables
+    funcs: GlobalFunctions
     retain_tree: bool

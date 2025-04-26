@@ -23,7 +23,7 @@ def branching_function_simple_constant(randint: RandomIntFunction, randf: Random
 
 def child_depth_function_random(randint: RandomIntFunction, randf: RandomFloatFunction, params: StateParams) -> int:
     """Generate children anywhere in the entire state space."""
-    return randint() % params.globals.max_depth
+    return randint(low=0, high=params.globals.max_depth)
 
 
 def child_depth_function_cycles_allowed(randint: RandomIntFunction, randf: RandomFloatFunction, params: StateParams) -> int:

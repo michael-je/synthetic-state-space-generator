@@ -43,7 +43,7 @@ class State():
             if bit_size(transposition_space_map[depth]) > (ID_BITS_SIZE - id_depth_bits_size):
                 raise IdOverflow(f"Transposition space value {transposition_space_map[depth]} at depth {depth} too large.")
         
-        global_vars = GlobalVars(
+        global_vars = GlobalVariables(
             root_value = root_value,
             seed = seed,
             max_depth = max_depth,
@@ -57,7 +57,7 @@ class State():
             child_depth_maximum = child_depth_maximum,
             id_depth_bits_size = id_depth_bits_size,
         )
-        global_funcs = GlobalFuncs(
+        global_funcs = GlobalFunctions(
             branching_function = branching_function,
             child_value_function = child_value_function,
             child_depth_function = child_depth_function,

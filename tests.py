@@ -10,9 +10,9 @@ def print_histogram(hist: defaultdict[float|int, int]):
     hist_width = 80
     high = max(hist.values())
     low = min(hist.values())
-    range = high - low
+    hist_range = high - low
     for k in sorted(hist.keys()):
-        print("{:>5}: ".format(k) + '*' * int(hist_width * hist[k] / range))
+        print("{:>5}: ".format(k) + '*' * int(hist_width * hist[k] / hist_range))
 
 
 def test_hash_average(n_trials: int):
