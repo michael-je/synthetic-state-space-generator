@@ -5,7 +5,7 @@ from utils import bit_size
 
 def default_branching_function(randint: RandomIntFunction, randf: RandomFloatFunction, params: StateParams) -> int:
     """Constant branching factor with variance."""
-    variance = randf(low=params.globals.branching_factor_variance, high=params.globals.branching_factor_variance)
+    variance = randf(low=-params.globals.branching_factor_variance, high=params.globals.branching_factor_variance)
     branching_factor = max(0, params.globals.branching_factor_base + round(variance))
     # make sure we do not prematurely create a terminal
     if params.self.depth < params.globals.terminal_minimum_depth:
