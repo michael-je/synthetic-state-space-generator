@@ -400,7 +400,7 @@ dot.render("gametree", format="png", cleanup=True)
 
 
 
-"""
+
 # Create filtered DataFrame starting at start_depth
 depths = list(range(start_depth, len(bf_by_depth_unique)))
 bf_df = pd.DataFrame(bf_by_depth_unique[start_depth:], columns=[f'{i} children' for i in range(len(bf_by_depth_unique[0]))])
@@ -503,4 +503,3 @@ plt.ylabel("Number of Outcomes (Weighted by Transpositions)")
 plt.grid(True)
 plt.tight_layout()
 plt.show()
-"""

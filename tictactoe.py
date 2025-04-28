@@ -120,6 +120,55 @@ print("non-unique:")
 for depth, stats in enumerate(bf_by_depth_nonunique):
     print(depth, stats)
 
+
+import matplotlib.pyplot as plt
+import numpy as np
+def plot_bf_by_depth(data, title, ylabel):
+    data_np = np.array(data)
+    depths = np.arange(data_np.shape[0])
+
+    fig, ax = plt.subplots(figsize=(14, 8))
+
+    bottom = np.zeros_like(depths)
+    colors = plt.cm.tab10(np.linspace(0, 1, data_np.shape[1]))  # Professional colors (10 distinct ones)
+
+    for bf in range(data_np.shape[1]):
+        bars = ax.bar(depths, data_np[:, bf], bottom=bottom, color=colors[bf], label=f'BF {bf}')
+        # Add labels inside bars
+        for bar, value in zip(bars, data_np[:, bf]):
+            if value > 0:
+                ax.text(
+                    bar.get_x() + bar.get_width() / 2,  # center of bar
+                    bar.get_y() + bar.get_height() / 2,  # center vertically
+                    f'{bf}',
+                    ha='center', va='center',
+                    fontsize=8,
+                    color='white' if value > 10 else 'black'  # make sure text is visible
+                )
+        bottom += data_np[:, bf]
+
+    ax.set_xlabel('Depth')
+    ax.set_ylabel(ylabel)
+    ax.set_yscale('log')  # <-- Logarithmic y-axis
+    ax.set_title(title)
+    ax.legend(title='Branching Factor', bbox_to_anchor=(1.05, 1), loc='upper left')
+    ax.grid(axis='y', linestyle='--', alpha=0.7)
+    plt.tight_layout()
+    plt.show()
+
+# Plot unique
+plot_bf_by_depth(
+    bf_by_depth_unique,
+    title='Branching Factor Distribution by Depth in Tic-Tac-Toe',
+    ylabel='Number of States (log scale)'
+)
+
+plot_bf_by_depth(
+    bf_by_depth_nonunique,
+    title='Branching Factor Distribution by Depth (Non-Unique)',
+    ylabel='Number of States Weighted by Transpositions (log scale)'
+)
+
 print()
 print("###############################################")
 print("terminal state density by depth")
