@@ -79,7 +79,7 @@ class RNGHasher():
         
         match distribution:
             case Dist.UNIFORM:
-                return self.hash() % dist_range + low
+                return self.hash() % (dist_range + 1) + low
             case Dist.GAUSSIAN:
                 return round(self.next_float(low=low, high=high, distribution=Dist.GAUSSIAN))
     
