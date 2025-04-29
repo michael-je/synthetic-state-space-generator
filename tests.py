@@ -80,7 +80,7 @@ def test_deterministic_graph(state: State):
     except KeyboardInterrupt:
         pass
     finally:
-        state.draw_tree()
+        state.draw_graph()
 
 
 def test_random_graph(retain_tree: bool=True):
@@ -93,7 +93,7 @@ def test_random_graph(retain_tree: bool=True):
         while random.random() < 0.6 and not state.is_terminal():
             state.make(random.randint(0, b-1))
             state._current.generate_children()
-    state.draw_tree()
+    state.draw_graph()
 
 
 def test_ids(seed: int=0):
@@ -101,4 +101,4 @@ def test_ids(seed: int=0):
     for _ in range(40):
         state.make_random()
         print(state)
-    state.draw_tree()
+    state.draw_graph()

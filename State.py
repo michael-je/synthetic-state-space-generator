@@ -89,6 +89,10 @@ class State():
     def is_root(self) -> bool:
         """Return true if the state is the root."""
         return self._current.is_root()
+    
+    def depth(self) -> int:
+        """Return the depth of the current node."""
+        return self._current.depth
 
     def id(self) -> int:
         """Return the id of the current state."""
@@ -132,10 +136,10 @@ class State():
             self._current.reset() # release memory as we climb back up the tree
         return self
 
-    def draw_tree(self) -> None:
-        """Draw the current node tree. Best used when retaining the tree."""
+    def draw_graph(self) -> None:
+        """Draw the current node graph. Best used when retaining the tree."""
         visited: set[tuple[int, int]] = set()
-        def draw_tree_recur(graph: Digraph, node: StateNode):
+        def draw_graph_recur(graph: Digraph, node: StateNode):
             graph.node(name=str(node.id), label=str(node))
             if node.is_terminal():
                 return
@@ -144,10 +148,10 @@ class State():
                 if edge not in visited:
                     visited.add(edge)
                     graph.edge(str(node.id), str(child.id))
-                draw_tree_recur(graph, child)
+                draw_graph_recur(graph, child)
         
         graph = Digraph(format="png")
-        draw_tree_recur(graph, self._root)
+        draw_graph_recur(graph, self._root)
         graph.render(f"trees/tree_seed_{self.globals.vars.seed}" , view=True)  
     
     # TODO: add draw whole tree function
