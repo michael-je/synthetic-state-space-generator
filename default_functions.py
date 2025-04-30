@@ -20,12 +20,11 @@ def default_child_value_function(randint: RandomIntFunction, randf: RandomFloatF
 
 def default_child_depth_function(randint: RandomIntFunction, randf: RandomFloatFunction, params: StateParams) -> int:
     """Randomly generate a depth between minimum and maximum depth."""
-    min_depth = params.globals.child_depth_minumum + params.self.depth
-    max_depth = params.globals.child_depth_maximum + params.self.depth
+    min_depth = max(params.globals.child_depth_minumum + params.self.depth, 0)
+    max_depth = min(params.globals.child_depth_maximum + params.self.depth, params.globals.max_depth)
     return randint(low=min_depth, high=max_depth)
 
 
-# TODO: maybe add params back to arguments
 def default_transposition_space_function(randint: RandomIntFunction, randf: RandomFloatFunction, max_depth: int) -> dict[int, int]:
     """Maximum number of different states per depth, ensuring minimal transpositions."""
     max_states = 1 << (ID_BITS_SIZE - bit_size(max_depth))

@@ -136,7 +136,7 @@ class State():
             self._current.reset() # release memory as we climb back up the tree
         return self
 
-    def draw_graph(self) -> None:
+    def draw(self) -> None:
         """Draw the current node graph. Best used when retaining the tree."""
         visited: set[tuple[int, int]] = set()
         def draw_graph_recur(graph: Digraph, node: StateNode):

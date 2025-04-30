@@ -77,6 +77,8 @@ class StateNode():
             raise IdOverflow(f"Depth {self.depth} too large for {self.globals.vars.id_depth_bits_size} bits")
         if child_depth < 0:
             raise IdOverflow(f"Depth can not be negative.")
+        if child_depth > self.globals.vars.max_depth:
+            raise IdOverflow(f"Depth can not exceed max_depth.")
         return child_depth
     
     def _generate_child_id(self, child_depth: int) -> int:
