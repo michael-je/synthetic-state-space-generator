@@ -62,7 +62,7 @@ class RNGHasher():
             case Dist.UNIFORM:
                 return (self.hash() / HASH_OUTPUT_TMAX) * dist_range + low
             case Dist.GAUSSIAN:
-                MAX_DIST_FROM_MEAN = 4 # not a true maximum, but we don't care about extreme outliers
+                MAX_DIST_FROM_MEAN = 3.4 # not a true maximum, but we don't care about extreme outliers
                 normal = inverse_normal(self.next_float(distribution=Dist.UNIFORM))
                 result = (normal + MAX_DIST_FROM_MEAN) / (2*MAX_DIST_FROM_MEAN) # scale to [0, 1]
                 result = result * dist_range + low # scale to [low, high]
