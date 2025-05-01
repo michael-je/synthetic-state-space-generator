@@ -7,7 +7,7 @@ from utils import bit_size
 from constants import ID_BITS_SIZE
 from custom_types import *
 from custom_types import RandomnessDistribution as Dist
-from exceptions import IdOverflow, RootHasNoParent
+from custom_exceptions import IdOverflow, RootHasNoParent
 from default_functions import *
 
 

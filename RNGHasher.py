@@ -2,7 +2,10 @@ import math
 import mmh3
 from constants import HASH_OUTPUT_TMAX
 from custom_types import RandomnessDistribution as Dist
-from exceptions import *
+from custom_exceptions import *
+
+
+GAUSSIAN_MAX_DIST_FROM_MEAN = 3.4 # not a true maximum, but we don't care about extreme outliers
 
 # Acklam's Algorithm for computing the normal quantile function (inverse normal)
 def inverse_normal(p: float) -> float:
@@ -55,6 +58,8 @@ class RNGHasher():
     def next_float(self, low: float=0, high: float=1, distribution: Dist|None=None) -> float:
         """Return a pseudo-random float in [low, high]."""
         dist_range = high - low
+        if low > high:
+            raise ValueError("low must be <= high.")
         if distribution is None:
             distribution = self.distribution
         
@@ -62,9 +67,8 @@ class RNGHasher():
             case Dist.UNIFORM:
                 return (self.hash() / HASH_OUTPUT_TMAX) * dist_range + low
             case Dist.GAUSSIAN:
-                MAX_DIST_FROM_MEAN = 3.4 # not a true maximum, but we don't care about extreme outliers
                 normal = inverse_normal(self.next_float(distribution=Dist.UNIFORM))
-                result = (normal + MAX_DIST_FROM_MEAN) / (2*MAX_DIST_FROM_MEAN) # scale to [0, 1]
+                result = (normal + GAUSSIAN_MAX_DIST_FROM_MEAN) / (2*GAUSSIAN_MAX_DIST_FROM_MEAN) # scale to [0, 1]
                 result = result * dist_range + low # scale to [low, high]
                 result = min(high, max(low, result)) # simply cut off the outliers
                 return result
@@ -73,7 +77,11 @@ class RNGHasher():
         """Return a pseudo-random integer in [low, high]."""
         dist_range = high - low
         if dist_range > HASH_OUTPUT_TMAX:
-            raise ValueError("Range out of bounds.")
+            raise ValueError(f"Range {low}-{high} is out of bounds.")
+        if low > high:
+            raise ValueError("low must be <= high.")
+        if not (isinstance(low, int) and isinstance(high, int)): # type: ignore
+            raise ValueError("low and high must be integers.")
         if distribution is None:
             distribution = self.distribution
         

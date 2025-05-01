@@ -1,104 +1,231 @@
-import random
-from State import State
-from RNGHasher import RNGHasher
-from custom_types import *
-from custom_types import RandomnessDistribution as Dist
-from example_functions import *
+import unittest
+import math
 from collections import defaultdict
+import mmh3
 
-def print_histogram(hist: defaultdict[float|int, int]):
-    hist_width = 80
-    high = max(hist.values())
-    low = min(hist.values())
-    hist_range = high - low
-    for k in sorted(hist.keys()):
-        print("{:>5}: ".format(k) + '*' * int(hist_width * hist[k] / hist_range))
+import RNGHasher
+from RNGHasher import RNGHasher as RNG
+from State import State
+from custom_types import *
+from custom_exceptions import *
+from constants import *
 
+class SeedGenerator():
+    def __init__(self):
+        self.hash_num = 0
+    
+    def __iter__(self):
+        return self
+    
+    def __next__(self):
+        hash_64bit, _ = mmh3.mmh3_x64_128_utupledigest("aaa".encode(), self.hash_num)
+        self.hash_num += 1
+        return hash_64bit % 100000
 
-def test_hash_average(n_trials: int):
-    tot = 0
-    seed = random.randint(1, 10000000)
-    hasher = RNGHasher(distribution=Dist.UNIFORM, seed=seed)
-    for _ in range(1, n_trials+1):
-        tot += hasher.next_float()
-    print("test_hash_average:", tot/n_trials)
-
-
-def test_gaussian_float_distribution(n_trials: int, decimal_accuracy: int=2, seed: int=0):
-    histogram: defaultdict[float, int] = defaultdict(lambda: 0)
-    hasher = RNGHasher(distribution=Dist.GAUSSIAN, seed=seed)
-    for _ in range(n_trials):
-        result = hasher.next_float()
-        histogram[round(result, decimal_accuracy)] += 1
-    print_histogram(histogram)
+seeds = SeedGenerator()
 
 
-def test_gaussian_int_distribution(n_trials: int, dist_range: int=50, seed: int=0):
-    histogram: defaultdict[float, int] = defaultdict(lambda: 0)
-    hasher = RNGHasher(distribution=Dist.GAUSSIAN, seed=seed)
-    for _ in range(n_trials):
-        result = hasher.next_int(low=0, high=dist_range)
-        histogram[result] += 1
-    print_histogram(histogram)
+class TestRNG(unittest.TestCase):
+
+    def test_basic_rng_determinism(self):
+        N_TRIALS = 10000
+        for _ in range(100):
+            seed = next(seeds)
+            rng1 = RNG(distribution=RandomnessDistribution.UNIFORM, seed=seed)
+            sequence1 = [rng1.next_int() for _ in range(N_TRIALS)]
+            rng2 = RNG(distribution=RandomnessDistribution.UNIFORM, seed=seed)
+            sequence2 = [rng2.next_int() for _ in range(N_TRIALS)]
+            self.assertEqual(sequence1, sequence2)
+
+    def test_hash_average(self):
+        N_TRIALS = 100000
+        for _ in range(10):
+            rng = RNG(distribution=RandomnessDistribution.UNIFORM, seed=next(seeds))
+            tot = 0
+            for _ in range(1, N_TRIALS+1):
+                tot += rng.next_float()
+            average = tot/N_TRIALS
+            self.assertAlmostEqual(0.5, average, places=2)
+    
+    def test_reset(self):
+        for _ in range(100):
+            rng = RNG(distribution=RandomnessDistribution.UNIFORM, seed=next(seeds))
+            sequence1 = [rng.next_int() for _ in range(100)]
+            rng.reset()
+            sequence2 = [rng.next_int() for _ in range(100)]
+            self.assertEqual(sequence1, sequence2)
+    
+    def test_gaussian_distribution(self):
+        N_TRIALS = 1000000
+        rng = RNG(distribution=RandomnessDistribution.GAUSSIAN)
+        bins: defaultdict[int, float]= defaultdict(lambda: 0)
+        for _ in range(N_TRIALS):
+            n = rng.next_float(
+                low=-RNGHasher.GAUSSIAN_MAX_DIST_FROM_MEAN, 
+                high=RNGHasher.GAUSSIAN_MAX_DIST_FROM_MEAN)
+            if n < -2:
+                bins[-2] += 1
+            elif n < -1:
+                bins[-1] += 1
+            elif n < 0:
+                bins[0] += 1
+            elif n < 1:
+                bins[1] += 1
+            elif n < 2:
+                bins[2] += 1
+            else:
+                bins[3] += 1
+        BAND_1 = 0.341
+        BAND_2 = 0.136
+        BAND_3 = 0.5 - BAND_1 - BAND_2
+        self.assertAlmostEqual(bins[-2]/N_TRIALS, BAND_3, places=2)
+        self.assertAlmostEqual(bins[-1]/N_TRIALS, BAND_2, places=2)
+        self.assertAlmostEqual(bins[0]/N_TRIALS,  BAND_1, places=2)
+        self.assertAlmostEqual(bins[1]/N_TRIALS,  BAND_1, places=2)
+        self.assertAlmostEqual(bins[2]/N_TRIALS,  BAND_2, places=2)
+        self.assertAlmostEqual(bins[3]/N_TRIALS,  BAND_3, places=2)
+    
+    def test_uniform_distribution(self):
+        N_TRIALS = 1000000
+        rng = RNG(distribution=RandomnessDistribution.UNIFORM)
+        bins: defaultdict[int, int]= defaultdict(lambda: 0)
+        low, high = 0, 10000
+        for _ in range(N_TRIALS):
+            n = rng.next_int(low=low, high=high)
+            if n < high / 5:
+                bins[1] += 1
+            elif n < high * 2 / 5:
+                bins[2] += 1
+            elif n < high * 3 / 5:
+                bins[3] += 1
+            elif n < high * 4 / 5:
+                bins[4] += 1
+            else:
+                bins[5] += 1
+        MARGIN = N_TRIALS * 0.001
+        for result in bins.values():
+            self.assertLess(abs(result - N_TRIALS/5), MARGIN)
+    
+    def test_bad_int_arguments(self):
+        rng = RNG(distribution=RandomnessDistribution.UNIFORM)
+        # ranges too large
+        self.assertRaises(ValueError, lambda: rng.next_int(high=HASH_OUTPUT_TMAX+1))
+        self.assertRaises(ValueError, lambda: rng.next_int(low=-(HASH_OUTPUT_TMAX+1)))
+        self.assertRaises(ValueError, lambda: rng.next_int(
+            low=math.floor(-HASH_OUTPUT_TMAX/2), high=math.ceil(HASH_OUTPUT_TMAX/2)))
+        # inverted ranges
+        self.assertRaises(ValueError, lambda: rng.next_int(low=1, high=0))
+        self.assertRaises(ValueError, lambda: rng.next_int(low=-5, high=-10))
+        self.assertRaises(ValueError, lambda: rng.next_int(low=1000000, high=-100000))
+        # float ranges
+        self.assertRaises(ValueError, lambda: rng.next_int(low=0.1)) # type: ignore
+        self.assertRaises(ValueError, lambda: rng.next_int(high=0.1)) # type: ignore
+    
+    def test_good_int_arguments(self):
+        rng = RNG(distribution=RandomnessDistribution.UNIFORM)
+        N_TRIALS = 10000
+        # zero ranges
+        ranges = (0, 100, -100)
+        for r in ranges:
+            self.assertEqual(r, rng.next_int(low=r, high=r))
+        # very small ranges. Want to test if all values appear.
+        ranges = ((-11, -10), (10000, 10001), (-1, 0), (-1, 1), (5, 8))
+        for r in ranges:
+            low, high = r
+            results: list[int] = []
+            for _ in range(N_TRIALS):
+                results.append(rng.next_int(low=low, high=high))
+            self.assertIn(low, results)
+            self.assertIn(high, results)
+        # very large ranges
+        ranges = ((0, HASH_OUTPUT_TMAX), 
+                  (-HASH_OUTPUT_TMAX, 0), 
+                  (math.ceil(-HASH_OUTPUT_TMAX/2)+1, math.floor(HASH_OUTPUT_TMAX/2)))
+        for r in ranges:
+            low, high = r
+            rng.next_int(low=low, high=high)
+    
+    def test_bad_float_arguments(self):
+        rng = RNG(distribution=RandomnessDistribution.UNIFORM)
+        # test low > high
+        ranges = ((1, 0), (0.000000000001, 0), (-2, -3))
+        for r in ranges:
+            low, high = r
+            self.assertRaises(ValueError, lambda: rng.next_float(low=low, high=high))
+
+    def test_good_float_arguments(self):
+        rng = RNG(distribution=RandomnessDistribution.UNIFORM)
+        N_TRIALS = 10000
+        # zero ranges
+        ranges = (0.0, 0.000000000001, -123.123)
+        for r in ranges:
+            self.assertEqual(r, rng.next_float(low=r, high=r))
+        # very small ranges
+        ranges = ((-0.1, 0), 
+                  (0, 0.000000000000000001), 
+                  (0.00000000001, 0.0000000002))
+        for r in ranges:
+            low, high = r
+            for _ in range(N_TRIALS):
+                result = rng.next_float(low=low, high=high)
+                self.assertTrue(low <= result <= high)
+        # very large ranges
+        ranges = ((0.0, HASH_OUTPUT_TMAX), 
+                  (-HASH_OUTPUT_TMAX, 0), 
+                  (-HASH_OUTPUT_TMAX/2, HASH_OUTPUT_TMAX/2))
+        for r in ranges:
+            low, high = r
+            rng.next_float(low=low, high=high)
 
 
-def test_hash_uniformity(n_trials: int):
-    # use numpy and binning to visualize uniformity
-    pass
+class TestState(unittest.TestCase):
 
-
-def test_deterministic_graph_1(seed: int=0):
-    state = State(seed=seed, max_depth=10, retain_tree=True)
-    test_deterministic_graph(state)
-
-def test_deterministic_graph_2(seed: int=0):
-    state = State(seed=seed, max_depth=20, branching_factor_base=3, branching_factor_variance=2, retain_tree=True)
-    test_deterministic_graph(state)
-
-# def test_deterministic_graph_2(seed: int=0):
-#     state = State(seed=seed, max_depth=50, retain_tree=True, branching_function=lambda _, randf, __: 1+int(randf()*5))
-#     test_deterministic_graph(state)
-
-# def test_deterministic_graph_3(seed: int=0):
-#     state = State(
-#         seed=seed, 
-#         max_depth=20, 
-#         retain_tree=True, 
-#         child_depth_function=child_depth_function_example_2,
-#         transposition_space_function=transposition_space_function_example_1
-#     )
-#     test_deterministic_graph(state)
-
-def test_deterministic_graph(state: State):
-    try:
-        while state._current.depth < state.globals.vars.max_depth - 1:
-            while state._RNG.next_float() < 0.3 and not state.is_root():
+    def _walk_graph(self, state: State, walk_seed: int=0):
+        rng = RNG(distribution=RandomnessDistribution.UNIFORM, seed=walk_seed)
+        while state.depth() < state.globals.vars.max_depth - 1:
+            while rng.next_float() < 0.56 and not state.is_root():
                 state.undo()
-            while state._RNG.next_float() < 0.6 and not state.is_terminal():
+            while rng.next_float() < 0.6 and not state.is_terminal():
                 state.make_random()
-                # state._current.generate_children()
-    except KeyboardInterrupt:
-        pass
-    finally:
-        state.draw()
+
+    def test_undo_root(self):
+        state = State()
+        self.assertRaises(RootHasNoParent, lambda: state.undo())
+        state.make(state.actions()[0])
+        state.undo()
+        self.assertRaises(RootHasNoParent, lambda: state.undo())
+
+    def test_negative_child_depth(self):
+        state = State(child_depth_function=lambda *args: -1) # type: ignore
+        self.assertRaises(IdOverflow, lambda: state.make_random())
+    
+    def test_basic_state_determinism_1(self):
+        state1 = State()
+        self._walk_graph(state1)
+        state1_id = state1.id()
+        state2 = State()
+        self._walk_graph(state2)
+        state2_id = state2.id()
+        self.assertEqual(state1_id, state2_id)
+    
+    def test_basic_state_determinism_2(self):
+        N_TRIALS = 50
+        DEPTH = 30
+        state1 = State(max_depth=DEPTH)
+        state2 = State(max_depth=DEPTH)
+        for _ in range(N_TRIALS):
+            self._walk_graph(state1, next(seeds))
+            self._walk_graph(state2, next(seeds))
+            while not state1.is_root():
+                state1.undo()
+            while not state2.is_root():
+                state2.undo()
+        while not state1.is_terminal():
+            state1.make(state1.actions()[0])
+        while not state2.is_terminal():
+            state2.make(state2.actions()[0])
+        self.assertEqual(state1.id(), state2.id())
 
 
-def test_random_graph(retain_tree: bool=True):
-    b = random.randint(2, 5)
-    d = random.randint(5, 15)
-    state = State(b, d, retain_tree=retain_tree)
-    while not state.is_terminal():
-        while random.random() < 0.5 and not state.is_root():
-            state.undo()
-        while random.random() < 0.6 and not state.is_terminal():
-            state.make(random.randint(0, b-1))
-            state._current.generate_children()
-    state.draw()
-
-
-def test_ids(seed: int=0):
-    state=State(seed=random.randint(0, 100), retain_tree=True)
-    for _ in range(40):
-        state.make_random()
-        print(state)
-    state.draw()
+if __name__ == '__main__':
+    unittest.main()

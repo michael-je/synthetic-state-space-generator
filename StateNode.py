@@ -3,7 +3,7 @@ from typing import Self
 from RNGHasher import RNGHasher
 from custom_types import *
 from constants import ID_BITS_SIZE
-from exceptions import IdOverflow
+from custom_exceptions import IdOverflow
 
 
 class StateNode():
