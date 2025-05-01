@@ -8,3 +8,5 @@ class RootHasNoParent(Exception):
     pass
 class RangeOutOfBounds(Exception):
     pass
+class TerminalHasNoChildren(Exception):
+    pass

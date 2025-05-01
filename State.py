@@ -7,7 +7,7 @@ from utils import bit_size
 from constants import ID_BITS_SIZE
 from custom_types import *
 from custom_types import RandomnessDistribution as Dist
-from custom_exceptions import IdOverflow, RootHasNoParent
+from custom_exceptions import *
 from default_functions import *
 
 
@@ -34,6 +34,19 @@ class State():
                  child_depth_function: ChildDepthFunction=default_child_depth_function,
                  transposition_space_function: TranspositionSpaceFunction=default_transposition_space_function,
                  heuristic_value_function: HeuristicValueFunction=default_heuristic_value_function):
+        
+        if max_depth < 0:
+            raise ValueError("max_depth can not be negative.")
+        if bit_size(max_depth) >= ID_BITS_SIZE:
+            raise ValueError("max_depth too large.")
+        if child_depth_minumum > child_depth_maximum:
+            raise ValueError("child_depth_minimum must be > child_depth_maximum.")
+        if terminal_minimum_depth < 0:
+            raise ValueError("terminal_minimum_depth must be > 0.")
+        if branching_factor_base < 0:
+            raise ValueError("branching_factor_base must be >= 0.")
+        if branching_factor_variance < 0:
+            raise ValueError("branching_factor_variance must be >= 0.")
         
         self._RNG = RNGHasher(distribution=distribution, seed=seed)
         id_depth_bits_size = bit_size(max_depth)
@@ -112,7 +125,11 @@ class State():
 
     def make(self, action: int) -> Self:
         """Transition to the next state via action (represented as an index into the states children)."""
+        if self.is_terminal():
+            raise TerminalHasNoChildren
         self._current.generate_children()
+        if not 0 <= action < len(self._current.children):
+            raise ValueError(f"No action {action} among children {self._current.children}.")
         self._current = self._current.children[action]
         if not self.globals.retain_tree:
             if self._current.parent is None:
@@ -122,8 +139,10 @@ class State():
     
     def make_random(self) -> Self:
         """Make a random action."""
+        if self.is_terminal():
+            raise TerminalHasNoChildren
         actions = self.actions()
-        i = int(self._RNG.next_float() * len(actions))
+        i = self._RNG.next_int(high=len(actions)-1)
         self.make(actions[i])
         return self
 

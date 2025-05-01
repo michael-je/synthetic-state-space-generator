@@ -27,7 +27,8 @@ def default_child_depth_function(randint: RandomIntFunction, randf: RandomFloatF
 
 def default_transposition_space_function(randint: RandomIntFunction, randf: RandomFloatFunction, max_depth: int) -> dict[int, int]:
     """Maximum number of different states per depth, ensuring minimal transpositions."""
-    max_states = 1 << (ID_BITS_SIZE - bit_size(max_depth))
+    # TODO: make readable
+    max_states = 1 << (ID_BITS_SIZE - bit_size(max_depth)) - 1
     constant_states_per_depth = max_states // max_depth
     return {d: constant_states_per_depth for d in range(max_depth)}
 

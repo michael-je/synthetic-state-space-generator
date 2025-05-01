@@ -187,6 +187,14 @@ class TestState(unittest.TestCase):
                 state.undo()
             while rng.next_float() < 0.6 and not state.is_terminal():
                 state.make_random()
+    
+    # def _default_test_states(self):
+    #     return [
+    #         State(max_depth=0),
+    #         State(max_depth=1),
+    #         State(max_depth=10000),
+    #         State(branching_factor_base=10, max_depth=100),
+    #     ]
 
     def test_undo_root(self):
         state = State()
@@ -194,10 +202,46 @@ class TestState(unittest.TestCase):
         state.make(state.actions()[0])
         state.undo()
         self.assertRaises(RootHasNoParent, lambda: state.undo())
-
-    def test_negative_child_depth(self):
-        state = State(child_depth_function=lambda *args: -1) # type: ignore
-        self.assertRaises(IdOverflow, lambda: state.make_random())
+    
+    def test_make_terminal(self):
+        state = State()
+        while not state.is_terminal():
+            state.make(0)
+        self.assertRaises(TerminalHasNoChildren, lambda: state.make(0))
+    
+    def test_make_random(self):
+        pass
+    
+    def test_depth(self):
+        N_TRIALS = 100
+        rng = RNGHasher.RNGHasher(RandomnessDistribution.UNIFORM)
+        state = State(max_depth=10000)
+        depth = 0
+        self.assertEqual(state.depth(), depth)
+        state.make_random()
+        depth += 1
+        self.assertEqual(state.depth(), depth)
+        for _ in range(N_TRIALS):
+            steps = rng.next_int(
+                low=-state.depth(), high=state.globals.vars.max_depth - state.depth())
+            while steps < 0:
+                state.undo()
+                depth -= 1
+                steps += 1
+            while steps > 0:
+                state.make_random()
+                depth += 1
+                steps -= 1
+        self.assertEqual(state.depth(), depth)
+    
+    def test_state_parameter_ranges(self):
+        self.assertRaises(ValueError, lambda: State(max_depth=-1))
+        self.assertRaises(ValueError, lambda: State(max_depth=2**ID_BITS_SIZE))
+        self.assertRaises(ValueError, lambda: State(child_depth_minumum=2, child_depth_maximum=1))
+        self.assertRaises(ValueError, lambda: State(terminal_minimum_depth=-1))
+        self.assertRaises(ValueError, lambda: State(branching_factor_base=-1))
+        self.assertRaises(ValueError, lambda: State(branching_factor_variance=-1))
+        # TODO
     
     def test_basic_state_determinism_1(self):
         state1 = State()
@@ -225,6 +269,23 @@ class TestState(unittest.TestCase):
         while not state2.is_terminal():
             state2.make(state2.actions()[0])
         self.assertEqual(state1.id(), state2.id())
+    
+    def test_negative_branching_function(self):
+        state = State(branching_function=lambda *args: -1) # type: ignore
+        self.assertRaises(TerminalHasNoChildren, lambda: state.make_random())
+    
+    def test_negative_child_depth(self):
+        state = State(child_depth_function=lambda *args: -1) # type: ignore
+        self.assertRaises(IdOverflow, lambda: state.make_random())
+    
+    def test_large_child_depth(self):
+        state = State(max_depth=2, child_depth_function=lambda *args: 3) # type: ignore
+        self.assertRaises(IdOverflow, lambda: state.make_random())
+    
+    # def test_maxdepth_1(self):
+    #     state = State(max_depth=1)
+    #     state.make_random()
+
 
 
 if __name__ == '__main__':
