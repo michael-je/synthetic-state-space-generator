@@ -69,20 +69,59 @@ def branching_function_tictactoe(randint: RandomIntFunc, randf: RandomFloatFunc,
 
 
 def branching_function_connect_four(randint: RandomIntFunc, randf: RandomFloatFunc, info_dump: InfoDump) -> int:
-    if info_dump.self.depth < 5:
-        return 9 - info_dump.self.depth
+    rand_num = randf()
+    bf = [
+    [0, 0, 0, 0, 0, 0, 0, 1],
+    [0, 0, 0, 0, 0, 0, 0, 7],
+    [0, 0, 0, 0, 0, 0, 0, 49],
+    [0, 0, 0, 0, 0, 0, 0, 238],
+    [0, 0, 0, 0, 0, 0, 0, 1120],
+    [0, 0, 0, 0, 0, 0, 0, 4263],
+    [0, 0, 0, 0, 0, 0, 7, 16415],
+    [728, 0, 0, 0, 0, 0, 294, 53837],
+    [1892, 0, 0, 0, 0, 0, 4326, 178057],
+    [19412, 0, 0, 0, 0, 0, 31984, 506790]]
+
+
+    if InfoDump.self.depth <6 :
+        return 7
+    
+    if InfoDump.self.depth <7 :
+        if rand_num < 7/(7+16415):
+            return 6
+        return 7
+    if InfoDump.self.depth <8 :
+        if rand_num < 294/(294+728+53837):
+            return 6
+        elif rand_num < (294+728)/(294+728+53837):
+            return 0
+        return 7
+    if InfoDump.self.depth <9 :
+        if rand_num < 4326/(4326+1892+178057):
+            return 6
+        elif rand_num <  (4326+1892)/(4326+1892+178057):
+            return 0
+        return 7
+    else:
+        if rand_num < 45748/(45748+29054+1197553):
+            return 6
+        elif rand_num <  (45748+29054)/(45748+29054+1197553):
+            return 0
+        return 7
     
 
-    if info_dump.self.depth >= 7:
-        # 63.8% return 0 else return 2
-        if randf() < 0.001:
-            return 0
-    else:
-        return 7    
-    return 9
 
 def transposition_space_function_connect_four(randint: RandomIntFunc, randf: RandomFloatFunc, info_dump: InfoDump) -> dict[int, int]:
-    trans_map = {0: 1
+    trans_map = {1: 1,
+                 2: 7,
+                 3: 49,
+                 4: 133,
+                 5: 1,
+                 6: 1,
+                 7: 1,
+                 8: 1,
+                 9: 1,
+            
                  }
     
 

@@ -160,21 +160,37 @@ class Node:
 
 nodes_memo: dict[int, Node] = dict()
 
+def BFS(root: Node, max_depth: int = 9):
+    bfs_queue = deque([(root, 0)])  # (node, depth)
+    current_level = 0
 
-def BFS(root: Node):
-    bfs_queue = deque([root])
     while bfs_queue:
-        node = bfs_queue.popleft()
+        node, depth = bfs_queue.popleft()
+
+        if depth > max_depth:
+            continue
+
+        if depth > current_level:
+            print(f"Finished BFS for level {current_level}")
+            current_level = depth
+
         node_hash = hash(node)
         node_memo = nodes_memo.get(node_hash)
         if node_memo is not None:
             node_memo.transposition_number += node.transposition_number
-            pass
-        else: nodes_memo[node_hash] = node
+            continue
+        else:
+            nodes_memo[node_hash] = node
+
         if node.game_over():
             continue
+
         node.generate_children()
-        bfs_queue.extend(node.children)
+        bfs_queue.extend((child, depth + 1) for child in node.children)
+
+    print(f"Finished BFS for level {current_level}")  # Final level
+
+
 
 
 def create_node_from_board(board_2d: list[list[str]]) -> Node:
@@ -224,7 +240,7 @@ board_4 = [
 
 
 
-root = create_node_from_board(board_4)
+root = create_node_from_board(board_2)
 
 
 print("Starting board (22 turns in):")
@@ -293,25 +309,25 @@ for depth in range(start_depth, max_depth + 1):
 print("\n###############################################")
 print("average game length")
 
-# Unique
-total = 0
-terminals_cnt = 0
-for depth in range(start_depth, max_depth + 1):
-    for node in depth_sorted_nodes[depth]:
-        if node.game_over():
-            total += node.depth
-            terminals_cnt += 1
-print("\nunique:", total / terminals_cnt)
+# # Unique
+# total = 0
+# terminals_cnt = 0
+# for depth in range(start_depth, max_depth + 1):
+#     for node in depth_sorted_nodes[depth]:
+#         if node.game_over():
+#             total += node.depth
+#             terminals_cnt += 1
+# print("\nunique:", total / terminals_cnt)
 
-# Non-unique
-total = 0
-terminals_cnt = 0
-for depth in range(start_depth, max_depth + 1):
-    for node in depth_sorted_nodes[depth]:
-        if node.game_over():
-            total += node.depth * node.transposition_number
-            terminals_cnt += node.transposition_number
-print("non-unique:", total / terminals_cnt)
+# # Non-unique
+# total = 0
+# terminals_cnt = 0
+# for depth in range(start_depth, max_depth + 1):
+#     for node in depth_sorted_nodes[depth]:
+#         if node.game_over():
+#             total += node.depth * node.transposition_number
+#             terminals_cnt += node.transposition_number
+# print("non-unique:", total / terminals_cnt)
 
 print("\n###############################################")
 print("transposition density by depth")
@@ -368,8 +384,6 @@ for i, stats in enumerate(outcomes_by_depth_nonunique):
 
 
 
-
-
 def generate_dot_graph(root: Node, max_nodes=1000):
     dot = Digraph()
     queue = deque([(root, None)])
@@ -391,21 +405,17 @@ def generate_dot_graph(root: Node, max_nodes=1000):
     return dot
 
 # Usage:
+"""
 dot = generate_dot_graph(root, max_nodes=3000)
 dot.render("gametree", format="png", cleanup=True)
-
-
-
-
-
-
-
 
 # Create filtered DataFrame starting at start_depth
 depths = list(range(start_depth, len(bf_by_depth_unique)))
 bf_df = pd.DataFrame(bf_by_depth_unique[start_depth:], columns=[f'{i} children' for i in range(len(bf_by_depth_unique[0]))])
 bf_df['Depth'] = depths
 bf_df = bf_df.set_index('Depth')
+
+
 
 ################################################3
 # Plot branching factor
@@ -458,6 +468,7 @@ for depth in range(start_depth, max_depth + 1):
 # Prepare depth list
 depths = list(range(start_depth, max_depth + 1))
 
+
 # === Plot Terminal State Density ===
 plt.figure(figsize=(8, 5))
 plt.plot(depths, terminal_state_density_unique, marker='o', label="Unique")
@@ -503,3 +514,4 @@ plt.ylabel("Number of Outcomes (Weighted by Transpositions)")
 plt.grid(True)
 plt.tight_layout()
 plt.show()
+"""
