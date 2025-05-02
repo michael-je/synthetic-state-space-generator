@@ -10,7 +10,6 @@ class RandomnessDistribution(Enum):
 
 @dataclass
 class GlobalVariables:
-    root_value: int
     seed: int
     max_depth: int
     distribution: RandomnessDistribution

@@ -14,7 +14,6 @@ from default_functions import *
 class State():
     """Wrapper class for state nodes. Should be used as the main API."""
     def __init__(self,
-                 root_value: int=1,
                  seed: int=0, 
                  max_depth: int=2**8-1,
                  distribution: RandomnessDistribution=Dist.UNIFORM,
@@ -67,7 +66,6 @@ class State():
             return t_space
         
         global_vars = GlobalVariables(
-            root_value = root_value,
             seed = seed,
             max_depth = max_depth,
             distribution = distribution,
