@@ -29,12 +29,15 @@ class State():
                  child_depth_maximum: int=1,
                  cycle_chance: float=0,
 
+                 symmetry: float=1, #new
+
                  branching_function: BranchingFunction=default_branching_function, 
                  child_value_function: ChildValueFunction=default_child_value_function, 
                  child_depth_function: ChildDepthFunction=default_child_depth_function,
                  transposition_space_function: TranspositionSpaceFunction=default_transposition_space_function,
                  heuristic_value_function: HeuristicValueFunction=default_heuristic_value_function):
         
+
         self._RNG = RNGHasher(distribution=distribution, seed=seed)
         id_depth_bits_size = bit_size(max_depth)
         transposition_space_map = transposition_space_function(
@@ -43,6 +46,7 @@ class State():
         for depth in transposition_space_map:
             if bit_size(transposition_space_map[depth]) > (ID_BITS_SIZE - id_depth_bits_size):
                 raise IdOverflow(f"Transposition space value {transposition_space_map[depth]} at depth {depth} too large.")
+            transposition_space_map[depth] = int(transposition_space_map[depth]*symmetry)
         
         global_vars = GlobalVariables(
             root_value = root_value,

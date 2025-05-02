@@ -4,6 +4,7 @@ from RNGHasher import RNGHasher
 from custom_types import *
 from custom_types import RandomnessDistribution as Dist
 from example_functions import *
+from default_functions import *
 from collections import defaultdict
 
 def print_histogram(hist: defaultdict[float|int, int]):
@@ -102,3 +103,72 @@ def test_ids(seed: int=0):
         state.make_random()
         print(state)
     state.draw()
+
+
+
+##Symmetry tests
+
+def dfs(state: State, maxD: int, s: bool=False):
+
+    visited = set()
+    depthDensity = {i:0 for i in range(maxD+1)}
+
+    def dfs_recur(state: State, currDepth: int):
+        state_id = state.id()
+        if state_id in visited:
+            return
+        
+        visited.add(state_id)
+        
+        depthDensity[currDepth] += 1
+        actions = state.actions()
+
+        for action in actions:
+            state.make(action)
+            dfs_recur(state, currDepth+1)
+            state.undo()
+
+    dfs_recur(state, 0)
+
+    for depth in depthDensity:
+        print(f"{depth} : {depthDensity[depth]}")
+
+    print()
+    if not s:
+        for depth in depthDensity:
+            print(f"{depth} : {depthDensity[depth]/8}")
+
+    print()
+       
+
+
+def test_symmytrical_graph():
+    maxD = 9
+    state = State(max_depth=maxD, branching_factor_base=2, symmetry=0.000000000000001, retain_tree=True)
+
+    state = State(
+        max_depth=10,
+        root_value=0,
+        branching_function=tictactoe_branching_function,
+        child_value_function=tictactoe_child_value_function,
+        child_depth_function=default_child_depth_function,
+        transposition_space_function=tictactoe_transposition_space_function,
+        seed=0,
+        retain_tree=True
+    )
+
+    dfs(state, maxD)
+
+    state1 = State(
+        max_depth=10,
+        root_value=0,
+        symmetry=1/8,
+        branching_function=tictactoe_branching_function,
+        child_value_function=tictactoe_child_value_function,
+        child_depth_function=default_child_depth_function,
+        transposition_space_function=tictactoe_transposition_space_function,
+        seed=0,
+        retain_tree=True
+    )
+
+    dfs(state1, maxD, s=True)
