@@ -11,7 +11,6 @@ class Player(Enum):
 class RandomnessDistribution(Enum):
     UNIFORM = 0
     GAUSSIAN = 1
-    # TODO: more distributions?
 
 @dataclass
 class GlobalVariables:
@@ -24,7 +23,7 @@ class GlobalVariables:
     terminal_minimum_depth: int
     # terminal_minimum_density: float
     # terminal_maximum_density: float
-    value_minimum: int # TODO: change to float?
+    value_minimum: int
     value_maximum: int
     child_depth_minumum: int # depth can be negative
     child_depth_maximum: int
@@ -48,7 +47,6 @@ class StateParamsSiblings:
     value: list[int]
     depth: list[int]
     branching_factor: Callable[[], list[int]]
-# TODO: rename
 @dataclass
 class StateParams:
     globals: GlobalVariables

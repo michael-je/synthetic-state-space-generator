@@ -171,6 +171,4 @@ class State():
         
         graph = Digraph(format="png")
         draw_graph_recur(graph, self._root)
-        graph.render(f"trees/tree_seed_{self.globals.vars.seed}" , view=True)  
-    
-    # TODO: add draw whole tree function
+        graph.render(f"trees/tree_seed_{self.globals.vars.seed}" , view=True)
