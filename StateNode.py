@@ -10,13 +10,11 @@ from custom_exceptions import IdOverflow
 class StateNode():
     def __init__(self, stateid: int,
                  value: int,
-                 depth: int, # TODO: remove
                  globals: GlobalParameters, 
                  parent: "StateNode|None"=None):
         self.id: int = stateid
         self._branching_factor: int|None = None
         self.value = value
-        self.depth = depth
         self.globals = globals
         self.parent = parent
         self._state_params: StateParams|None = None
@@ -26,8 +24,8 @@ class StateNode():
             distribution=self.globals.vars.distribution, nodeid=self.id, seed=self.globals.vars.seed)
     
     def __str__(self) -> str:
-        random_id_bits_mask = (1 << (ID_BIT_SIZE - self.globals.vars.id_depth_bits_size)) - 1
-        return f"{self.depth}-{self.id & random_id_bits_mask}"
+        depth, transposition_space_record = self._decode_id(self.id)
+        return f"{depth}-{transposition_space_record}"
 
     def __repr__(self) -> str:
         return str(self)
@@ -53,48 +51,22 @@ class StateNode():
     
     def _construct_state_params(self) -> StateParams:
         """Construct StateParams, this contains necessary information used by behavioral functions."""
-        if self.parent is None:
-            state_params_parent = None
-            state_params_siblings = None
-        else:
-            state_params_parent = StateParamsParent(
-                id = self.parent.id,
-                value = self.parent.value,
-                depth = self.parent.depth,
-                branching_factor = self.parent.branching_factor()
-            )
-            state_params_siblings = StateParamsSiblings(
-                id = [child.id for child in self.parent.children],
-                value = [child.value for child in self.parent.children],
-                depth = [child.depth for child in self.parent.children],
-                branching_factor = lambda : [child.branching_factor() for child in self.parent.children] if self.parent else []
-            )
+        depth, transposition_space_record = self._decode_id(self.id)
         state_params_self = StateParamsSelf(
             id = self.id,
-            value = self.value,
-            depth = self.depth,
-            branching_factor = self._branching_factor # TODO, this is to avoid recursion, but are we ever actually not returning None here?
+            transposition_space_record = transposition_space_record,
+            depth = depth,
         )
         state_params = StateParams(
             globals = self.globals.vars,
-            parent = state_params_parent,
             self = state_params_self,
-            siblings = state_params_siblings
         )
         return state_params
-    
-    def get_state_params(self) -> StateParams:
-        """Construct StateParams, if necessary, and return them."""
-        if self._state_params is None:
-            self._state_params = self._construct_state_params()
-        return self._state_params
     
     def _calculate_child_depth(self) -> int:
         """Calculate depth of a child node and ensure it stays within the allowed range."""
         child_depth = self.globals.funcs.child_depth_function(
             self._RNG.next_int, self._RNG.next_float, self.get_state_params())
-        if child_depth >= (1 << self.globals.vars.id_depth_bits_size):
-            raise IdOverflow(f"Depth {self.depth} too large for {self.globals.vars.id_depth_bits_size} bits")
         if child_depth < 0:
             raise IdOverflow(f"Depth can not be negative.")
         if child_depth > self.globals.vars.max_depth:
@@ -108,6 +80,12 @@ class StateNode():
         transposition_space_record = self._RNG.next_int() % transposition_space_size
         return self._encode_id(child_depth, transposition_space_record)
     
+    def get_state_params(self) -> StateParams:
+        """Construct StateParams, if necessary, and return them."""
+        if self._state_params is None:
+            self._state_params = self._construct_state_params()
+        return self._state_params
+    
     def kill_siblings(self) -> None:
         """Deallocate sibling memory."""
         if self.parent is None:
@@ -116,11 +94,16 @@ class StateNode():
 
     def is_terminal(self) -> bool:
         """Return true if the state is a terminal."""
-        return self.depth >= self.globals.vars.max_depth - 1 or self.branching_factor() < 1
+        return self.depth() >= self.globals.vars.max_depth - 1 or self.branching_factor() < 1
     
     def is_root(self) -> bool:
         """Return true if the state is the root."""
         return self.parent is None
+    
+    def depth(self) -> int:
+        """Return the depth of the state."""
+        depth, _ = self._decode_id(self.id)
+        return depth
     
     def heuristic_value(self) -> int:
         """Return a heuristic value estimate based on the state's true value."""
@@ -159,7 +142,7 @@ class StateNode():
             child_value = self.globals.funcs.child_value_function(
                 self._RNG.next_int, self._RNG.next_float, self.get_state_params())
             new_child = StateNode(
-                stateid=child_id, value=child_value, depth=child_depth, globals=self.globals, parent=self)
+                stateid=child_id, value=child_value, globals=self.globals, parent=self)
             new_children.append(new_child)
         self.children = new_children
         return self

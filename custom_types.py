@@ -27,33 +27,16 @@ class GlobalVariables:
     value_maximum: int
     child_depth_minumum: int # depth can be negative
     child_depth_maximum: int
-    cycle_chance: float # TODO: remove
-    id_depth_bits_size: int # TODO: remove
     max_transposition_space_Size: int
-@dataclass
-class StateParamsParent: # TODO: remove
-    id: int
-    value: int
-    depth: int
-    branching_factor: int
 @dataclass
 class StateParamsSelf:
     id: int
-    value: int
+    transposition_space_record: int
     depth: int
-    branching_factor: int|None
-@dataclass
-class StateParamsSiblings: # TODO: remove
-    id: list[int]
-    value: list[int]
-    depth: list[int]
-    branching_factor: Callable[[], list[int]]
 @dataclass
 class StateParams:
     globals: GlobalVariables
-    parent: StateParamsParent|None
     self: StateParamsSelf
-    siblings: StateParamsSiblings|None
 
 # use Protocol to support type hints for keyword argument
 class RandomFloatFunction(Protocol):

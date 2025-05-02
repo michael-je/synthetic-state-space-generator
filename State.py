@@ -27,7 +27,6 @@ class State():
                  value_maximum: int=1,
                  child_depth_minumum: int=1,
                  child_depth_maximum: int=1,
-                 cycle_chance: float=0,
 
                  branching_function: BranchingFunction=default_branching_function, 
                  child_value_function: ChildValueFunction=default_child_value_function, 
@@ -49,8 +48,7 @@ class State():
             raise ValueError("branching_factor_variance must be >= 0.")
         
         self._RNG = RNGHasher(distribution=distribution, seed=seed)
-        id_depth_bits_size = bit_size(max_depth) # TODO: remove
-        max_transposition_space = 2**(ID_BIT_SIZE - id_depth_bits_size)
+        max_transposition_space = 2**(ID_BIT_SIZE - bit_size(max_depth))
         
         self.transposition_space_map: dict[int, int] = dict()
         def transposition_space_function_wrapper(
@@ -82,9 +80,7 @@ class State():
             value_maximum = value_maximum,
             child_depth_minumum = child_depth_minumum,
             child_depth_maximum = child_depth_maximum,
-            cycle_chance = cycle_chance,
-            max_transposition_space_Size = max_transposition_space,
-            id_depth_bits_size = id_depth_bits_size,
+            max_transposition_space_Size = max_transposition_space
         )
         global_funcs = GlobalFunctions(
             branching_function = branching_function,
@@ -100,7 +96,7 @@ class State():
         )
 
         self._root: StateNode = StateNode(
-            stateid=0, value=root_value, depth=0, globals=self.globals, parent=None)
+            stateid=0, value=root_value, globals=self.globals, parent=None)
         self._current: StateNode = self._root
     
     def __str__(self) -> str:
@@ -119,7 +115,7 @@ class State():
     
     def depth(self) -> int:
         """Return the depth of the current node."""
-        return self._current.depth
+        return self._current.depth()
 
     def id(self) -> int:
         """Return the id of the current state."""
