@@ -35,8 +35,8 @@ class State():
                  transposition_space_function: TranspositionSpaceFunction=default_transposition_space_function,
                  heuristic_value_function: HeuristicValueFunction=default_heuristic_value_function):
         
-        if max_depth < 0:
-            raise ValueError("max_depth can not be negative.")
+        if max_depth <= 0:
+            raise ValueError("max_depth must be > 0.")
         if bit_size(max_depth) >= ID_BIT_SIZE:
             raise ValueError("max_depth too large.")
         if child_depth_minumum > child_depth_maximum:
