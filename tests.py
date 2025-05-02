@@ -48,7 +48,7 @@ def test_hash_uniformity(n_trials: int):
 
 
 def test_deterministic_graph_1(seed: int=0):
-    state = State(seed=seed, max_depth=10, retain_tree=True)
+    state = State(seed=seed, branching_factor_base=3, max_depth=10, retain_tree=True,min_branch_depth=4, max_branch_depth=10, balanced_tree=False, branch_depth_function=branch_depth_function_example_1)
     test_deterministic_graph(state)
 
 def test_deterministic_graph_2(seed: int=0):
@@ -71,13 +71,17 @@ def test_deterministic_graph_2(seed: int=0):
 
 def test_deterministic_graph(state: State):
     try:
-        while state._current.depth < state.globals.vars.max_depth - 1:
-            while state._RNG.next_float() < 0.3 and not state.is_root():
-                state.undo()
-            while state._RNG.next_float() < 0.6 and not state.is_terminal():
-                state.make_random()
+        for i in range(10):
+            while state._current.depth < state.globals.vars.max_depth - 1 and state._current.depth < state._current.branch_max_depth-1:
+                while state._RNG.next_float() < 0.3 and not state.is_root():
+                    state.undo()
+                while state._RNG.next_float() < 0.6 and not state.is_terminal():
+                    state.make_random()
                 # state._current.generate_children()
+            while not state._current.is_root():
+                state.undo()
     except KeyboardInterrupt:
+
         pass
     finally:
         state.draw()
@@ -102,3 +106,7 @@ def test_ids(seed: int=0):
         state.make_random()
         print(state)
     state.draw()
+
+
+def test_hrafn():
+    pass

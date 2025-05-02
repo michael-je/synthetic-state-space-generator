@@ -39,3 +39,6 @@ def transposition_space_function_simple_constant(randint: RandomIntFunction, ran
     """Example showing only 5 possible transpositions per depth."""
     max_states_per_depth = 10
     return {d: max_states_per_depth for d in range(max_depth)}
+
+def branch_depth_function_example_1(randint: RandomIntFunction, randf: RandomFloatFunction, params: StateParams) -> int:
+    return randint(params.globals.min_branch_depth, params.globals.max_branch_depth)

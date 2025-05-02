@@ -28,12 +28,17 @@ class State():
                  child_depth_minumum: int=1,
                  child_depth_maximum: int=1,
                  cycle_chance: float=0,
+                 balanced_tree: bool=True,
+                 min_branch_depth: int = 1,
+                 max_branch_depth: int = 2**8-1,
 
                  branching_function: BranchingFunction=default_branching_function, 
                  child_value_function: ChildValueFunction=default_child_value_function, 
                  child_depth_function: ChildDepthFunction=default_child_depth_function,
                  transposition_space_function: TranspositionSpaceFunction=default_transposition_space_function,
-                 heuristic_value_function: HeuristicValueFunction=default_heuristic_value_function):
+                 heuristic_value_function: HeuristicValueFunction=default_heuristic_value_function,
+                 branch_depth_function: BranchDepthFunction=default_branch_depth_func):
+
         
         self._RNG = RNGHasher(distribution=distribution, seed=seed)
         id_depth_bits_size = bit_size(max_depth)
@@ -58,13 +63,17 @@ class State():
             child_depth_maximum = child_depth_maximum,
             cycle_chance=cycle_chance,
             id_depth_bits_size = id_depth_bits_size,
+            balanced_tree = balanced_tree,
+            min_branch_depth=min_branch_depth,
+            max_branch_depth=max_branch_depth
         )
         global_funcs = GlobalFunctions(
             branching_function = branching_function,
             child_value_function = child_value_function,
             child_depth_function = child_depth_function,
             transposition_space_map = transposition_space_map,
-            heuristic_value_function = heuristic_value_function
+            heuristic_value_function = heuristic_value_function,
+            branch_depth_function=branch_depth_function
         )
         self.globals = GlobalParameters(
             global_vars,
@@ -73,7 +82,7 @@ class State():
         )
 
         self._root: StateNode = StateNode(
-            stateid=0, value=root_value, depth=0, globals=self.globals, parent=None)
+            stateid=0, value=root_value, depth=0, globals=self.globals, parent=None, branch_max_depth=max_depth)
         self._current: StateNode = self._root
     
     def __str__(self) -> str:

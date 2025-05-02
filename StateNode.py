@@ -10,6 +10,7 @@ class StateNode():
     def __init__(self, stateid: int,
                  value: int,
                  depth: int,
+                 branch_max_depth: int,
                  globals: GlobalParameters, 
                  parent: "StateNode|None"=None):
         self.id: int = stateid
@@ -19,6 +20,8 @@ class StateNode():
         self.globals = globals
         self.parent = parent
         self._state_params: StateParams|None = None
+        self.branch_max_depth = branch_max_depth
+
         
         self.children: list[StateNode] = []
         self._RNG: RNGHasher = RNGHasher(
@@ -79,6 +82,8 @@ class StateNode():
             raise IdOverflow(f"Depth can not be negative.")
         if child_depth > self.globals.vars.max_depth:
             raise IdOverflow(f"Depth can not exceed max_depth.")
+        if child_depth > self.branch_max_depth:
+            raise IdOverflow(f"Depth can not exceed branch_max_depth")
         return child_depth
     
     def _generate_child_id(self, child_depth: int) -> int:
@@ -95,7 +100,7 @@ class StateNode():
 
     def is_terminal(self) -> bool:
         """Return true if the state is a terminal."""
-        return self.depth >= self.globals.vars.max_depth - 1 or self.branching_factor() < 1
+        return self.depth >= self.globals.vars.max_depth - 1 or self.branching_factor() < 1 or self.depth >= self.branch_max_depth - 1
     
     def is_root(self) -> bool:
         """Return true if the state is the root."""
@@ -137,8 +142,15 @@ class StateNode():
             child_id = self._generate_child_id(child_depth)
             child_value = self.globals.funcs.child_value_function(
                 self._RNG.next_int, self._RNG.next_float, self.get_state_params())
-            new_child = StateNode(
-                stateid=child_id, value=child_value, depth=child_depth, globals=self.globals, parent=self)
-            new_children.append(new_child)
+            
+            if self.parent == None and not self.globals.vars.balanced_tree: #If current node is the root
+                branch_max_depth = self.globals.funcs.branch_depth_function(self._RNG.next_int, self._RNG.next_float, self.get_state_params())
+                new_child = StateNode(
+                    stateid=child_id, value=child_value, depth=child_depth, globals=self.globals, parent=self, branch_max_depth=branch_max_depth)
+                new_children.append(new_child)
+            else: # current node is not root
+                new_child = StateNode(
+                    stateid=child_id, value=child_value, depth=child_depth, globals=self.globals, parent=self, branch_max_depth=self.branch_max_depth)
+                new_children.append(new_child)
         self.children = new_children
         return self

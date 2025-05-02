@@ -30,6 +30,9 @@ class GlobalVariables:
     child_depth_maximum: int
     cycle_chance: float
     id_depth_bits_size: int
+    balanced_tree: bool
+    min_branch_depth: int
+    max_branch_depth: int
 @dataclass
 class StateParamsParent:
     id: int
@@ -66,6 +69,7 @@ ChildValueFunction = Callable[[RandomIntFunction, RandomFloatFunction, StatePara
 ChildDepthFunction = Callable[[RandomIntFunction, RandomFloatFunction, StateParams], int]
 TranspositionSpaceFunction = Callable[[RandomIntFunction, RandomFloatFunction, int], dict[int, int]]
 HeuristicValueFunction = Callable[[RandomIntFunction, RandomFloatFunction, StateParams], int]
+BranchDepthFunction = Callable[[RandomIntFunction, RandomFloatFunction, StateParams], int]
 
 @dataclass
 class GlobalFunctions:
@@ -74,6 +78,7 @@ class GlobalFunctions:
     child_depth_function: ChildDepthFunction
     transposition_space_map: dict[int, int]
     heuristic_value_function: HeuristicValueFunction
+    branch_depth_function: BranchDepthFunction
 
 @dataclass
 class GlobalParameters:

@@ -36,3 +36,6 @@ def default_heuristic_value_function(randint: RandomIntFunction, randf: RandomFl
     """Simulates a heuristic function with 70%-85% accuracy depending on depth."""
     accuracy = 0.7 + (0.15 * params.self.depth / params.globals.max_depth)
     return params.self.value if randf() < accuracy else -params.self.value
+
+def default_branch_depth_func(randint: RandomIntFunction, randf: RandomFloatFunction, params: StateParams) -> int:
+    return params.globals.max_depth
