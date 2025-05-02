@@ -13,9 +13,9 @@ def default_branching_function(randint: RandomIntFunction, randf: RandomFloatFun
     return branching_factor
 
 
-def default_child_value_function(randint: RandomIntFunction, randf: RandomFloatFunction, params: StateParams) -> int:
-    """Randomly generate a value between minimum and maximum."""
-    return randint(low=params.globals.value_minimum, high=params.globals.value_maximum)
+def default_value_function(randint: RandomIntFunction, randf: RandomFloatFunction, params: StateParams) -> int:
+    """Randomly generate a value between -1 and 1."""
+    return randint(low=-1, high=1, distribution=RandomnessDistribution.UNIFORM)
 
 
 def default_child_depth_function(randint: RandomIntFunction, randf: RandomFloatFunction, params: StateParams) -> int:
@@ -27,10 +27,10 @@ def default_child_depth_function(randint: RandomIntFunction, randf: RandomFloatF
 
 def default_transposition_space_function(randint: RandomIntFunction, randf: RandomFloatFunction, globals: GlobalVariables, depth: int) -> int:
     """Maximum number of different states per depth, ensuring minimal transpositions."""
-    return globals.max_transposition_space_Size
+    return globals.max_transposition_space_size
 
 
-def default_heuristic_value_function(randint: RandomIntFunction, randf: RandomFloatFunction, params: StateParams) -> int:
+def default_heuristic_value_function(randint: RandomIntFunction, randf: RandomFloatFunction, params: StateParams, value: int) -> int:
     """Simulates a heuristic function with 70%-85% accuracy depending on depth."""
     accuracy = 0.7 + (0.15 * params.self.depth / params.globals.max_depth)
-    return params.self.value if randf() < accuracy else -params.self.value
+    return value if randf() < accuracy else -value

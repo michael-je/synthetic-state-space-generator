@@ -4,10 +4,6 @@ from collections.abc import Callable
 from dataclasses import dataclass
 
 
-class Player(Enum):
-    MAX = 1
-    MIN = -1
-
 class RandomnessDistribution(Enum):
     UNIFORM = 0
     GAUSSIAN = 1
@@ -21,13 +17,13 @@ class GlobalVariables:
     branching_factor_base: int
     branching_factor_variance: int
     terminal_minimum_depth: int
+    # TODO: add something to control value
+    # TODO: add something to control heuristic value
     # terminal_minimum_density: float
     # terminal_maximum_density: float
-    value_minimum: int
-    value_maximum: int
     child_depth_minumum: int # depth can be negative
     child_depth_maximum: int
-    max_transposition_space_Size: int
+    max_transposition_space_size: int
 @dataclass
 class StateParamsSelf:
     id: int
@@ -44,15 +40,15 @@ class RandomFloatFunction(Protocol):
 class RandomIntFunction(Protocol):
     def __call__(self, low: int=..., high: int=..., distribution: RandomnessDistribution|None=...) -> int: ...
 BranchingFunction = Callable[[RandomIntFunction, RandomFloatFunction, StateParams], int]
-ChildValueFunction = Callable[[RandomIntFunction, RandomFloatFunction, StateParams], int]
+ValueFunction = Callable[[RandomIntFunction, RandomFloatFunction, StateParams], int]
 ChildDepthFunction = Callable[[RandomIntFunction, RandomFloatFunction, StateParams], int]
 TranspositionSpaceFunction = Callable[[RandomIntFunction, RandomFloatFunction, GlobalVariables, int], int]
-HeuristicValueFunction = Callable[[RandomIntFunction, RandomFloatFunction, StateParams], int]
+HeuristicValueFunction = Callable[[RandomIntFunction, RandomFloatFunction, StateParams, int], int]
 
 @dataclass
 class GlobalFunctions:
     branching_function: BranchingFunction
-    child_value_function: ChildValueFunction
+    value_function: ValueFunction
     child_depth_function: ChildDepthFunction
     transposition_space_function: TranspositionSpaceFunction
     heuristic_value_function: HeuristicValueFunction

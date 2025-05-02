@@ -9,12 +9,11 @@ from custom_exceptions import IdOverflow
 
 class StateNode():
     def __init__(self, stateid: int,
-                 value: int,
                  globals: GlobalParameters, 
                  parent: "StateNode|None"=None):
         self.id: int = stateid
         self._branching_factor: int|None = None
-        self.value = value
+        self._value: int|None = None
         self.globals = globals
         self.parent = parent
         self._state_params: StateParams|None = None
@@ -35,7 +34,7 @@ class StateNode():
         if not 0 <= depth <= self.globals.vars.max_depth:
             # TODO: test
             raise IdOverflow(f"depth {depth}.")
-        if not 0 <= transposition_space_record <= self.globals.vars.max_transposition_space_Size:
+        if not 0 <= transposition_space_record <= self.globals.vars.max_transposition_space_size:
             # TODO: test
             raise IdOverflow(f"state_space_record {transposition_space_record}.")
         depth_bits = depth << (ID_BIT_SIZE - bit_size(self.globals.vars.max_depth))
@@ -73,12 +72,13 @@ class StateNode():
             raise IdOverflow(f"Depth can not exceed max_depth.")
         return child_depth
     
-    def _generate_child_id(self, child_depth: int) -> int:
+    def _generate_child_id(self) -> int:
         """Generate a child id using values for depth and random bits."""
+        depth = self._calculate_child_depth()
         transposition_space_size = self.globals.funcs.transposition_space_function(
-            self._RNG.next_int, self._RNG.next_float, self.get_state_params().globals, child_depth)
+            self._RNG.next_int, self._RNG.next_float, self.get_state_params().globals, depth)
         transposition_space_record = self._RNG.next_int() % transposition_space_size
-        return self._encode_id(child_depth, transposition_space_record)
+        return self._encode_id(depth, transposition_space_record)
     
     def get_state_params(self) -> StateParams:
         """Construct StateParams, if necessary, and return them."""
@@ -108,7 +108,7 @@ class StateNode():
     def heuristic_value(self) -> int:
         """Return a heuristic value estimate based on the state's true value."""
         return self.globals.funcs.heuristic_value_function(
-            self._RNG.next_int, self._RNG.next_float, self.get_state_params())
+            self._RNG.next_int, self._RNG.next_float, self.get_state_params(), self.value())
 
     def actions(self) -> list[int]:
         """Return indices of children."""
@@ -127,6 +127,13 @@ class StateNode():
             self._branching_factor = self.globals.funcs.branching_function(
                 self._RNG.next_int, self._RNG.next_float, self.get_state_params())
         return self._branching_factor
+    
+    def value(self) -> int:
+        """Get or set true value."""
+        if self._value is None:
+            self._value = self.globals.funcs.value_function(
+                self._RNG.next_int, self._RNG.next_float, self.get_state_params())
+        return self._value
 
     def generate_children(self) -> Self:
         """Generate child states."""
@@ -137,12 +144,9 @@ class StateNode():
         
         new_children: list["StateNode"] = []
         for _ in range(self.branching_factor()):
-            child_depth = self._calculate_child_depth()
-            child_id = self._generate_child_id(child_depth)
-            child_value = self.globals.funcs.child_value_function(
-                self._RNG.next_int, self._RNG.next_float, self.get_state_params())
+            child_id = self._generate_child_id()
             new_child = StateNode(
-                stateid=child_id, value=child_value, globals=self.globals, parent=self)
+                stateid=child_id, globals=self.globals, parent=self)
             new_children.append(new_child)
         self.children = new_children
         return self

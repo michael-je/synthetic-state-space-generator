@@ -23,13 +23,11 @@ class State():
                  branching_factor_base: int=2,
                  branching_factor_variance: int=0,
                  terminal_minimum_depth: int=0,
-                 value_minimum: int=0,
-                 value_maximum: int=1,
                  child_depth_minumum: int=1,
                  child_depth_maximum: int=1,
 
                  branching_function: BranchingFunction=default_branching_function, 
-                 child_value_function: ChildValueFunction=default_child_value_function, 
+                 value_function: ValueFunction=default_value_function, 
                  child_depth_function: ChildDepthFunction=default_child_depth_function,
                  transposition_space_function: TranspositionSpaceFunction=default_transposition_space_function,
                  heuristic_value_function: HeuristicValueFunction=default_heuristic_value_function):
@@ -76,15 +74,13 @@ class State():
             branching_factor_base = branching_factor_base,
             branching_factor_variance = branching_factor_variance,
             terminal_minimum_depth = terminal_minimum_depth,
-            value_minimum = value_minimum,
-            value_maximum = value_maximum,
             child_depth_minumum = child_depth_minumum,
             child_depth_maximum = child_depth_maximum,
-            max_transposition_space_Size = max_transposition_space
+            max_transposition_space_size = max_transposition_space
         )
         global_funcs = GlobalFunctions(
             branching_function = branching_function,
-            child_value_function = child_value_function,
+            value_function = value_function,
             child_depth_function = child_depth_function,
             transposition_space_function = transposition_space_function_wrapper,
             heuristic_value_function = heuristic_value_function
@@ -96,7 +92,7 @@ class State():
         )
 
         self._root: StateNode = StateNode(
-            stateid=0, value=root_value, globals=self.globals, parent=None)
+            stateid=0, globals=self.globals, parent=None)
         self._current: StateNode = self._root
     
     def __str__(self) -> str:
@@ -127,7 +123,7 @@ class State():
     
     def value(self) -> int:
         """Return the current state's true value."""
-        return self._current.value
+        return self._current.value()
     
     def heuristic_value(self) -> int:
         """Return the estimated value of the current state using the heuristic evaluation function."""
