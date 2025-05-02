@@ -27,10 +27,11 @@ class GlobalVariables:
     value_maximum: int
     child_depth_minumum: int # depth can be negative
     child_depth_maximum: int
-    cycle_chance: float
-    id_depth_bits_size: int
+    cycle_chance: float # TODO: remove
+    id_depth_bits_size: int # TODO: remove
+    max_transposition_space_Size: int
 @dataclass
-class StateParamsParent:
+class StateParamsParent: # TODO: remove
     id: int
     value: int
     depth: int
@@ -42,7 +43,7 @@ class StateParamsSelf:
     depth: int
     branching_factor: int|None
 @dataclass
-class StateParamsSiblings:
+class StateParamsSiblings: # TODO: remove
     id: list[int]
     value: list[int]
     depth: list[int]
@@ -62,7 +63,7 @@ class RandomIntFunction(Protocol):
 BranchingFunction = Callable[[RandomIntFunction, RandomFloatFunction, StateParams], int]
 ChildValueFunction = Callable[[RandomIntFunction, RandomFloatFunction, StateParams], int]
 ChildDepthFunction = Callable[[RandomIntFunction, RandomFloatFunction, StateParams], int]
-TranspositionSpaceFunction = Callable[[RandomIntFunction, RandomFloatFunction, int], dict[int, int]]
+TranspositionSpaceFunction = Callable[[RandomIntFunction, RandomFloatFunction, GlobalVariables, int], int]
 HeuristicValueFunction = Callable[[RandomIntFunction, RandomFloatFunction, StateParams], int]
 
 @dataclass
@@ -70,7 +71,7 @@ class GlobalFunctions:
     branching_function: BranchingFunction
     child_value_function: ChildValueFunction
     child_depth_function: ChildDepthFunction
-    transposition_space_map: dict[int, int]
+    transposition_space_function: TranspositionSpaceFunction
     heuristic_value_function: HeuristicValueFunction
 
 @dataclass

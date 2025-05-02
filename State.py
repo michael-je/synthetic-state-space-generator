@@ -4,7 +4,7 @@ from typing import Self
 from StateNode import StateNode
 from RNGHasher import RNGHasher
 from utils import bit_size
-from constants import ID_BITS_SIZE
+from constants import ID_BIT_SIZE
 from custom_types import *
 from custom_types import RandomnessDistribution as Dist
 from custom_exceptions import *
@@ -37,7 +37,7 @@ class State():
         
         if max_depth < 0:
             raise ValueError("max_depth can not be negative.")
-        if bit_size(max_depth) >= ID_BITS_SIZE:
+        if bit_size(max_depth) >= ID_BIT_SIZE:
             raise ValueError("max_depth too large.")
         if child_depth_minumum > child_depth_maximum:
             raise ValueError("child_depth_minimum must be > child_depth_maximum.")
@@ -49,13 +49,26 @@ class State():
             raise ValueError("branching_factor_variance must be >= 0.")
         
         self._RNG = RNGHasher(distribution=distribution, seed=seed)
-        id_depth_bits_size = bit_size(max_depth)
-        transposition_space_map = transposition_space_function(
-            self._RNG.next_int, self._RNG.next_float, max_depth)
-        # TODO: test
-        for depth in transposition_space_map:
-            if bit_size(transposition_space_map[depth]) > (ID_BITS_SIZE - id_depth_bits_size):
-                raise IdOverflow(f"Transposition space value {transposition_space_map[depth]} at depth {depth} too large.")
+        id_depth_bits_size = bit_size(max_depth) # TODO: remove
+        max_transposition_space = 2**(ID_BIT_SIZE - id_depth_bits_size)
+        
+        self.transposition_space_map: dict[int, int] = dict()
+        def transposition_space_function_wrapper(
+                randint: RandomIntFunction, 
+                randf: RandomFloatFunction, 
+                globals: GlobalVariables, 
+                depth: int) -> int:
+            t_space = self.transposition_space_map.get(depth)
+            if t_space is None:
+                t_space = transposition_space_function(randint, randf, globals, depth)
+                self.transposition_space_map[depth] = t_space
+            if t_space > max_transposition_space:
+                # TODO: test
+                raise IdOverflow(f"Computed transposition space is {t_space} but the maximum is {max_transposition_space}.")
+            if t_space < 1:
+                # TODO: test
+                raise ValueError("Transposition space must be > 0.")
+            return t_space
         
         global_vars = GlobalVariables(
             root_value = root_value,
@@ -69,14 +82,15 @@ class State():
             value_maximum = value_maximum,
             child_depth_minumum = child_depth_minumum,
             child_depth_maximum = child_depth_maximum,
-            cycle_chance=cycle_chance,
+            cycle_chance = cycle_chance,
+            max_transposition_space_Size = max_transposition_space,
             id_depth_bits_size = id_depth_bits_size,
         )
         global_funcs = GlobalFunctions(
             branching_function = branching_function,
             child_value_function = child_value_function,
             child_depth_function = child_depth_function,
-            transposition_space_map = transposition_space_map,
+            transposition_space_function = transposition_space_function_wrapper,
             heuristic_value_function = heuristic_value_function
         )
         self.globals = GlobalParameters(

@@ -236,7 +236,7 @@ class TestState(unittest.TestCase):
     
     def test_state_parameter_ranges(self):
         self.assertRaises(ValueError, lambda: State(max_depth=-1))
-        self.assertRaises(ValueError, lambda: State(max_depth=2**ID_BITS_SIZE))
+        self.assertRaises(ValueError, lambda: State(max_depth=2**ID_BIT_SIZE))
         self.assertRaises(ValueError, lambda: State(child_depth_minumum=2, child_depth_maximum=1))
         self.assertRaises(ValueError, lambda: State(terminal_minimum_depth=-1))
         self.assertRaises(ValueError, lambda: State(branching_factor_base=-1))

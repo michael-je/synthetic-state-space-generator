@@ -2,14 +2,15 @@ from typing import Self
 
 from RNGHasher import RNGHasher
 from custom_types import *
-from constants import ID_BITS_SIZE
+from constants import ID_BIT_SIZE
+from utils import bit_size
 from custom_exceptions import IdOverflow
 
 
 class StateNode():
     def __init__(self, stateid: int,
                  value: int,
-                 depth: int,
+                 depth: int, # TODO: remove
                  globals: GlobalParameters, 
                  parent: "StateNode|None"=None):
         self.id: int = stateid
@@ -25,11 +26,30 @@ class StateNode():
             distribution=self.globals.vars.distribution, nodeid=self.id, seed=self.globals.vars.seed)
     
     def __str__(self) -> str:
-        random_id_bits_mask = (1 << (ID_BITS_SIZE - self.globals.vars.id_depth_bits_size)) - 1
+        random_id_bits_mask = (1 << (ID_BIT_SIZE - self.globals.vars.id_depth_bits_size)) - 1
         return f"{self.depth}-{self.id & random_id_bits_mask}"
 
     def __repr__(self) -> str:
         return str(self)
+    
+    # TODO: test
+    def _encode_id(self, depth: int, transposition_space_record: int) -> int:
+        if not 0 <= depth <= self.globals.vars.max_depth:
+            # TODO: test
+            raise IdOverflow(f"depth {depth}.")
+        if not 0 <= transposition_space_record <= self.globals.vars.max_transposition_space_Size:
+            # TODO: test
+            raise IdOverflow(f"state_space_record {transposition_space_record}.")
+        depth_bits = depth << (ID_BIT_SIZE - bit_size(self.globals.vars.max_depth))
+        return depth_bits | transposition_space_record
+    
+    # TODO: test
+    def _decode_id(self, state_id: int) -> tuple[int, int]:
+        state_space_record_bit_size = ID_BIT_SIZE - bit_size(self.globals.vars.max_depth)
+        transposition_space_record_bit_mask = (1 << state_space_record_bit_size) - 1
+        depth = state_id >> state_space_record_bit_size
+        transposition_space_record = state_id & transposition_space_record_bit_mask
+        return depth, transposition_space_record
     
     def _construct_state_params(self) -> StateParams:
         """Construct StateParams, this contains necessary information used by behavioral functions."""
@@ -83,9 +103,10 @@ class StateNode():
     
     def _generate_child_id(self, child_depth: int) -> int:
         """Generate a child id using values for depth and random bits."""
-        depth_bits = child_depth << (ID_BITS_SIZE - self.globals.vars.id_depth_bits_size)
-        random_bits = self._RNG.next_int() % self.globals.funcs.transposition_space_map[child_depth]
-        return depth_bits | random_bits
+        transposition_space_size = self.globals.funcs.transposition_space_function(
+            self._RNG.next_int, self._RNG.next_float, self.get_state_params().globals, child_depth)
+        transposition_space_record = self._RNG.next_int() % transposition_space_size
+        return self._encode_id(child_depth, transposition_space_record)
     
     def kill_siblings(self) -> None:
         """Deallocate sibling memory."""
