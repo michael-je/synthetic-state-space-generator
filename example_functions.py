@@ -82,21 +82,20 @@ def branching_function_connect_four(randint: RandomIntFunc, randf: RandomFloatFu
     [1892, 0, 0, 0, 0, 0, 4326, 178057],
     [19412, 0, 0, 0, 0, 0, 31984, 506790]]
 
-
-    if InfoDump.self.depth <6 :
+    if info_dump.self.depth <6 :
         return 7
     
-    if InfoDump.self.depth <7 :
+    if info_dump.self.depth <7 :
         if rand_num < 7/(7+16415):
             return 6
         return 7
-    if InfoDump.self.depth <8 :
+    if info_dump.self.depth <8 :
         if rand_num < 294/(294+728+53837):
             return 6
         elif rand_num < (294+728)/(294+728+53837):
             return 0
         return 7
-    if InfoDump.self.depth <9 :
+    if info_dump.self.depth <9 :
         if rand_num < 4326/(4326+1892+178057):
             return 6
         elif rand_num <  (4326+1892)/(4326+1892+178057):
@@ -111,18 +110,17 @@ def branching_function_connect_four(randint: RandomIntFunc, randf: RandomFloatFu
     
 
 
-def transposition_space_function_connect_four(randint: RandomIntFunc, randf: RandomFloatFunc, info_dump: InfoDump) -> dict[int, int]:
-    trans_map = {1: 1,
-                 2: 7,
-                 3: 49,
-                 4: 133,
-                 5: 1,
-                 6: 1,
-                 7: 1,
-                 8: 1,
-                 9: 1,
-            
+def transposition_space_function_connect_four(randint: RandomIntFunc, randf: RandomFloatFunc, max_depth: int) -> dict[int, int]:
+    trans_map = {0: 1,
+                 1: 7,
+                 2: 49,
+                 3: 238,
+                 4: 1120,
+                 5: 4263,
+                 6: 16415,
+                 7: 728+294+53837,
+                 8: 1892+4326+178057,
+                 9: 119412+31984+506790   
                  }
     
-
     return trans_map
