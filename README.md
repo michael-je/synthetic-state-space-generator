@@ -35,7 +35,7 @@ state = State()
 This creates a simple graph, with default values for each parameter. This default graph is a binary tree, with no maximum depth, no state values and no transpositions or cycles.
 
 
-## Parameters
+# Parameters
 - **`root_value`** (`int`, default: `1`)  
   The true value of the root node
   
@@ -60,23 +60,74 @@ Stores tree in memory, used to draw tree
 - **`terminal_minimum_depth`** (`int`, default: `0`)  
 Defines how deep a state must be before it can be considered terminal.
 
-Need to change stuff below
+- **`child_depth_minimum`** (`int`, default: `1`)  
+Defines the minimum depth of a child.
 
-- **`value_fn`** (`function`, default: `None`)  
-  A custom function provided by the user to assign true values to states.
+- **`child_depth_maximum`** (`int`, default: `1`)  
+Defines the maximum depth of a child.
 
-- **`heuristic_fn`** (`function`, default: `None`)  
-  A custom function for estimating heuristic values of states.
 
-- **`allow_cycles`** (`bool`, default: `False`)  
-  Whether to allow cycles in the graph (i.e., paths that return to a previously visited state).
+- **`branching_function`** (`function`, default: [`default_branching_function()`](#default_branching_function))  
+  A custom function provided by the user to determine the branching factor of states.
 
-- **`allow_transpositions`** (`bool`, default: `False`)  
-  Whether different action paths can lead to the same state, simulating transpositions.
-  
+- **`value_function`** (`function`, default: [`default_value_function()`](#default_value_function))  
+  A custom function provided by the user to determine the true values of states.
+
+- **`child_depth_function`** (`function`, default: [`default_child_depth_function()`](#default_child_depth_function))  
+  A custom function provided by the user to determine the depth of each child.
+
+- **`transposition_space_function`** (`function`, default: [`default_transposition_space_function()`](#default_transposition_space_function))  
+  A custom function provided by the user to define the upper bound of unique states at each depth (returns a dictionary).
+
+- **`heuristic_value_function`** (`function`, default: [`default_heuristic_value_function()`](#default_heuristic_value_function))  
+  A custom function provided by the user to determine the heuristic values of states.
+
+
+## Default Behavioural Functions
+Passing in functions as parameters allows the user to gain finegrained control over the structure of the generated graph. Most of the behavioural  functions passed in, must have the following parameters (unless explicitly stated otherwise): 
+
+- **Parameters:**
+  - `randint` (`RandomIntFunction`): A callable that returns random integers given a range and distribution.
+  - `randf` (`RandomFloatFunction`): A callable that returns random floats, used to introduce branching variance.
+  - `params` (`StateParams`): A container holding global and local state information, including depth and branching settings.
+
+
+### `default_branching_function()`
+
+- **Return Type :  `int`**
+
+- **Description:**
+  Adds random variance (bounded by `branching_factor_variance`) to the `base_branching_factor` and returns this value. 
+
+---
+
+
+### `default_value_function()`
+
+- **Return Type :  `int`**
+
+- **Description:**
+  Uses the `randint` function to uniformly sample an integer between -1 and 1. 
+
+---
+
+### `default_child_depth_function()`
+- **Returns:**
+  - `int`: A randomly generated integer in the range [-1, 1].
+
+- **Description:**
+  Randomly generate a depth between minimum and maximum depth.
+
+---
+
+### `default_transposition_space_function()`
+*Description goes here.*
+
+---
+
+### `default_heuristic_value_function()`
+*Description goes here.*
  
-  
-  
 
 # Examples
 
