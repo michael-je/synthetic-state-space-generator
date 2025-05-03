@@ -25,6 +25,15 @@ class SeedGenerator():
 seeds = SeedGenerator()
 
 
+class TestBitSize(unittest.TestCase):
+    
+    def test_bit_size(self):
+        self.assertEqual(64, bit_size(2**64-1))
+        self.assertEqual(65, bit_size(2**64))
+        self.assertEqual(1,  bit_size(2**0))
+        self.assertEqual(2,  bit_size(2**1))
+
+
 class TestRNG(unittest.TestCase):
 
     def test_basic_rng_determinism(self):
