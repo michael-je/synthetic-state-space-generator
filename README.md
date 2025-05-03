@@ -97,7 +97,7 @@ Passing in functions as parameters allows the user to gain finegrained control o
 - **Return Type :  `int`**
 
 - **Description:**
-  Adds random variance (bounded by `branching_factor_variance`) to the `base_branching_factor` and returns this value. 
+  Uses the `randf` function to add random variance (bounded by `branching_factor_variance`) to the `base_branching_factor` and returns this value. 
 
 ---
 
@@ -107,26 +107,43 @@ Passing in functions as parameters allows the user to gain finegrained control o
 - **Return Type :  `int`**
 
 - **Description:**
-  Uses the `randint` function to uniformly sample an integer between -1 and 1. 
+  Uses the `randint` function to uniformly sample an integer between -1 and 1 and returns that value.
 
 ---
 
 ### `default_child_depth_function()`
-- **Returns:**
-  - `int`: A randomly generated integer in the range [-1, 1].
+- **Return Type :  `int`**
 
 - **Description:**
-  Randomly generate a depth between minimum and maximum depth.
+  Uses the `randint` to randomly generate a depth between minimum and maximum depth and returns that value.
 
 ---
 
 ### `default_transposition_space_function()`
-*Description goes here.*
+sl
+- **Parameters:**
+  - `randint` (`RandomIntFunction`): A callable that returns random integers given a range and distribution.
+  - `randf` (`RandomFloatFunction`): A callable that returns random floats, used to introduce branching variance.
+  - `globals` (`GlobalVariables`): A container holding global state information
+   - `depth` (`int`): A container holding global state information
 
+- **Return Type :  `int`**
+
+- **Description:**
+  Uses `globals` to return the maximum number of different states per depth, ensuring minimal transpositions.
 ---
 
 ### `default_heuristic_value_function()`
-*Description goes here.*
+- **Parameters:**
+  - `randint` (`RandomIntFunction`): A callable that returns random integers given a range and distribution.
+  - `randf` (`RandomFloatFunction`): A callable that returns random floats, used to introduce branching variance.
+  - `params` (`StateParams`): A container holding global and local state information, including depth and branching settings.
+   - `value` (`int`): The true value of the current state
+
+- **Return Type :  `int`**
+
+- **Description:**
+Simulates a heuristic function with 70%-85% accuracy depending on depth.
  
 
 # Examples
