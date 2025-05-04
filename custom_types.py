@@ -56,4 +56,4 @@ class GlobalFunctions:
 class GlobalParameters:
     vars: GlobalVariables
     funcs: GlobalFunctions
-    retain_tree: bool
+    retain_graph: bool

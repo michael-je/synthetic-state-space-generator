@@ -17,7 +17,7 @@ class State():
                  seed: int=0, 
                  max_depth: int=2**8-1,
                  distribution: RandomnessDistribution=Dist.UNIFORM,
-                 retain_tree: bool=False,
+                 retain_graph: bool=False,
                  
                  branching_factor_base: int=2,
                  branching_factor_variance: int=0,
@@ -86,12 +86,9 @@ class State():
         self.globals = GlobalParameters(
             global_vars,
             global_funcs,
-            retain_tree
+            retain_graph
         )
-
-        self._root: StateNode = StateNode(
-            stateid=0, globals=self.globals, parent=None)
-        self._current: StateNode = self._root
+        self.set_root(0)
     
     def __str__(self) -> str:
         return str(self._current)
@@ -135,7 +132,7 @@ class State():
         if not 0 <= action < len(self._current.children):
             raise ValueError(f"No action {action} among children {self._current.children}.")
         self._current = self._current.children[action]
-        if not self.globals.retain_tree:
+        if not self.globals.retain_graph:
             if self._current.parent is None:
                 raise RootHasNoParent() # can't happen, but suppresses type warning
             self._current.parent.kill_siblings()
@@ -155,8 +152,15 @@ class State():
         if self._current.parent is None:
             raise RootHasNoParent()
         self._current = self._current.parent
-        if not self.globals.retain_tree:
+        if not self.globals.retain_graph:
             self._current.reset() # release memory as we climb back up the tree
+        return self
+    
+    def set_root(self, state_id: int) -> Self:
+        """Set the given state_id as the new root.
+        Note that doing this with retain_graph=True will destroy the previous graph."""
+        self._root: StateNode = StateNode(stateid=state_id, globals=self.globals, parent=None)
+        self._current: StateNode = self._root
         return self
 
     def draw(self) -> None:
