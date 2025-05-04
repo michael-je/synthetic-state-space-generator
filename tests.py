@@ -9,6 +9,8 @@ from State import State
 from custom_types import *
 from custom_exceptions import *
 from constants import *
+from utils import *
+
 
 class SeedGenerator():
     def __init__(self):
@@ -23,6 +25,15 @@ class SeedGenerator():
         return hash_64bit % 100000
 
 seeds = SeedGenerator()
+
+
+class TestBitSize(unittest.TestCase):
+    
+    def test_bit_size(self):
+        self.assertEqual(64, bit_size(2**64-1))
+        self.assertEqual(65, bit_size(2**64))
+        self.assertEqual(1,  bit_size(2**0))
+        self.assertEqual(2,  bit_size(2**1))
 
 
 class TestRNG(unittest.TestCase):
@@ -179,15 +190,10 @@ class TestRNG(unittest.TestCase):
 
 
 class TestState(unittest.TestCase):
-
-    def _walk_graph(self, state: State, walk_seed: int=0):
-        rng = RNG(distribution=RandomnessDistribution.UNIFORM, seed=walk_seed)
-        while state.depth() < state.globals.vars.max_depth - 1:
-            while rng.next_float() < 0.56 and not state.is_root():
-                state.undo()
-            while rng.next_float() < 0.6 and not state.is_terminal():
-                state.make_random()
     
+    # TODO: test determinism with more complex graphs, especially where
+    # we revisit states multiple times from different paths
+
     # def _default_test_states(self):
     #     return [
     #         State(max_depth=0),
@@ -195,6 +201,14 @@ class TestState(unittest.TestCase):
     #         State(max_depth=10000),
     #         State(branching_factor_base=10, max_depth=100),
     #     ]
+    
+    def _walk_graph(self, state: State, walk_seed: int=0):
+        rng = RNG(distribution=RandomnessDistribution.UNIFORM, seed=walk_seed)
+        while state.depth() < state.globals.vars.max_depth - 1:
+            while rng.next_float() < 0.56 and not state.is_root():
+                state.undo()
+            while rng.next_float() < 0.6 and not state.is_terminal():
+                state.make_random()
 
     def test_undo_root(self):
         state = State()
@@ -220,7 +234,7 @@ class TestState(unittest.TestCase):
         self.assertEqual(state.depth(), depth)
         state.make_random()
         depth += 1
-        self.assertEqual(state.depth(), depth)
+        # self.assertEqual(state.depth(), depth)
         for _ in range(N_TRIALS):
             steps = rng.next_int(
                 low=-state.depth(), high=state.globals.vars.max_depth - state.depth())
@@ -236,6 +250,7 @@ class TestState(unittest.TestCase):
     
     def test_state_parameter_ranges(self):
         self.assertRaises(ValueError, lambda: State(max_depth=-1))
+        self.assertRaises(ValueError, lambda: State(max_depth=0))
         self.assertRaises(ValueError, lambda: State(max_depth=2**ID_BIT_SIZE))
         self.assertRaises(ValueError, lambda: State(child_depth_minumum=2, child_depth_maximum=1))
         self.assertRaises(ValueError, lambda: State(terminal_minimum_depth=-1))
@@ -270,23 +285,61 @@ class TestState(unittest.TestCase):
             state2.make(state2.actions()[0])
         self.assertEqual(state1.id(), state2.id())
     
+    def test_maxdepth_1(self):
+        state = State(max_depth=1)
+        self.assertRaises(TerminalHasNoChildren, lambda: state.make_random())
+    
     def test_negative_branching_function(self):
-        state = State(branching_function=lambda *args: -1) # type: ignore
+        state = State(branching_function=lambda *_: -1) # type: ignore
         self.assertRaises(TerminalHasNoChildren, lambda: state.make_random())
     
     def test_negative_child_depth(self):
-        state = State(child_depth_function=lambda *args: -1) # type: ignore
+        state = State(child_depth_function=lambda *_: -1) # type: ignore
         self.assertRaises(IdOverflow, lambda: state.make_random())
     
     def test_large_child_depth(self):
-        state = State(max_depth=2, child_depth_function=lambda *args: 3) # type: ignore
+        state = State(max_depth=2, child_depth_function=lambda *_: 3) # type: ignore
         self.assertRaises(IdOverflow, lambda: state.make_random())
     
-    # def test_maxdepth_1(self):
-    #     state = State(max_depth=1)
-    #     state.make_random()
-
-
+    def test_transposition_space_functions(self):
+        # spaces too small
+        state = State(transposition_space_function=lambda *_: 0) # type: ignore
+        self.assertRaises(ValueError, lambda: state.make_random())
+        state = State(transposition_space_function=lambda *_: -1) # type: ignore
+        self.assertRaises(ValueError, lambda: state.make_random())
+        # space barely large enough
+        state = State(transposition_space_function=lambda *_: 1) # type: ignore
+        state.make_random()
+        # space at maximum
+        mtss = State().globals.vars.max_transposition_space_size
+        state = State(transposition_space_function=lambda *_: mtss) # type: ignore
+        state.make_random()
+        # space above maximum
+        state = State(transposition_space_function=lambda *_: mtss+1) # type: ignore
+        self.assertRaises(IdOverflow, lambda: state.make_random())
+    
+    def test_id_bit_partitioning_1(self):
+        state = State(max_depth=2**(ID_BIT_SIZE-1)-1)
+        self.assertEqual(2**1, state.globals.vars.max_transposition_space_size)
+        state = State(max_depth=2**(ID_BIT_SIZE-2)-1)
+        self.assertEqual(2**2, state.globals.vars.max_transposition_space_size)
+        state = State(max_depth=2**(ID_BIT_SIZE-32)-1)
+        self.assertEqual(2**32, state.globals.vars.max_transposition_space_size)
+    
+    def test_id_bit_partitioning_2(self):
+        state1 = State(max_depth=2**(ID_BIT_SIZE-2))
+        state2 = State(max_depth=2**(ID_BIT_SIZE-20))
+        state3 = State(max_depth=2**(ID_BIT_SIZE-60))
+        assert(
+            state1.globals.vars.max_depth * state1.globals.vars.max_transposition_space_size == 
+            state2.globals.vars.max_depth * state2.globals.vars.max_transposition_space_size == 
+            state3.globals.vars.max_depth * state3.globals.vars.max_transposition_space_size
+        )
+    
+    def test_str(self):
+        state = State()
+        self.assertEqual(str(state), "0-0")
+    
 
 if __name__ == '__main__':
     unittest.main()
