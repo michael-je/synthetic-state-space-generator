@@ -67,19 +67,19 @@ Defines the minimum depth of a child.
 Defines the maximum depth of a child.
 
 
-- **`branching_function`** (`function`, default: [`default_branching_function()`](#default_branching_function))  
+- **`branching_function`** (`function`, default: [`default_branching_function`](#default_branching_function))  
   A custom function provided by the user to determine the branching factor of states.
 
-- **`value_function`** (`function`, default: [`default_value_function()`](#default_value_function))  
+- **`value_function`** (`function`, default: [`default_value_function`](#default_value_function))  
   A custom function provided by the user to determine the true values of states.
 
-- **`child_depth_function`** (`function`, default: [`default_child_depth_function()`](#default_child_depth_function))  
+- **`child_depth_function`** (`function`, default: [`default_child_depth_function`](#default_child_depth_function))  
   A custom function provided by the user to determine the depth of each child.
 
-- **`transposition_space_function`** (`function`, default: [`default_transposition_space_function()`](#default_transposition_space_function))  
+- **`transposition_space_function`** (`function`, default: [`default_transposition_space_function`](#default_transposition_space_function))  
   A custom function provided by the user to define the upper bound of unique states at each depth (returns a dictionary).
 
-- **`heuristic_value_function`** (`function`, default: [`default_heuristic_value_function()`](#default_heuristic_value_function))  
+- **`heuristic_value_function`** (`function`, default: [`default_heuristic_value_function`](#default_heuristic_value_function))  
   A custom function provided by the user to determine the heuristic values of states.
 
 
@@ -87,9 +87,11 @@ Defines the maximum depth of a child.
 Passing in functions as parameters allows the user to gain finegrained control over the structure of the generated graph. Most of the behavioural  functions passed in, must have the following parameters (unless explicitly stated otherwise): 
 
 - **Parameters:**
-  - `randint` (`RandomIntFunction`): A callable that returns random integers given a range and distribution.
-  - `randf` (`RandomFloatFunction`): A callable that returns random floats, used to introduce branching variance.
+  - `randint` ([`RandomIntFunction`](#use-of-deterministic-randomness-in-custom-functionality)): A callable that returns random integers given a range and distribution.
+  - `randf` ([`RandomFloatFunction`](#use-of-deterministic-randomness-in-custom-functionality)): A callable that returns random floats given a range and distribution.
   - `params` (`StateParams`): A container holding global and local state information, including depth and branching settings.
+
+
 
 
 ### `default_branching_function()`
@@ -120,7 +122,7 @@ Passing in functions as parameters allows the user to gain finegrained control o
 ---
 
 ### `default_transposition_space_function()`
-sl
+
 - **Parameters:**
   - `randint` (`RandomIntFunction`): A callable that returns random integers given a range and distribution.
   - `randf` (`RandomFloatFunction`): A callable that returns random floats, used to introduce branching variance.
@@ -146,10 +148,34 @@ sl
 Simulates a heuristic function with 70%-85% accuracy depending on depth.
  
 
-# Examples
+## Use of Deterministic Randomness in Custom Functionality
 
-  Hello
-  
+Each state in the graph has access to a deterministic random number generator. This allows user-defined functions to behave consistently across runs. The random generators are exposed through two helper functions:
+
+### `RandomIntFunction` and `RandomFloatFunction`
+
+**Return Values:**  
+- `RandomIntFunction`: `int`  
+- `RandomFloatFunction`: `float`  
+
+Both functions sample a number between `low` and `high`, following the specified `distribution`.  
+If no distribution is provided, the default distribution set during initialization is used (typically uniform).
+
+- **Parameters:**
+  - `low`: The minimum value to sample from (`int` for `RandomIntFunction`, `float` for `RandomFloatFunction`).
+  - `high`: The maximum value to sample from (`int` for `RandomIntFunction`, `float` for `RandomFloatFunction`).
+  - `distribution` (`RandomnessDistribution`): Optional. Specifies the distribution to use when sampling.
+
+**Example Usage:**  
+Graph where each state has a uniform branching factor between 0 and 3
+```python
+
+def  uniform3_branching_function(randint: RandomIntFunction, randf: RandomFloatFunction, params: StateParams) -> int:
+	return  randint(low=0, high=3, distribution=RandomnessDistribution.UNIFORM)
+
+state = State(branching_function=uniform3_branching_function)
+
+  ```
 
 # API Reference
 
