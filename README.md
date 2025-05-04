@@ -83,8 +83,8 @@ Defines the maximum depth of a child.
   A custom function provided by the user to determine the heuristic values of states.
 
 
-## Default Behavioural Functions
-Passing in functions as parameters allows the user to gain finegrained control over the structure of the generated graph. Most of the behavioural  functions passed in, must have the following parameters (unless explicitly stated otherwise): 
+# Default Behavioural Functions
+Passing in functions as parameters allows the user to gain fine-grained control over the structure of the generated graph. Most of the behavioural  functions passed in, must have the following parameters (unless parameters are explicitly stated): 
 
 - **Parameters:**
   - `randint` ([`RandomIntFunction`](#use-of-deterministic-randomness-in-custom-functionality)): A callable that returns random integers given a range and distribution.
@@ -148,7 +148,7 @@ Passing in functions as parameters allows the user to gain finegrained control o
 Simulates a heuristic function with 70%-85% accuracy depending on depth.
  
 
-## Use of Deterministic Randomness in Custom Functionality
+# Use of Deterministic Randomness in Custom Functionality
 
 Each state in the graph has access to a deterministic random number generator. This allows user-defined functions to behave consistently across runs. The random generators are exposed through two helper functions:
 
