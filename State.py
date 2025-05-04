@@ -36,9 +36,9 @@ class State():
         if bit_size(max_depth) >= ID_BIT_SIZE:
             raise ValueError("max_depth too large.")
         if child_depth_minumum > child_depth_maximum:
-            raise ValueError("child_depth_minimum must be > child_depth_maximum.")
+            raise ValueError("child_depth_minimum must be >= child_depth_maximum.")
         if terminal_minimum_depth < 0:
-            raise ValueError("terminal_minimum_depth must be > 0.")
+            raise ValueError("terminal_minimum_depth must be >= 0.")
         if branching_factor_base < 0:
             raise ValueError("branching_factor_base must be >= 0.")
         if branching_factor_variance < 0:
@@ -49,19 +49,14 @@ class State():
         
         self.transposition_space_map: dict[int, int] = dict()
         def transposition_space_function_wrapper(
-                randint: RandomIntFunction, 
-                randf: RandomFloatFunction, 
-                globals: GlobalVariables, 
-                depth: int) -> int:
+                randint: RandomIntFunction, randf: RandomFloatFunction, globals: GlobalVariables, depth: int) -> int:
             t_space = self.transposition_space_map.get(depth)
             if t_space is None:
                 t_space = transposition_space_function(randint, randf, globals, depth)
                 self.transposition_space_map[depth] = t_space
             if t_space > max_transposition_space:
-                # TODO: test
                 raise IdOverflow(f"Computed transposition space is {t_space} but the maximum is {max_transposition_space}.")
-            if t_space < 1:
-                # TODO: test
+            if t_space <= 0:
                 raise ValueError("Transposition space must be > 0.")
             return t_space
         
@@ -89,8 +84,7 @@ class State():
             retain_tree
         )
 
-        self._root: StateNode = StateNode(
-            stateid=0, globals=self.globals, parent=None)
+        self._root: StateNode = StateNode(stateid=0, globals=self.globals, parent=None)
         self._current: StateNode = self._root
     
     def __str__(self) -> str:

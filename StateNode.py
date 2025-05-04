@@ -23,25 +23,26 @@ class StateNode():
             distribution=self.globals.vars.distribution, nodeid=self.id, seed=self.globals.vars.seed)
     
     def __str__(self) -> str:
-        depth, transposition_space_record = self._decode_id(self.id)
-        return f"{depth}-{transposition_space_record}"
+        return "{}-{}".format(*self._decode_id(self.id))
 
     def __repr__(self) -> str:
         return str(self)
     
     # TODO: test
     def _encode_id(self, depth: int, transposition_space_record: int) -> int:
+        # TODO: docstring
         if not 0 <= depth <= self.globals.vars.max_depth:
             # TODO: test
             raise IdOverflow(f"depth {depth}.")
         if not 0 <= transposition_space_record <= self.globals.vars.max_transposition_space_size:
             # TODO: test
             raise IdOverflow(f"state_space_record {transposition_space_record}.")
-        depth_bits = depth << (ID_BIT_SIZE - bit_size(self.globals.vars.max_depth))
+        depth_bits = depth << bit_size(self.globals.vars.max_transposition_space_size) - 1
         return depth_bits | transposition_space_record
     
     # TODO: test
     def _decode_id(self, state_id: int) -> tuple[int, int]:
+        # TODO: docstring
         state_space_record_bit_size = ID_BIT_SIZE - bit_size(self.globals.vars.max_depth)
         transposition_space_record_bit_mask = (1 << state_space_record_bit_size) - 1
         depth = state_id >> state_space_record_bit_size
@@ -141,7 +142,6 @@ class StateNode():
             return self
         if self.children:
             return self
-        
         new_children: list["StateNode"] = []
         for _ in range(self.branching_factor()):
             child_id = self._generate_child_id()
