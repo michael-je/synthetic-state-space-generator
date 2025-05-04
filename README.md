@@ -1,5 +1,14 @@
 # Implicit, but Deterministic Generation of Graphs
 
+## Table of Contents
+- [Introduction](#introduction)
+- [Getting Started](#getting-started)
+- [Basic Usage](#basic-usage)
+- [Parameters](#parameters)
+- [Default Behavioural Functions](#default-behavioural-functions)
+- [Use of Deterministic Randomness in Custom Functionality](#use-of-deterministic-randomness-in-custom-functionality)
+- [API Reference](#api-reference)
+- [License](#license)
   
 
 # Introduction
