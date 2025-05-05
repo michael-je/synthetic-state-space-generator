@@ -1,7 +1,7 @@
 import unittest
 import math
 from collections import defaultdict
-import mmh3
+import random
 
 import RNGHasher
 from RNGHasher import RNGHasher as RNG
@@ -11,18 +11,14 @@ from custom_exceptions import *
 from constants import *
 from utils import *
 
+random.seed(0)
 
 class SeedGenerator():
-    def __init__(self):
-        self.hash_num = 0
-    
     def __iter__(self):
         return self
     
     def __next__(self):
-        hash_64bit, _ = mmh3.mmh3_x64_128_utupledigest("aaa".encode(), self.hash_num)
-        self.hash_num += 1
-        return hash_64bit % 100000
+        return random.randint(0, 100000)
 
 seeds = SeedGenerator()
 
@@ -193,14 +189,6 @@ class TestState(unittest.TestCase):
     
     # TODO: test determinism with more complex graphs, especially where
     # we revisit states multiple times from different paths
-
-    # def _default_test_states(self):
-    #     return [
-    #         State(max_depth=0),
-    #         State(max_depth=1),
-    #         State(max_depth=10000),
-    #         State(branching_factor_base=10, max_depth=100),
-    #     ]
     
     def _walk_graph(self, state: State, walk_seed: int=0):
         rng = RNG(distribution=RandomnessDistribution.UNIFORM, seed=walk_seed)
@@ -209,6 +197,10 @@ class TestState(unittest.TestCase):
                 state.undo()
             while rng.next_float() < 0.6 and not state.is_terminal():
                 state.make_random()
+    
+    def test_str(self):
+        state = State()
+        self.assertEqual(str(state), "0-0")
 
     def test_undo_root(self):
         state = State()
@@ -224,6 +216,7 @@ class TestState(unittest.TestCase):
         self.assertRaises(TerminalHasNoChildren, lambda: state.make(0))
     
     def test_make_random(self):
+        # TODO
         pass
     
     def test_depth(self):
@@ -256,7 +249,7 @@ class TestState(unittest.TestCase):
         self.assertRaises(ValueError, lambda: State(terminal_minimum_depth=-1))
         self.assertRaises(ValueError, lambda: State(branching_factor_base=-1))
         self.assertRaises(ValueError, lambda: State(branching_factor_variance=-1))
-        # TODO
+        # TODO add more for new parameters
     
     def test_basic_state_determinism_1(self):
         state1 = State()
@@ -330,16 +323,104 @@ class TestState(unittest.TestCase):
         state1 = State(max_depth=2**(ID_BIT_SIZE-2))
         state2 = State(max_depth=2**(ID_BIT_SIZE-20))
         state3 = State(max_depth=2**(ID_BIT_SIZE-60))
-        assert(
+        self.assertTrue(
             state1.globals.vars.max_depth * state1.globals.vars.max_transposition_space_size == 
             state2.globals.vars.max_depth * state2.globals.vars.max_transposition_space_size == 
             state3.globals.vars.max_depth * state3.globals.vars.max_transposition_space_size
         )
+
+    def test_transposition_space_size(self):
+        T_SPACE_SIZES = [5, 10, 51, 100]
+        for tspace_size in T_SPACE_SIZES:
+            state = State(
+                transposition_space_function=lambda *args: tspace_size, # type: ignore
+                branching_factor_base=10000)
+            state.actions()
+            unique_records = set(child.tspace_record() for child in state._current.children) # type: ignore
+            # should succeed with high probability
+            self.assertEqual(tspace_size, len(unique_records),
+                             f"There should be {tspace_size} unique records. unique_records: {unique_records}")
     
-    def test_str(self):
-        state = State()
-        self.assertEqual(str(state), "0-0")
+    def test_locality_1(self):
+        """All transposition space records should be the same when locality=1"""
+        state = State(branching_factor_base=4, locality=1, max_depth=100)
+        while not state.is_terminal():
+            state.actions()
+            children = state._current.children # type: ignore
+            self.assertTrue(children[0] == children[1] == children[2] == children[3], 
+                            "All children should have the same id.")
+            self.assertEqual(state._root.tspace_record(), state._current.tspace_record(), # type: ignore
+                             "Children should have same tspace record as root.")
+            state.make_random()
+        
     
+    def test_locality_0_distribution(self):
+        """Transposition space records should be evenly spaced out accross the space when locality=0."""
+        N_CHILDREN = 100000
+        T_SPACE_SIZES = [5, 10, 51, 100]
+        ERROR_MARGIN = 0.1
+        for tspace_size in T_SPACE_SIZES:
+            state = State(
+                branching_factor_base=N_CHILDREN,
+                locality=0,
+                transposition_space_function=lambda *args: tspace_size) # type: ignore
+            state.actions()
+            bins: defaultdict[int, int] = defaultdict(lambda: 0)
+            for child in state._current.children: # type: ignore
+                tspace_record = child.tspace_record() # type: ignore
+                bins[tspace_record] += 1
+            expected_bin_size = N_CHILDREN / tspace_size
+            for k in bins:
+                self.assertLessEqual(abs(bins[k] - expected_bin_size), expected_bin_size * ERROR_MARGIN,
+                                     f"Bin size exceeds the error margin. bins: {dict(bins)}")
+
+    def test_locality_number_of_unique_records(self):
+        """Unique transposition space records should only occupy a set range when locality != 0."""
+        N_CHILDREN = 10000
+        T_SPACE_SIZES = [5, 10, 51, 100]
+        for tspace_size in T_SPACE_SIZES:
+            for locality in [0.0, 0.25, 0.5, 0.75, 1.0]:
+                state = State(
+                    branching_factor_base=N_CHILDREN,
+                    locality=locality,
+                    transposition_space_function=lambda *args: tspace_size) # type: ignore
+                state.actions()
+                unique_records = set(child.tspace_record() for child in state._current.children) # type: ignore
+                self.assertLessEqual(len(unique_records), math.ceil(tspace_size * (1-locality) + 1),
+                                     f"Too many unique record ids ({len(unique_records)}) for given locality {locality} .")
+    
+    def test_transposition_space_locality_scaling(self):
+        """Check whether locality bounds are correctly defined when transitioning between
+        depth levels with different transposition space sizes."""
+        N_CHILDREN = 10000
+        LOCALITY = 0.5
+        tspace_sizes = [50, 20, 100, 32, 3, 41, 325, 123, 52]
+        state = State(
+            transposition_space_function=lambda *args: tspace_sizes[args[-1]], # type: ignore
+            branching_factor_base=N_CHILDREN,
+            locality=LOCALITY)
+        for i in range(1, len(tspace_sizes)):
+            parent_tspace_size, child_tspace_size = tspace_sizes[i-1], tspace_sizes[i]
+            state.actions()
+            unique_records = set(child.tspace_record() for child in state._current.children) # type: ignore
+            transposition_space_ratio = child_tspace_size / parent_tspace_size
+            parent_record = state._current.tspace_record() # type: ignore
+            child_record_center = math.floor(parent_record * transposition_space_ratio)
+            child_record_margin = (child_tspace_size-1) * (1-LOCALITY) / 2
+            lower_variance_margin = math.floor(child_record_center - child_record_margin) % child_tspace_size
+            upper_variance_margin = math.floor(child_record_center + child_record_margin) % child_tspace_size
+            # should succeed with high probability
+            self.assertIn(lower_variance_margin, unique_records,
+                          "Lower locality margin of child tspace record should be included.")
+            self.assertIn(upper_variance_margin, unique_records,
+                          "Upper locality margin of child tspace record should be included.")
+            self.assertNotIn(lower_variance_margin - 1, unique_records,
+                             "Records outside of the locality margin should not be included.")
+            self.assertNotIn(upper_variance_margin + 1, unique_records,
+                             "Records outside of the locality margin should not be included.")
+            state.make_random()
+
 
 if __name__ == '__main__':
     unittest.main()
+    # TestState().test_transposition_space_locality_scaling()

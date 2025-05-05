@@ -1,4 +1,5 @@
 from typing import Self
+import math
 
 from RNGHasher import RNGHasher
 from custom_types import *
@@ -27,6 +28,11 @@ class StateNode():
 
     def __repr__(self) -> str:
         return str(self)
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, StateNode):
+            return False
+        return self.id == other.id
     
     # TODO: test
     def _encode_id(self, depth: int, transposition_space_record: int) -> int:
@@ -75,11 +81,21 @@ class StateNode():
     
     def _generate_child_id(self) -> int:
         """Generate a child id using values for depth and random bits."""
-        depth = self._calculate_child_depth()
-        transposition_space_size = self.globals.funcs.transposition_space_function(
-            self._RNG.next_int, self._RNG.next_float, self.get_state_params().globals, depth)
-        transposition_space_record = self._RNG.next_int() % transposition_space_size
-        return self._encode_id(depth, transposition_space_record)
+        self_tspace_size = self.globals.funcs.transposition_space_function(
+            self._RNG.next_int, self._RNG.next_float, self.get_state_params().globals, self.depth())
+        child_depth = self._calculate_child_depth()
+        child_tspace_size = self.globals.funcs.transposition_space_function(
+            self._RNG.next_int, self._RNG.next_float, self.get_state_params().globals, child_depth)
+        # apply locality scaling
+        tspace_scaling_factor = child_tspace_size / self_tspace_size
+        child_tspace_record_center = math.floor(self.tspace_record() * tspace_scaling_factor)
+        child_tspace_variance_margin = (child_tspace_size-1) * (1-self.globals.vars.locality) / 2 
+        child_tspace_record = self._RNG.next_int(
+            low=math.floor(child_tspace_record_center - child_tspace_variance_margin),
+            high=math.floor(child_tspace_record_center + child_tspace_variance_margin)
+        )
+        child_tspace_record %= child_tspace_size
+        return self._encode_id(child_depth, child_tspace_record)
     
     def get_state_params(self) -> StateParams:
         """Construct StateParams, if necessary, and return them."""
@@ -105,6 +121,11 @@ class StateNode():
         """Return the depth of the state."""
         depth, _ = self._decode_id(self.id)
         return depth
+    
+    def tspace_record(self) -> int:
+        """Return the transposition space record of the state."""
+        _, tspace_record = self._decode_id(self.id)
+        return tspace_record
     
     def heuristic_value(self) -> int:
         """Return a heuristic value estimate based on the state's true value."""

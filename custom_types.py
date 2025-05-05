@@ -22,6 +22,7 @@ class GlobalVariables:
     # terminal_maximum_density: float
     child_depth_minumum: int # depth can be negative
     child_depth_maximum: int
+    locality: float
     max_transposition_space_size: int
 @dataclass
 class StateParamsSelf:

@@ -24,6 +24,7 @@ class State():
                  terminal_minimum_depth: int=0,
                  child_depth_minumum: int=1,
                  child_depth_maximum: int=1,
+                 locality: float=0,
 
                  branching_function: BranchingFunction=default_branching_function, 
                  value_function: ValueFunction=default_value_function, 
@@ -69,6 +70,7 @@ class State():
             terminal_minimum_depth = terminal_minimum_depth,
             child_depth_minumum = child_depth_minumum,
             child_depth_maximum = child_depth_maximum,
+            locality = locality,
             max_transposition_space_size = max_transposition_space
         )
         global_funcs = GlobalFunctions(
