@@ -138,8 +138,10 @@ class StateNode():
         return list(range(len(self.children)))
     
     def reset(self) -> Self:
-        """Reset state to before an action on it was taken."""
+        """Reset state to before any randomness-depentant actions were taken."""
         self.children = []
+        self._branching_factor = None
+        self._value = None
         self._RNG.reset()
         return self
     
