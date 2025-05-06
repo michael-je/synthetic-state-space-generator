@@ -32,7 +32,7 @@ def dfs(state: State):
     def dfs_recur(state: State, depth: int):
         if depth == 1:
             print(state.id())
-            return 
+            return
         for action in state.actions():
             state.make(action)
             dfs_recur(state, depth+1)
@@ -40,20 +40,42 @@ def dfs(state: State):
     
     dfs_recur(state, 0)
 
+def test_simple_determinism():
+    
+    state = State()
+    actions = state.actions()
+    children1 = []
+    state.make(actions[0])
+    children1.append(state.id())
+    state.undo()
+    state.make(actions[1])
+    children1.append(state.id())
+    state.undo()
+    
+    children2 = []
+    state.make(actions[0])
+    children2.append(state.id())
+    state.undo()
+    state.make(actions[1])
+    children2.append(state.id())
+    state.undo()
+
+    print(children1, children2)
+
+
+
 
 def  main():
-    state = State()
-    print("not in dfs: ", state.id())
-    print("DFS:")
-    print("not in dfs: ", state.id())
-    dfs(state)
-    print("DFS:")
-    print("not in dfs: ", state.id())
-    dfs(state)
-    print("DFS:")
-    dfs(state)
-    print("DFS:")
-    dfs(state)
+    # state = State()
+    # print("not in dfs: ", state.id())
+    # print("DFS:")
+    # dfs(state)
+    # print()
+    
+    # print("not in dfs: ", state.id())
+    # dfs(state)
+    test_simple_determinism()
+
 
     """
     print("Minimax")

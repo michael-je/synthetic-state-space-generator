@@ -340,6 +340,159 @@ class TestState(unittest.TestCase):
         state = State()
         self.assertEqual(str(state), "0-0")
     
+    def test_simple_child_regeneration_determinism(self):
+        state = State()
+        actions = state.actions()
+        children1 = []
+        state.make(actions[0])
+        children1.append(state.id())
+        state.undo()
+        state.make(actions[1])
+        children1.append(state.id())
+        state.undo()
+        children2 = []
+        state.make(actions[0])
+        children2.append(state.id())
+        state.undo()
+        state.make(actions[1])
+        children2.append(state.id())
+        state.undo()
+        self.assertEqual(children1, children2)
+
+    def test_simple_child_regeneration_determinism_with_retain_graph(self):
+        
+        state = State(retain_graph=True)
+        actions = state.actions()
+        children1 = []
+        state.make(actions[0])
+        children1.append(state.id())
+        state.undo()
+        state.make(actions[1])
+        children1.append(state.id())
+        state.undo()
+        children2 = []
+        state.make(actions[0])
+        children2.append(state.id())
+        state.undo()
+        state.make(actions[1])
+        children2.append(state.id())
+        state.undo()
+        self.assertEqual(children1, children2)
+
+    def test_compare_child_generation_with_unrelated_parameters(self):
+       
+        state1 = State()
+        actions = state1.actions()
+        children1 = []
+        state1.make(actions[0])
+        children1.append(state1.id())
+        state1.undo()
+        state1.make(actions[1])
+        children1.append(state1.id())
+        state2 = State(retain_graph=True)
+        children2 = []
+        state2.make(actions[0])
+        children2.append(state2.id())
+        state2.undo()
+        state2.make(actions[1])
+        children2.append(state2.id())
+        state2.undo()
+        self.assertEqual(children1, children2)
+
+
+    def test_determinism_in_order_of_operations(self):
+        def branching_function_Rand20(randint: RandomIntFunction, randf: RandomFloatFunction, params: StateParams) -> int:
+            return randint(low=1, high=100)
+        state1 = State(branching_function=branching_function_Rand20, seed=3)
+        s1V = state1.value()
+        state1.make(state1.actions()[0])
+        state2 = State(branching_function=branching_function_Rand20, seed=3)
+        state2.make(state2.actions()[0])
+        s2V = state2.value()
+        self.assertEqual(state1.id(), state2.id())
+        self.assertEqual(s1V, s2V)
+    
+    def test_state_attribute_reproducability(self):
+        """Tests whether state always produces the same attributes/values"""
+        def s50_transposition_space_function(randint: RandomIntFunction, randf: RandomFloatFunction, globals: GlobalVariables, depth: int) -> int:
+            return 50
+        
+        state_visit_count = dict()
+        state_info = dict()
+        def dfs(state: State, depth: int):
+            if depth == 0:
+                return
+            state_str = state.id()
+            visitCount = state_visit_count.get(state_str, 0)
+
+            if visitCount == 0:
+                val = state.value()
+                hVal = state.heuristic_value()
+                stateDepth = state.depth()
+                isTerm = state.is_terminal()
+                actions = state.actions()
+                state_info[state_str] = {
+                    "stateVal":val,
+                    "stateHVal":hVal,
+                    "stateDepth":stateDepth,
+                    "isTerminal":isTerm,
+                    "actions":actions,
+                }
+            elif visitCount == 1:
+                val = state.value()
+                hVal = state.heuristic_value()
+                stateDepth = state.depth()
+                isTerm = state.is_terminal()
+                actions = state.actions()
+                self.assertEqual(val, state_info[state_str]["stateVal"])
+                self.assertEqual(hVal, state_info[state_str]["stateHVal"])
+                self.assertEqual(stateDepth, state_info[state_str]["stateDepth"])
+                self.assertEqual(isTerm, state_info[state_str]["isTerminal"])
+                self.assertEqual(actions, state_info[state_str]["actions"])
+            else:
+                return
+
+            state_visit_count[state_str] = visitCount + 1
+
+            for action in state.actions():
+                state.make(action)
+                dfs(state, depth-1)
+                state.undo()
+        
+        depth = 20
+        state = State(transposition_space_function=s50_transposition_space_function)
+        dfs(state, depth)
+
+
+    def test_terminal_states_having_no_children(self):
+        def branching_function_3(randint: RandomIntFunction, randf: RandomFloatFunction, params: StateParams) -> int:
+            if params.self.depth > 3:
+                if randf() > 0.1:
+                    return 0  
+            return 2
+        
+        def dfs(state: State):
+            if state.is_terminal():
+                self.assertEqual(len(state.actions()), 0)
+                return
+            for action in state.actions():
+                state.make(action)
+                dfs(state)
+                state.undo()
+
+        state = State(branching_function=branching_function_3)
+        dfs(state)
+
+    def test_different_graphs_based_on_seed(self):
+        """Tests whether states with different seed produces different graphs"""
+        state1 = State(seed=0)
+        state1.make(state1.actions()[0])
+        state2 = State(seed=1)
+        state2.make(state2.actions()[0])
+        self.assertNotEqual(state1.id(), state2.id())
+        
+        
 
 if __name__ == '__main__':
-    unittest.main()
+    # unittest.main()
+    TestState().test_different_graphs_based_on_seed()
