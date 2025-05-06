@@ -77,6 +77,7 @@ class StateNode():
     def _calculate_child_value(self) -> Value:
         value = self.globals.funcs.child_value_function(
             self._RNG.next_int, self._RNG.next_float, self.get_state_params())
+        self._RNG.reset()
         return Value(value)
     
     # TODO: docstring
@@ -92,6 +93,7 @@ class StateNode():
             raise IdOverflow(f"Depth can not be negative.")
         if child_depth > self.globals.vars.max_depth:
             raise IdOverflow(f"Depth can not exceed max_depth.")
+        self._RNG.reset()
         return child_depth
     
     # TODO: test
@@ -108,6 +110,7 @@ class StateNode():
         upper_margin = math.floor(child_tspace_record_center + child_tspace_variance_margin)
         child_tspace_record = self._RNG.next_int(low=lower_margin, high=upper_margin)
         child_tspace_record %= (child_tspace_size + 1) # +1 because the maximum is inclusive
+        self._RNG.reset()
         return child_tspace_record
     
     def _generate_child_id(self) -> int:
@@ -165,8 +168,10 @@ class StateNode():
     
     def heuristic_value(self) -> int:
         """Return a heuristic value estimate based on the state's true value."""
-        return self.globals.funcs.heuristic_value_function(
+        heuristic_value = self.globals.funcs.heuristic_value_function(
             self._RNG.next_int, self._RNG.next_float, self.get_state_params())
+        self._RNG.reset()
+        return heuristic_value
 
     def actions(self) -> list[int]:
         """Return indices of children."""
@@ -185,6 +190,7 @@ class StateNode():
         if self._branching_factor is None:
             self._branching_factor = self.globals.funcs.branching_function(
                 self._RNG.next_int, self._RNG.next_float, self.get_state_params())
+        self._RNG.reset()
         return self._branching_factor
 
     def generate_children(self) -> Self:

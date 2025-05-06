@@ -1,5 +1,6 @@
 import unittest
 import math
+from typing import Any
 from collections import defaultdict
 import random
 
@@ -567,7 +568,7 @@ class TestState(unittest.TestCase):
         state2.undo()
         self.assertEqual(child_ids, child_ids)
 
-    def test_determinism_in_order_of_operations(self):
+    def test_determinism_in_order_of_operations_1(self):
         def branching_function_1_to_100(randint: RandomIntFunction, randf: RandomFloatFunction, params: StateParams) -> int:
             return randint(low=1, high=100)
         state1 = State(branching_function=branching_function_1_to_100, seed=3)
@@ -634,7 +635,33 @@ class TestState(unittest.TestCase):
         state2.make(state2.actions()[0])
         # should succeed with high probability
         self.assertNotEqual(state1.id(), state2.id())
+    
+    def test_determinism_in_order_of_operations_2(self):
+        def branching_function_1_to_100(randint: RandomIntFunction, randf: RandomFloatFunction, params: StateParams) -> int:
+            return randint(low=1, high=100)
+        rng = State()._RNG
+        state = State(branching_function=branching_function_1_to_100, seed=3)
+        state_funcs: list[Any] = [state.actions, state.depth, state.heuristic_value, state.id, state.is_root, state.is_terminal]
+        N_TRIALS = 1000
+        for _ in range(N_TRIALS):
+            for _ in range(rng.next_int(0, 10)):
+                state_funcs[rng.next_int(0, len(state_funcs) - 1)]()
+            state.make(state.actions()[0])
+            for _ in range(rng.next_int(0, 10)):
+                state_funcs[rng.next_int(0, len(state_funcs) - 1)]()
+            state1_id = state.id()
+            state.undo()
+            state._current.reset()
+            for _ in range(rng.next_int(0, 10)):
+                state_funcs[rng.next_int(0, len(state_funcs) - 1)]()
+            state.make(state.actions()[0])
+            for _ in range(rng.next_int(0, 10)):
+                state_funcs[rng.next_int(0, len(state_funcs) - 1)]()
+            state2_id = state.id()
+            state.undo()
+            self.assertEqual(state1_id, state2_id)
 
 
 if __name__ == '__main__':
-    unittest.main()
+    # unittest.main()
+    TestState().test_determinism_in_order_of_operations_2()
