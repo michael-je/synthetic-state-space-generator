@@ -123,12 +123,6 @@ class StateNode():
         if self._state_params is None:
             self._state_params = self._construct_state_params()
         return self._state_params
-    
-    def kill_siblings(self) -> None:
-        """Deallocate sibling memory."""
-        if self.parent is None:
-            return # in case we are root
-        self.parent.children = [self]
 
     def is_terminal(self) -> bool:
         """Return true if the state is a terminal."""
@@ -140,7 +134,10 @@ class StateNode():
     
     def true_value(self) -> Value:
         """Return the true value of the state."""
-        return Value(self._extract_information_from_id(self.id, 0, ID_TRUE_VALUE_BIT_SIZE))
+        return Value(self._extract_information_from_id(
+            self.id, 
+            0, 
+            ID_TRUE_VALUE_BIT_SIZE))
     
     def player(self) -> Player:
         """Return the player associated with the state."""

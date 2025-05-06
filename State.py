@@ -129,14 +129,10 @@ class State():
         """Transition to the next state via action (represented as an index into the states children)."""
         if self.is_terminal():
             raise TerminalHasNoChildren
-        self._current.generate_children()
-        if not 0 <= action < len(self._current.children):
-            raise ValueError(f"No action {action} among children {self._current.children}.")
+        actions = self._current.actions()
+        if not action in actions:
+            raise ValueError(f"No action {action} among available actions {actions}.")
         self._current = self._current.children[action]
-        if not self.globals.retain_graph:
-            if self._current.parent is None:
-                raise RootHasNoParent() # can't happen, but suppresses type warning
-            self._current.parent.kill_siblings()
         return self
     
     def make_random(self) -> Self:
