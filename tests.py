@@ -11,6 +11,9 @@ from custom_exceptions import *
 from constants import *
 from utils import *
 
+# pyright: reportPrivateUsage=false
+# pyright: reportUnknownLambdaType=false
+
 random.seed(0)
 
 class SeedGenerator():
@@ -187,8 +190,8 @@ class TestRNG(unittest.TestCase):
 
 class TestState(unittest.TestCase):
     
-    # TODO: test determinism with more complex graphs, especially where
-    # we revisit states multiple times from different paths
+#     # TODO: test determinism with more complex graphs, especially where
+#     # we revisit states multiple times from different paths
     
     def _walk_graph(self, state: State, walk_seed: int=0):
         rng = RNG(distribution=RandomnessDistribution.UNIFORM, seed=walk_seed)
@@ -200,7 +203,7 @@ class TestState(unittest.TestCase):
     
     def test_str(self):
         state = State()
-        self.assertEqual(str(state), "0-0")
+        self.assertEqual(str(state), f"{Value(0).name}-{Player(0).name}-0-0")
 
     def test_undo_root(self):
         state = State()
@@ -245,6 +248,7 @@ class TestState(unittest.TestCase):
         self.assertRaises(ValueError, lambda: State(max_depth=-1))
         self.assertRaises(ValueError, lambda: State(max_depth=0))
         self.assertRaises(ValueError, lambda: State(max_depth=2**ID_BIT_SIZE))
+        self.assertRaises(ValueError, lambda: State(max_depth=2**(ID_BIT_SIZE - ID_TRUE_VALUE_BIT_SIZE - ID_PLAYER_BIT_SIZE)))
         self.assertRaises(ValueError, lambda: State(child_depth_minumum=2, child_depth_maximum=1))
         self.assertRaises(ValueError, lambda: State(terminal_minimum_depth=-1))
         self.assertRaises(ValueError, lambda: State(branching_factor_base=-1))
@@ -312,21 +316,24 @@ class TestState(unittest.TestCase):
         self.assertRaises(IdOverflow, lambda: state.make_random())
     
     def test_id_bit_partitioning_1(self):
-        state = State(max_depth=2**(ID_BIT_SIZE-1)-1)
-        self.assertEqual(2**1, state.globals.vars.max_transposition_space_size)
-        state = State(max_depth=2**(ID_BIT_SIZE-2)-1)
-        self.assertEqual(2**2, state.globals.vars.max_transposition_space_size)
-        state = State(max_depth=2**(ID_BIT_SIZE-32)-1)
-        self.assertEqual(2**32, state.globals.vars.max_transposition_space_size)
+        OCCUPIED_BITS = ID_TRUE_VALUE_BIT_SIZE + ID_PLAYER_BIT_SIZE
+        state = State(max_depth=2**(ID_BIT_SIZE - OCCUPIED_BITS -  1) - 1)
+        self.assertEqual(2**1 -  1, state.globals.vars.max_transposition_space_size)
+        state = State(max_depth=2**(ID_BIT_SIZE - OCCUPIED_BITS -  2) - 1)
+        self.assertEqual(2**2 -  1, state.globals.vars.max_transposition_space_size)
+        state = State(max_depth=2**(ID_BIT_SIZE - OCCUPIED_BITS - 32) - 1)
+        self.assertEqual(2**32 - 1, state.globals.vars.max_transposition_space_size)
     
     def test_id_bit_partitioning_2(self):
-        state1 = State(max_depth=2**(ID_BIT_SIZE-2))
+        state1 = State(max_depth=2**(ID_BIT_SIZE-5))
         state2 = State(max_depth=2**(ID_BIT_SIZE-20))
         state3 = State(max_depth=2**(ID_BIT_SIZE-60))
-        self.assertTrue(
-            state1.globals.vars.max_depth * state1.globals.vars.max_transposition_space_size == 
-            state2.globals.vars.max_depth * state2.globals.vars.max_transposition_space_size == 
-            state3.globals.vars.max_depth * state3.globals.vars.max_transposition_space_size
+        self.assertEqual(
+            state1.globals.vars.max_depth * (state1.globals.vars.max_transposition_space_size + 1),
+            state2.globals.vars.max_depth * (state2.globals.vars.max_transposition_space_size + 1))
+        self.assertEqual( 
+            state1.globals.vars.max_depth * (state1.globals.vars.max_transposition_space_size + 1),
+            state3.globals.vars.max_depth * (state3.globals.vars.max_transposition_space_size + 1)
         )
 
     def test_transposition_space_size(self):
@@ -346,9 +353,9 @@ class TestState(unittest.TestCase):
         state = State(branching_factor_base=4, locality=1, max_depth=100)
         while not state.is_terminal():
             state.actions()
-            children = state._current.children # type: ignore
-            self.assertTrue(children[0] == children[1] == children[2] == children[3], 
-                            "All children should have the same id.")
+            child_records = [child.tspace_record() for child in state._current.children]
+            self.assertTrue(child_records[0] == child_records[1] == child_records[2] == child_records[3], 
+                            f"All children should have the same tspace record. records: {child_records}")
             self.assertEqual(state._root.tspace_record(), state._current.tspace_record(), # type: ignore
                              "Children should have same tspace record as root.")
             state.make_random()
@@ -402,13 +409,13 @@ class TestState(unittest.TestCase):
         for i in range(1, len(tspace_sizes)):
             parent_tspace_size, child_tspace_size = tspace_sizes[i-1], tspace_sizes[i]
             state.actions()
-            unique_records = set(child.tspace_record() for child in state._current.children) # type: ignore
+            unique_records = set(child.tspace_record() for child in state._current.children)
             transposition_space_ratio = child_tspace_size / parent_tspace_size
-            parent_record = state._current.tspace_record() # type: ignore
+            parent_record = state._current.tspace_record()
             child_record_center = math.floor(parent_record * transposition_space_ratio)
             child_record_margin = (child_tspace_size-1) * (1-LOCALITY) / 2
-            lower_variance_margin = math.floor(child_record_center - child_record_margin) % child_tspace_size
-            upper_variance_margin = math.floor(child_record_center + child_record_margin) % child_tspace_size
+            lower_variance_margin = math.floor(child_record_center - child_record_margin) % (child_tspace_size + 1)
+            upper_variance_margin = math.floor(child_record_center + child_record_margin) % (child_tspace_size + 1)
             # should succeed with high probability
             self.assertIn(lower_variance_margin, unique_records,
                           "Lower locality margin of child tspace record should be included.")
@@ -420,7 +427,89 @@ class TestState(unittest.TestCase):
                              "Records outside of the locality margin should not be included.")
             state.make_random()
 
+    # TODO: docstring
+    def test_encode_id_0(self):
+        state_node = State()._current
+        id = state_node._encode_id(Value(0), Player(0), 0, 0)
+        self.assertEqual(id, 0)
+    
+    # TODO: docstring
+    def test_encode_id_all_1s(self):
+        state_node = State()._current
+        # create id
+        id = state_node._encode_id(Value(1), Player(1), 1, 1)
+        bin_str = str(bin(id))[2:].zfill(63)
+        # define margins
+        id_value_offset = 0
+        id_player_offset = ID_TRUE_VALUE_BIT_SIZE
+        id_depth_offset = id_player_offset + ID_PLAYER_BIT_SIZE
+        id_record_offset = id_depth_offset + bit_size(state_node.globals.vars.max_depth)
+        # run assertions
+        self.assertEqual(int(bin_str[id_value_offset:id_player_offset], 2), 1)
+        self.assertEqual(int(bin_str[id_player_offset:id_depth_offset], 2), 1)
+        self.assertEqual(int(bin_str[id_depth_offset:id_record_offset], 2), 1)
+        self.assertEqual(int(bin_str[id_record_offset:],                2), 1)
+    
+    # TODO: docstring
+    def test_encode_id_random(self):
+        rng = State()._RNG
+        N_TRIALS = 100
+        for _ in range(N_TRIALS):
+            # define random values
+            max_depth = rng.next_int(0, 2**32)
+            state_node = State(max_depth=max_depth)._current
+            value = Value(rng.next_int(0, 2))
+            player = Player(rng.next_int(0, 1))
+            depth = rng.next_int(0, state_node.globals.vars.max_depth)
+            tspace_record = rng.next_int(0, state_node.globals.vars.max_transposition_space_size)
+            # create id
+            id = state_node._encode_id(value, player, depth, tspace_record)
+            bin_str = str(bin(id))[2:].zfill(63)
+            # define margins
+            id_value_offset = 0
+            id_player_offset = ID_TRUE_VALUE_BIT_SIZE
+            id_depth_offset = id_player_offset + ID_PLAYER_BIT_SIZE
+            id_record_offset = id_depth_offset + bit_size(state_node.globals.vars.max_depth)
+            # run assertions
+            self.assertEqual(int(bin_str[id_value_offset:id_player_offset], 2), value.value)
+            self.assertEqual(int(bin_str[id_player_offset:id_depth_offset], 2), player.value)
+            self.assertEqual(int(bin_str[id_depth_offset:id_record_offset], 2), depth)
+            self.assertEqual(int(bin_str[id_record_offset:],                2), tspace_record)
+    
+    def test_extract_true_value(self):
+        state_node = State()._current
+        values = [Value.LOSS, Value.TIE, Value.WIN]
+        for value in values:
+            state_node.id = state_node._encode_id(value, Player(0), 0, 0)
+            self.assertEqual(state_node.true_value(), value)
+
+    def test_extract_player(self):
+        state_node = State()._current
+        players = [Player.MIN, Player.MAX]
+        for player in players:
+            state_node.id = state_node._encode_id(Value(0), player, 0, 0)
+            self.assertEqual(state_node.player(), player)
+
+    def test_extract_depth(self):
+        rng = State()._RNG
+        N_TRIALS = 1000
+        for _ in range(N_TRIALS):
+            max_depth = rng.next_int(0, 2**32)
+            state_node = State(max_depth=max_depth)._current
+            depth = rng.next_int(0, state_node.globals.vars.max_depth)
+            state_node.id = state_node._encode_id(Value(0), Player(0), depth, 0)
+            self.assertEqual(state_node.depth(), depth)
+
+    def test_extract_tspace_record(self):
+        rng = State()._RNG
+        N_TRIALS = 1000
+        for _ in range(N_TRIALS):
+            max_depth = rng.next_int(0, 2**32)
+            state_node = State(max_depth=max_depth)._current
+            record = rng.next_int(0, state_node.globals.vars.max_transposition_space_size)
+            state_node.id = state_node._encode_id(Value(0), Player(0), 0, record)
+            self.assertEqual(state_node.tspace_record(), record)
+
 
 if __name__ == '__main__':
     unittest.main()
-    # TestState().test_transposition_space_locality_scaling()

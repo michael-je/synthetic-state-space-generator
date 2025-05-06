@@ -27,14 +27,14 @@ class State():
                  locality: float=0,
 
                  branching_function: BranchingFunction=default_branching_function, 
-                 value_function: ValueFunction=default_value_function, 
+                 child_value_function: ChildValueFunction=default_child_value_function, 
                  child_depth_function: ChildDepthFunction=default_child_depth_function,
                  transposition_space_function: TranspositionSpaceFunction=default_transposition_space_function,
                  heuristic_value_function: HeuristicValueFunction=default_heuristic_value_function):
         
         if max_depth <= 0:
             raise ValueError("max_depth must be > 0.")
-        if bit_size(max_depth) >= ID_BIT_SIZE:
+        if bit_size(max_depth) >= ID_BIT_SIZE - ID_TRUE_VALUE_BIT_SIZE - ID_PLAYER_BIT_SIZE:
             raise ValueError("max_depth too large.")
         if child_depth_minumum > child_depth_maximum:
             raise ValueError("child_depth_minimum must be >= child_depth_maximum.")
@@ -46,7 +46,7 @@ class State():
             raise ValueError("branching_factor_variance must be >= 0.")
         
         self._RNG = RNGHasher(distribution=distribution, seed=seed)
-        max_transposition_space = 2**(ID_BIT_SIZE - bit_size(max_depth))
+        max_transposition_space = 2**(ID_BIT_SIZE - ID_TRUE_VALUE_BIT_SIZE - ID_PLAYER_BIT_SIZE - bit_size(max_depth)) - 1
         
         self.transposition_space_map: dict[int, int] = dict()
         def transposition_space_function_wrapper(
@@ -75,7 +75,7 @@ class State():
         )
         global_funcs = GlobalFunctions(
             branching_function = branching_function,
-            value_function = value_function,
+            child_value_function = child_value_function,
             child_depth_function = child_depth_function,
             transposition_space_function = transposition_space_function_wrapper,
             heuristic_value_function = heuristic_value_function
@@ -85,7 +85,7 @@ class State():
             global_funcs,
             retain_graph
         )
-        self.set_root(0)
+        self.set_root(0) # TODO: if value/player is encoded then we might need to change this
     
     def __str__(self) -> str:
         return str(self._current)
@@ -101,6 +101,14 @@ class State():
         """Return true if the state is the root."""
         return self._current.is_root()
     
+    def true_value(self) -> Value:
+        """Return the current state's true value."""
+        return self._current.true_value()
+    
+    def player(self) -> Player:
+        """Return the player associated with the current state."""
+        return self._current.player()
+    
     def depth(self) -> int:
         """Return the depth of the current node."""
         return self._current.depth()
@@ -112,10 +120,6 @@ class State():
     def actions(self) -> list[int]:
         """Return the current state's possible actions."""
         return self._current.actions()
-    
-    def value(self) -> int:
-        """Return the current state's true value."""
-        return self._current.value()
     
     def heuristic_value(self) -> int:
         """Return the estimated value of the current state using the heuristic evaluation function."""

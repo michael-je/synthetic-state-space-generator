@@ -2,6 +2,7 @@ from custom_types import *
 from constants import *
 from utils import *
 
+# TODO: make sure default functions are behaving the same after refactor
 
 def default_branching_function(randint: RandomIntFunction, randf: RandomFloatFunction, params: StateParams) -> int:
     """Constant branching factor with variance."""
@@ -13,9 +14,10 @@ def default_branching_function(randint: RandomIntFunction, randf: RandomFloatFun
     return branching_factor
 
 
-def default_value_function(randint: RandomIntFunction, randf: RandomFloatFunction, params: StateParams) -> int:
-    """Randomly generate a value between -1 and 1."""
-    return randint(low=-1, high=1, distribution=RandomnessDistribution.UNIFORM)
+# TODO: write better default
+def default_child_value_function(randint: RandomIntFunction, randf: RandomFloatFunction, params: StateParams) -> Value:
+    """Randomly generate a value."""
+    return Value(randint(low=0, high=2, distribution=RandomnessDistribution.UNIFORM))
 
 
 def default_child_depth_function(randint: RandomIntFunction, randf: RandomFloatFunction, params: StateParams) -> int:
@@ -30,7 +32,8 @@ def default_transposition_space_function(randint: RandomIntFunction, randf: Rand
     return globals.max_transposition_space_size
 
 
-def default_heuristic_value_function(randint: RandomIntFunction, randf: RandomFloatFunction, params: StateParams, value: int) -> int:
+def default_heuristic_value_function(randint: RandomIntFunction, randf: RandomFloatFunction, params: StateParams) -> int:
     """Simulates a heuristic function with 70%-85% accuracy depending on depth."""
     accuracy = 0.7 + (0.15 * params.self.depth / params.globals.max_depth)
-    return value if randf() < accuracy else -value
+    # TODO: might need to change how Value is encoded, need in range [-1, 1]
+    return params.self.true_value.value if randf() < accuracy else -params.self.true_value.value

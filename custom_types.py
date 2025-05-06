@@ -3,10 +3,18 @@ from enum import Enum
 from collections.abc import Callable
 from dataclasses import dataclass
 
-
 class RandomnessDistribution(Enum):
     UNIFORM = 0
     GAUSSIAN = 1
+
+class Player(Enum):
+    MIN = 0
+    MAX = 1
+
+class Value(Enum):
+    TIE =  0
+    WIN =  1
+    LOSS = 2
 
 @dataclass
 class GlobalVariables:
@@ -27,8 +35,10 @@ class GlobalVariables:
 @dataclass
 class StateParamsSelf:
     id: int
-    transposition_space_record: int
+    true_value: Value
+    player: Player
     depth: int
+    transposition_space_record: int
 @dataclass
 class StateParams:
     globals: GlobalVariables
@@ -40,15 +50,15 @@ class RandomFloatFunction(Protocol):
 class RandomIntFunction(Protocol):
     def __call__(self, low: int=..., high: int=..., distribution: RandomnessDistribution|None=...) -> int: ...
 BranchingFunction = Callable[[RandomIntFunction, RandomFloatFunction, StateParams], int]
-ValueFunction = Callable[[RandomIntFunction, RandomFloatFunction, StateParams], int]
+ChildValueFunction = Callable[[RandomIntFunction, RandomFloatFunction, StateParams], Value]
 ChildDepthFunction = Callable[[RandomIntFunction, RandomFloatFunction, StateParams], int]
 TranspositionSpaceFunction = Callable[[RandomIntFunction, RandomFloatFunction, GlobalVariables, int], int]
-HeuristicValueFunction = Callable[[RandomIntFunction, RandomFloatFunction, StateParams, int], int]
+HeuristicValueFunction = Callable[[RandomIntFunction, RandomFloatFunction, StateParams], int]
 
 @dataclass
 class GlobalFunctions:
     branching_function: BranchingFunction
-    value_function: ValueFunction
+    child_value_function: ChildValueFunction
     child_depth_function: ChildDepthFunction
     transposition_space_function: TranspositionSpaceFunction
     heuristic_value_function: HeuristicValueFunction
