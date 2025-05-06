@@ -567,7 +567,6 @@ class TestState(unittest.TestCase):
         state2.undo()
         self.assertEqual(child_ids, child_ids)
 
-
     def test_determinism_in_order_of_operations(self):
         def branching_function_1_to_100(randint: RandomIntFunction, randf: RandomFloatFunction, params: StateParams) -> int:
             return randint(low=1, high=100)
@@ -580,64 +579,41 @@ class TestState(unittest.TestCase):
         self.assertEqual(state1.id(), state2.id())
         self.assertEqual(state1_value, state2_value)
     
-    # def test_state_attribute_reproducability(self):
-    #     """Tests whether state always produces the same attributes/values"""
-    #     def s50_transposition_space_function(randint: RandomIntFunction, randf: RandomFloatFunction, globals: GlobalVariables, depth: int) -> int:
-    #         return 50
-    #     state_visit_count = dict()
-    #     state_info = dict()
-    #     def dfs(state: State, depth: int):
-    #         if depth == 0:
-    #             return
-    #         state_str = state.id()
-    #         visitCount = state_visit_count.get(state_str, 0)
+    def test_state_attribute_reproducability(self):
+        """Tests whether state always produces the same attributes/values"""
+        state_visit_count: defaultdict[int, int] = defaultdict(lambda: 0)
+        state_info: dict[int, dict[str, Value|int|bool|list[int]]] = dict()
+        def dfs(state: State):
+            if state_visit_count[state.id()] == 0:
+                state_info[state.id()] = {
+                    "val": state.true_value(),
+                    "hval": state.heuristic_value(),
+                    "depth": state.depth(),
+                    "terminal": state.is_terminal(),
+                    "actions": state.actions(),
+                }
+            else:
+                self.assertEqual(state.true_value(),      state_info[state.id()]["val"])
+                self.assertEqual(state.heuristic_value(), state_info[state.id()]["hval"])
+                self.assertEqual(state.depth(),           state_info[state.id()]["depth"])
+                self.assertEqual(state.is_terminal(),     state_info[state.id()]["terminal"])
+                self.assertEqual(state.actions(),         state_info[state.id()]["actions"])
+            state_visit_count[state.id()] += 1
+            for action in state.actions():
+                state.make(action)
+                dfs(state)
+                state.undo()
+        state = State(
+            max_depth=10, 
+            transposition_space_function=lambda *args: 50) # type: ignore
+        dfs(state)
 
-    #         if visitCount == 0:
-    #             val = state.value()
-    #             hVal = state.heuristic_value()
-    #             stateDepth = state.depth()
-    #             isTerm = state.is_terminal()
-    #             actions = state.actions()
-    #             state_info[state_str] = {
-    #                 "stateVal":val,
-    #                 "stateHVal":hVal,
-    #                 "stateDepth":stateDepth,
-    #                 "isTerminal":isTerm,
-    #                 "actions":actions,
-    #             }
-    #         elif visitCount == 1:
-    #             val = state.value()
-    #             hVal = state.heuristic_value()
-    #             stateDepth = state.depth()
-    #             isTerm = state.is_terminal()
-    #             actions = state.actions()
-    #             self.assertEqual(val, state_info[state_str]["stateVal"])
-    #             self.assertEqual(hVal, state_info[state_str]["stateHVal"])
-    #             self.assertEqual(stateDepth, state_info[state_str]["stateDepth"])
-    #             self.assertEqual(isTerm, state_info[state_str]["isTerminal"])
-    #             self.assertEqual(actions, state_info[state_str]["actions"])
-    #         else:
-    #             return
-
-    #         state_visit_count[state_str] = visitCount + 1
-
-    #         for action in state.actions():
-    #             state.make(action)
-    #             dfs(state, depth-1)
-    #             state.undo()
-        
-    #     depth = 20
-    #     state = State(transposition_space_function=s50_transposition_space_function)
-    #     dfs(state, depth)
-
-
-    # def test_terminal_states_having_no_children(self):
+    # def test_terminal_states_have_no_children(self):
     #     def branching_function_3(randint: RandomIntFunction, randf: RandomFloatFunction, params: StateParams) -> int:
     #         if params.self.depth > 3:
     #             if randf() > 0.1:
     #                 return 0  
     #         return 2
-        
     #     def dfs(state: State):
     #         if state.is_terminal():
     #             self.assertEqual(len(state.actions()), 0)
@@ -650,13 +626,14 @@ class TestState(unittest.TestCase):
     #     state = State(branching_function=branching_function_3)
     #     dfs(state)
 
-    # def test_different_graphs_based_on_seed(self):
-    #     """Tests whether states with different seed produces different graphs"""
-    #     state1 = State(seed=0)
-    #     state1.make(state1.actions()[0])
-    #     state2 = State(seed=1)
-    #     state2.make(state2.actions()[0])
-    #     self.assertNotEqual(state1.id(), state2.id())
+    def test_different_graphs_based_on_seed(self):
+        """Test whether states with different seed produces different graphs"""
+        state1 = State(seed=0)
+        state1.make(state1.actions()[0])
+        state2 = State(seed=1)
+        state2.make(state2.actions()[0])
+        # should succeed with high probability
+        self.assertNotEqual(state1.id(), state2.id())
 
 
 if __name__ == '__main__':
