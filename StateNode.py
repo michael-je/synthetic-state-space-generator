@@ -13,9 +13,11 @@ class StateNode():
                  globals: GlobalParameters, 
                  parent: "StateNode|None"=None):
         self.id: int = stateid
-        self._branching_factor: int|None = None
         self.globals = globals
         self.parent = parent
+        self._random_values_generated: bool = False
+        self._branching_factor: int|None = None
+        self._heuristic_value: float|None = None
         self._state_params: StateParams|None = None
         
         self.children: list[StateNode] = []
@@ -77,7 +79,6 @@ class StateNode():
     def _calculate_child_value(self) -> Value:
         value = self.globals.funcs.child_value_function(
             self._RNG.next_int, self._RNG.next_float, self.get_state_params())
-        self._RNG.reset()
         return Value(value)
     
     # TODO: docstring
@@ -93,7 +94,6 @@ class StateNode():
             raise IdOverflow(f"Depth can not be negative.")
         if child_depth > self.globals.vars.max_depth:
             raise IdOverflow(f"Depth can not exceed max_depth.")
-        self._RNG.reset()
         return child_depth
     
     # TODO: test
@@ -110,7 +110,6 @@ class StateNode():
         upper_margin = math.floor(child_tspace_record_center + child_tspace_variance_margin)
         child_tspace_record = self._RNG.next_int(low=lower_margin, high=upper_margin)
         child_tspace_record %= (child_tspace_size + 1) # +1 because the maximum is inclusive
-        self._RNG.reset()
         return child_tspace_record
     
     def _generate_child_id(self) -> int:
@@ -167,34 +166,33 @@ class StateNode():
             tspace_record_bit_size)
         return tspace_record
     
-    def heuristic_value(self) -> int:
+    def branching_factor(self) -> int:
+        """Get or set branching factor."""
+        self._generate_all_random_values()
+        assert(self._branching_factor is not None)
+        return self._branching_factor
+    
+    def heuristic_value(self) -> float:
         """Return a heuristic value estimate based on the state's true value."""
-        heuristic_value = self.globals.funcs.heuristic_value_function(
-            self._RNG.next_int, self._RNG.next_float, self.get_state_params())
-        self._RNG.reset()
-        return heuristic_value
+        self._generate_all_random_values()
+        assert(self._heuristic_value is not None)
+        return self._heuristic_value
 
     def actions(self) -> list[int]:
         """Return indices of children."""
-        self.generate_children()
+        self._generate_all_random_values()
         return list(range(len(self.children)))
     
     def reset(self) -> Self:
         """Reset state to before any randomness-depentant actions were taken."""
         self.children = []
         self._branching_factor = None
+        self._heuristic_value = None
+        self._random_values_generated = False
         self._RNG.reset()
         return self
-    
-    def branching_factor(self) -> int:
-        """Get or set branching factor."""
-        if self._branching_factor is None:
-            self._branching_factor = self.globals.funcs.branching_function(
-                self._RNG.next_int, self._RNG.next_float, self.get_state_params())
-        self._RNG.reset()
-        return self._branching_factor
 
-    def generate_children(self) -> Self:
+    def _generate_children(self) -> Self:
         """Generate child states."""
         if self.is_terminal():
             return self
@@ -207,4 +205,15 @@ class StateNode():
                 stateid=child_id, globals=self.globals, parent=self)
             new_children.append(new_child)
         self.children = new_children
+        return self
+    
+    def _generate_all_random_values(self) -> Self:
+        if self._random_values_generated:
+            return self
+        self._random_values_generated = True
+        self._branching_factor = self.globals.funcs.branching_function(
+            self._RNG.next_int, self._RNG.next_float, self.get_state_params())
+        self._heuristic_value = self.globals.funcs.heuristic_value_function(
+            self._RNG.next_int, self._RNG.next_float, self.get_state_params())
+        self._generate_children()
         return self
