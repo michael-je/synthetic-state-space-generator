@@ -78,10 +78,10 @@ def minimax(state: State, depth: int, isMaximizingPlayer: bool):
 
   
 
-def  main():
-	state = State(max_depth=10)
-	val = minimax(state, 5, isMaximizingPlayer=True)
-	print(val1)
+def main():
+    state = State(max_depth=10)
+    val = minimax(state, 5, isMaximizingPlayer=True)
+    print(val1)
 
   ```
 
