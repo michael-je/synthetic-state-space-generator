@@ -78,9 +78,9 @@ class StateNode():
         return state_params
     
     # TODO: docstring
-    def _calculate_child_value(self) -> int:
+    def _calculate_child_value(self, sibling_values: list[int]) -> int:
         value = self.globals.funcs.child_value_function(
-            self._RNG.next_int, self._RNG.next_float, self.get_state_params())
+            self._RNG.next_int, self._RNG.next_float, self.get_state_params(), self.branching_factor(), sibling_values)
         return value
     
     # TODO: docstring
@@ -114,9 +114,9 @@ class StateNode():
         child_tspace_record %= (child_tspace_size + 1) # +1 because the maximum is inclusive
         return child_tspace_record
     
-    def _generate_child_id(self) -> int:
+    def _generate_child_id(self, siblings: list["StateNode"]) -> int:
         """Generate a child id using values for depth and random bits."""
-        child_value = self._calculate_child_value()
+        child_value = self._calculate_child_value([sibling.true_value() for sibling in siblings])
         child_player = self._calculate_child_player()
         child_depth = self._calculate_child_depth()
         child_tspace_record = self._calculate_child_tspace_record(child_depth)
@@ -202,7 +202,7 @@ class StateNode():
             return self
         new_children: list["StateNode"] = []
         for _ in range(self.branching_factor()):
-            child_id = self._generate_child_id()
+            child_id = self._generate_child_id(new_children)
             new_child = StateNode(
                 stateid=child_id, globals=self.globals, parent=self)
             new_children.append(new_child)

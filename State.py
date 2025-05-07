@@ -25,7 +25,7 @@ class State():
                  child_depth_minumum: int=1,
                  child_depth_maximum: int=1,
                  locality: float=0,
-                 true_value_minimum_similarity: float=0.1,
+                 true_value_forced_ratio: float=0.1,
                  true_value_similarity_ratio: float=0.5,
                  true_value_tie_chance: float=0.2,
 
@@ -74,6 +74,9 @@ class State():
             child_depth_minumum = child_depth_minumum,
             child_depth_maximum = child_depth_maximum,
             locality = locality,
+            true_value_forced_ratio = true_value_forced_ratio,
+            true_value_similarity_ratio = true_value_similarity_ratio,
+            true_value_tie_chance = true_value_tie_chance,
             max_transposition_space_size = max_transposition_space
         )
         global_funcs = GlobalFunctions(
@@ -124,7 +127,7 @@ class State():
         """Return the current state's possible actions."""
         return self._current.actions()
     
-    def heuristic_value(self) -> int:
+    def heuristic_value(self) -> float:
         """Return the estimated value of the current state using the heuristic evaluation function."""
         return self._current.heuristic_value()
 

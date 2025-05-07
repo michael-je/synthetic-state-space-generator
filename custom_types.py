@@ -26,6 +26,9 @@ class GlobalVariables:
     child_depth_minumum: int # depth can be negative
     child_depth_maximum: int
     locality: float
+    true_value_forced_ratio: float
+    true_value_similarity_ratio: float
+    true_value_tie_chance: float
     max_transposition_space_size: int
 @dataclass
 class StateParamsSelf:
@@ -45,7 +48,7 @@ class RandomFloatFunction(Protocol):
 class RandomIntFunction(Protocol):
     def __call__(self, low: int=..., high: int=..., distribution: RandomnessDistribution|None=...) -> int: ...
 BranchingFunction = Callable[[RandomIntFunction, RandomFloatFunction, StateParams], int]
-ChildValueFunction = Callable[[RandomIntFunction, RandomFloatFunction, StateParams], int]
+ChildValueFunction = Callable[[RandomIntFunction, RandomFloatFunction, StateParams, int, list[int]], int]
 ChildDepthFunction = Callable[[RandomIntFunction, RandomFloatFunction, StateParams], int]
 TranspositionSpaceFunction = Callable[[RandomIntFunction, RandomFloatFunction, GlobalVariables, int], int]
 HeuristicValueFunction = Callable[[RandomIntFunction, RandomFloatFunction, StateParams], int]
