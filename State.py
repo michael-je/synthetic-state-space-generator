@@ -104,8 +104,8 @@ class State():
         """Return true if the state is the root."""
         return self._current.is_root()
     
-    def true_value(self) -> Value:
-        """Return the current state's true value."""
+    def true_value(self) -> int:
+        """Return the current state's true value. Value is in [-1, 1]"""
         return self._current.true_value()
     
     def player(self) -> Player:

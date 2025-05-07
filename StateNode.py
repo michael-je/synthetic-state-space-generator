@@ -25,7 +25,7 @@ class StateNode():
             distribution=self.globals.vars.distribution, nodeid=self.id, seed=self.globals.vars.seed)
     
     def __str__(self) -> str:
-        return f"{self.true_value().name}-{self.player().name}-{self.depth()}-{self.tspace_record()}"
+        return f"{self.true_value()}-{self.player().name}-{self.depth()}-{self.tspace_record()}"
         # return ""
 
     def __repr__(self) -> str:
@@ -38,7 +38,9 @@ class StateNode():
     
     # TODO: test
     # TODO: docstring
-    def _encode_id(self, true_value: Value, player: Player, depth: int, tspace_record: int) -> int:
+    def _encode_id(self, true_value: int, player: Player, depth: int, tspace_record: int) -> int:
+        if not -1 <= true_value <= 1:
+            raise ValueError(f"Invalid value {true_value}. Value should be in [-1, 1].")
         if not 0 <= depth <= self.globals.vars.max_depth:
             raise IdOverflow(f"depth {depth}.") # TODO: test
         if not 0 <= tspace_record <= self.globals.vars.max_transposition_space_size:
@@ -76,10 +78,10 @@ class StateNode():
         return state_params
     
     # TODO: docstring
-    def _calculate_child_value(self) -> Value:
+    def _calculate_child_value(self) -> int:
         value = self.globals.funcs.child_value_function(
             self._RNG.next_int, self._RNG.next_float, self.get_state_params())
-        return Value(value)
+        return value
     
     # TODO: docstring
     # TODO: think about adding a custom function for this
@@ -134,7 +136,7 @@ class StateNode():
         """Return true if the state is the root."""
         return self.parent is None
     
-    def true_value(self) -> Value:
+    def true_value(self) -> int:
         """Return the true value of the state."""
         value_bits = self._extract_information_from_id(
             self.id, 

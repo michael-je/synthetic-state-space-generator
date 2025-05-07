@@ -11,11 +11,6 @@ class Player(Enum):
     MIN = 0
     MAX = 1
 
-class Value(Enum):
-    WIN =  1
-    TIE =  0
-    LOSS = -1
-
 @dataclass
 class GlobalVariables:
     seed: int
@@ -35,7 +30,7 @@ class GlobalVariables:
 @dataclass
 class StateParamsSelf:
     id: int
-    true_value: Value
+    true_value: int
     player: Player
     depth: int
     transposition_space_record: int

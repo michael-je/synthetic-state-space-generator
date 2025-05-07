@@ -8,22 +8,24 @@ def bit_size(n: int) -> int:
         bits += 1
     return bits
 
-def encode_value_to_bits(value: Value) -> int:
+def encode_value_to_bits(value: int) -> int:
     match value:
-        case Value.TIE:
+        case -1:
             return 0
-        case Value.WIN:
+        case 0:
             return 1
-        case value.LOSS:
+        case 1:
             return 2
+        case _:
+            raise ValueError(f"Invalid value {value}. Value must be in [-1, 1].")
         
-def decode_value_bits(value_bits: int) -> Value:
+def decode_value_bits(value_bits: int) -> int:
     match value_bits:
         case 0:
-            return Value.TIE
+            return -1
         case 1:
-            return Value.WIN
+            return 0
         case 2:
-            return Value.LOSS
+            return 1
         case _:
-            raise ValueError("Invalid bit representation of Value.")
+            raise ValueError(f"Invalid bit representation {bin(value_bits)[2:]} of Value.")

@@ -17,7 +17,7 @@ def default_branching_function(randint: RandomIntFunction, randf: RandomFloatFun
 # TODO: write better default
 def default_child_value_function(randint: RandomIntFunction, randf: RandomFloatFunction, params: StateParams) -> int:
     """Randomly generate a value."""
-    return randint(low=0, high=2, distribution=RandomnessDistribution.UNIFORM)
+    return randint(low=-1, high=1, distribution=RandomnessDistribution.UNIFORM)
 
 
 def default_child_depth_function(randint: RandomIntFunction, randf: RandomFloatFunction, params: StateParams) -> int:
@@ -36,4 +36,4 @@ def default_heuristic_value_function(randint: RandomIntFunction, randf: RandomFl
     """Simulates a heuristic function with 70%-85% accuracy depending on depth."""
     accuracy = 0.7 + (0.15 * params.self.depth / params.globals.max_depth)
     # TODO: might need to change how Value is encoded, need in range [-1, 1]
-    return params.self.true_value.value if randf() < accuracy else -params.self.true_value.value
+    return params.self.true_value if randf() < accuracy else -params.self.true_value

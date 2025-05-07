@@ -201,10 +201,6 @@ class TestState(unittest.TestCase):
                 state.undo()
             while rng.next_float() < 0.6 and not state.is_terminal():
                 state.make_random()
-    
-    def test_str(self):
-        state = State()
-        self.assertEqual(str(state), f"{Value(0).name}-{Player(0).name}-0-0")
 
     def test_undo_root(self):
         state = State()
@@ -344,7 +340,7 @@ class TestState(unittest.TestCase):
                 transposition_space_function=lambda *args: tspace_size, # type: ignore
                 branching_factor_base=10000)
             state.actions()
-            unique_records = set(child.tspace_record() for child in state._current.children) # type: ignore
+            unique_records = set(child.tspace_record() for child in state._current.children)
             # should succeed with high probability
             self.assertEqual(tspace_size, len(unique_records),
                              f"There should be {tspace_size} unique records. unique_records: {unique_records}")
@@ -357,7 +353,7 @@ class TestState(unittest.TestCase):
             child_records = [child.tspace_record() for child in state._current.children]
             self.assertTrue(child_records[0] == child_records[1] == child_records[2] == child_records[3], 
                             f"All children should have the same tspace record. records: {child_records}")
-            self.assertEqual(state._root.tspace_record(), state._current.tspace_record(), # type: ignore
+            self.assertEqual(state._root.tspace_record(), state._current.tspace_record(),
                              "Children should have same tspace record as root.")
             state.make_random()
         
@@ -374,8 +370,8 @@ class TestState(unittest.TestCase):
                 transposition_space_function=lambda *args: tspace_size) # type: ignore
             state.actions()
             bins: defaultdict[int, int] = defaultdict(lambda: 0)
-            for child in state._current.children: # type: ignore
-                tspace_record = child.tspace_record() # type: ignore
+            for child in state._current.children:
+                tspace_record = child.tspace_record()
                 bins[tspace_record] += 1
             expected_bin_size = N_CHILDREN / tspace_size
             for k in bins:
@@ -393,7 +389,7 @@ class TestState(unittest.TestCase):
                     locality=locality,
                     transposition_space_function=lambda *args: tspace_size) # type: ignore
                 state.actions()
-                unique_records = set(child.tspace_record() for child in state._current.children) # type: ignore
+                unique_records = set(child.tspace_record() for child in state._current.children)
                 self.assertLessEqual(len(unique_records), math.ceil(tspace_size * (1-locality) + 1),
                                      f"Too many unique record ids ({len(unique_records)}) for given locality {locality} .")
     
@@ -431,14 +427,16 @@ class TestState(unittest.TestCase):
     # TODO: docstring
     def test_encode_id_0(self):
         state_node = State()._current
-        id = state_node._encode_id(Value(0), Player(0), 0, 0)
+        value = decode_value_bits(0)
+        id = state_node._encode_id(value, Player(0), 0, 0)
         self.assertEqual(id, 0)
     
     # TODO: docstring
     def test_encode_id_all_1s(self):
         state_node = State()._current
         # create id
-        id = state_node._encode_id(Value(1), Player(1), 1, 1)
+        value = decode_value_bits(1)
+        id = state_node._encode_id(value, Player(1), 1, 1)
         bin_str = str(bin(id))[2:].zfill(63)
         # define margins
         id_value_offset = 0
@@ -459,7 +457,7 @@ class TestState(unittest.TestCase):
             # define random values
             max_depth = rng.next_int(0, 2**32)
             state_node = State(max_depth=max_depth)._current
-            value = Value(rng.next_int(0, 2))
+            value = rng.next_int(-1, 1)
             player = Player(rng.next_int(0, 1))
             depth = rng.next_int(0, state_node.globals.vars.max_depth)
             tspace_record = rng.next_int(0, state_node.globals.vars.max_transposition_space_size)
@@ -472,14 +470,14 @@ class TestState(unittest.TestCase):
             id_depth_offset = id_player_offset + ID_PLAYER_BIT_SIZE
             id_record_offset = id_depth_offset + bit_size(state_node.globals.vars.max_depth)
             # run assertions
-            self.assertEqual(int(bin_str[id_value_offset:id_player_offset], 2), value.value)
+            self.assertEqual(int(bin_str[id_value_offset:id_player_offset], 2), encode_value_to_bits(value))
             self.assertEqual(int(bin_str[id_player_offset:id_depth_offset], 2), player.value)
             self.assertEqual(int(bin_str[id_depth_offset:id_record_offset], 2), depth)
             self.assertEqual(int(bin_str[id_record_offset:],                2), tspace_record)
     
     def test_extract_true_value(self):
         state_node = State()._current
-        values = [Value.LOSS, Value.TIE, Value.WIN]
+        values = [-1, 0, 1]
         for value in values:
             state_node.id = state_node._encode_id(value, Player(0), 0, 0)
             self.assertEqual(state_node.true_value(), value)
@@ -488,7 +486,8 @@ class TestState(unittest.TestCase):
         state_node = State()._current
         players = [Player.MIN, Player.MAX]
         for player in players:
-            state_node.id = state_node._encode_id(Value(0), player, 0, 0)
+            value = decode_value_bits(0)
+            state_node.id = state_node._encode_id(value, player, 0, 0)
             self.assertEqual(state_node.player(), player)
 
     def test_extract_depth(self):
@@ -498,7 +497,8 @@ class TestState(unittest.TestCase):
             max_depth = rng.next_int(0, 2**32)
             state_node = State(max_depth=max_depth)._current
             depth = rng.next_int(0, state_node.globals.vars.max_depth)
-            state_node.id = state_node._encode_id(Value(0), Player(0), depth, 0)
+            value = decode_value_bits(0)
+            state_node.id = state_node._encode_id(value, Player(0), depth, 0)
             self.assertEqual(state_node.depth(), depth)
 
     def test_extract_tspace_record(self):
@@ -508,7 +508,8 @@ class TestState(unittest.TestCase):
             max_depth = rng.next_int(0, 2**32)
             state_node = State(max_depth=max_depth)._current
             record = rng.next_int(0, state_node.globals.vars.max_transposition_space_size)
-            state_node.id = state_node._encode_id(Value(0), Player(0), 0, record)
+            value = decode_value_bits(0)
+            state_node.id = state_node._encode_id(value, Player(0), 0, record)
             self.assertEqual(state_node.tspace_record(), record)
 
     def test_simple_child_regeneration_determinism(self):
@@ -567,23 +568,11 @@ class TestState(unittest.TestCase):
         child_ids.append(state2.id())
         state2.undo()
         self.assertEqual(child_ids, child_ids)
-
-    def test_determinism_in_order_of_operations_1(self):
-        def branching_function_1_to_100(randint: RandomIntFunction, randf: RandomFloatFunction, params: StateParams) -> int:
-            return randint(low=1, high=100)
-        state1 = State(branching_function=branching_function_1_to_100, seed=3)
-        state1_value = state1.true_value()
-        state1.make(state1.actions()[0])
-        state2 = State(branching_function=branching_function_1_to_100, seed=3)
-        state2.make(state2.actions()[0])
-        state2_value = state2.true_value()
-        self.assertEqual(state1.id(), state2.id())
-        self.assertEqual(state1_value, state2_value)
     
     def test_state_attribute_reproducability(self):
         """Tests whether state always produces the same attributes/values"""
         state_visit_count: defaultdict[int, int] = defaultdict(lambda: 0)
-        state_info: dict[int, dict[str, Value|int|bool|list[int]]] = dict()
+        state_info: dict[int, dict[str, int|bool|list[int]]] = dict()
         def dfs(state: State):
             if state_visit_count[state.id()] == 0:
                 state_info[state.id()] = {
@@ -609,24 +598,6 @@ class TestState(unittest.TestCase):
             transposition_space_function=lambda *args: 50) # type: ignore
         dfs(state)
 
-    # def test_terminal_states_have_no_children(self):
-    #     def branching_function_3(randint: RandomIntFunction, randf: RandomFloatFunction, params: StateParams) -> int:
-    #         if params.self.depth > 3:
-    #             if randf() > 0.1:
-    #                 return 0  
-    #         return 2
-    #     def dfs(state: State):
-    #         if state.is_terminal():
-    #             self.assertEqual(len(state.actions()), 0)
-    #             return
-    #         for action in state.actions():
-    #             state.make(action)
-    #             dfs(state)
-    #             state.undo()
-
-    #     state = State(branching_function=branching_function_3)
-    #     dfs(state)
-
     def test_different_graphs_based_on_seed(self):
         """Test whether states with different seed produces different graphs"""
         state1 = State(seed=0)
@@ -636,7 +607,7 @@ class TestState(unittest.TestCase):
         # should succeed with high probability
         self.assertNotEqual(state1.id(), state2.id())
     
-    def test_determinism_in_order_of_operations_2(self):
+    def test_determinism_in_order_of_operations(self):
         def branching_function_1_to_100(randint: RandomIntFunction, randf: RandomFloatFunction, params: StateParams) -> int:
             return randint(low=1, high=100)
         rng = State()._RNG
