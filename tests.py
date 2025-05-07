@@ -663,5 +663,4 @@ class TestState(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    # unittest.main()
-    TestState().test_determinism_in_order_of_operations_2()
+    unittest.main()
