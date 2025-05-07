@@ -45,33 +45,36 @@ This creates a simple graph, with default values for each parameter. This defaul
 
 Example of a minimax search in the graph:
 
-```python-
+```python
 from  State  import  State
-INF = 1000
 
+INF = 1000
 def minimax(state: State, depth: int, isMaximizingPlayer: bool):
     if state.is_terminal():
-		return state.value()
+        return state.value()
     if depth == 0:
-		return state.heuristic_value()
-	
-	if isMaximizingPlayer:
-		maxEval = -INF
+        print(state.value())
+        return state.value()
+        return state.heuristic_value()
 
-		for action in state.actions():
-			state.make(action)
-			sEval = minimax(state, depth-1, not isMaximizingPlayer)
-			state.undo()
-			maxEval = max(maxEval, sEval)
-			return maxEval
-	else:
-		minEval = INF
-		for action in state.actions():
-			state.make(action)
-			sEval = minimax(state, depth-1, not isMaximizingPlayer)
-			state.undo()
-			minEval = min(minEval, sEval)			
-			return minEval
+    if isMaximizingPlayer:
+        maxEval = -INF
+
+        for action in state.actions():
+            state.make(action)
+            sEval = minimax(state, depth-1, not isMaximizingPlayer)
+            state.undo()
+            maxEval = max(maxEval, sEval)
+        return maxEval
+    else:
+        minEval = INF
+        for action in state.actions():
+            state.make(action)
+            sEval = minimax(state, depth-1, not isMaximizingPlayer)
+            state.undo()
+            minEval = min(minEval, sEval)			
+        return minEval
+
 
   
 
