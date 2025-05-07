@@ -25,6 +25,9 @@ class State():
                  child_depth_minumum: int=1,
                  child_depth_maximum: int=1,
                  locality: float=0,
+                 true_value_minimum_similarity: float=0.1,
+                 true_value_similarity_ratio: float=0.5,
+                 true_value_tie_chance: float=0.2,
 
                  branching_function: BranchingFunction=default_branching_function, 
                  child_value_function: ChildValueFunction=default_child_value_function, 

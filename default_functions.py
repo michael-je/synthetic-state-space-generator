@@ -15,9 +15,9 @@ def default_branching_function(randint: RandomIntFunction, randf: RandomFloatFun
 
 
 # TODO: write better default
-def default_child_value_function(randint: RandomIntFunction, randf: RandomFloatFunction, params: StateParams) -> Value:
+def default_child_value_function(randint: RandomIntFunction, randf: RandomFloatFunction, params: StateParams) -> int:
     """Randomly generate a value."""
-    return Value(randint(low=0, high=2, distribution=RandomnessDistribution.UNIFORM))
+    return randint(low=0, high=2, distribution=RandomnessDistribution.UNIFORM)
 
 
 def default_child_depth_function(randint: RandomIntFunction, randf: RandomFloatFunction, params: StateParams) -> int:

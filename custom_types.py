@@ -12,9 +12,9 @@ class Player(Enum):
     MAX = 1
 
 class Value(Enum):
-    TIE =  0
     WIN =  1
-    LOSS = 2
+    TIE =  0
+    LOSS = -1
 
 @dataclass
 class GlobalVariables:
@@ -50,7 +50,7 @@ class RandomFloatFunction(Protocol):
 class RandomIntFunction(Protocol):
     def __call__(self, low: int=..., high: int=..., distribution: RandomnessDistribution|None=...) -> int: ...
 BranchingFunction = Callable[[RandomIntFunction, RandomFloatFunction, StateParams], int]
-ChildValueFunction = Callable[[RandomIntFunction, RandomFloatFunction, StateParams], Value]
+ChildValueFunction = Callable[[RandomIntFunction, RandomFloatFunction, StateParams], int]
 ChildDepthFunction = Callable[[RandomIntFunction, RandomFloatFunction, StateParams], int]
 TranspositionSpaceFunction = Callable[[RandomIntFunction, RandomFloatFunction, GlobalVariables, int], int]
 HeuristicValueFunction = Callable[[RandomIntFunction, RandomFloatFunction, StateParams], int]

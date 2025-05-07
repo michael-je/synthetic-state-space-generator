@@ -4,7 +4,7 @@ import math
 from RNGHasher import RNGHasher
 from custom_types import *
 from constants import *
-from utils import bit_size
+from utils import *
 from custom_exceptions import IdOverflow
 
 
@@ -45,7 +45,7 @@ class StateNode():
         player_bit_shift = true_value_bit_shift - ID_PLAYER_BIT_SIZE
         depth_bit_shift = player_bit_shift - bit_size(self.globals.vars.max_depth)
         player_bits = player.value << player_bit_shift
-        true_value_bits = true_value.value << true_value_bit_shift
+        true_value_bits = encode_value_to_bits(true_value) << true_value_bit_shift
         depth_bits = depth << depth_bit_shift
         return true_value_bits | player_bits | depth_bits | tspace_record
     
@@ -137,10 +137,11 @@ class StateNode():
     
     def true_value(self) -> Value:
         """Return the true value of the state."""
-        return Value(self._extract_information_from_id(
+        value_bits = self._extract_information_from_id(
             self.id, 
             0, 
-            ID_TRUE_VALUE_BIT_SIZE))
+            ID_TRUE_VALUE_BIT_SIZE)
+        return decode_value_bits(value_bits)
     
     def player(self) -> Player:
         """Return the player associated with the state."""
