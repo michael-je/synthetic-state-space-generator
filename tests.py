@@ -191,8 +191,11 @@ class TestRNG(unittest.TestCase):
 
 class TestState(unittest.TestCase):
     
-#     # TODO: test determinism with more complex graphs, especially where
-#     # we revisit states multiple times from different paths
+    # TODO: test determinism with more complex graphs, especially where
+    # we revisit states multiple times from different paths
+    
+    # TODO: test memory efficiency
+
     
     def _walk_graph(self, state: State, walk_seed: int=0):
         rng = RNG(distribution=RandomnessDistribution.UNIFORM, seed=walk_seed)
@@ -572,7 +575,7 @@ class TestState(unittest.TestCase):
     def test_state_attribute_reproducability(self):
         """Tests whether state always produces the same attributes/values"""
         state_visit_count: defaultdict[int, int] = defaultdict(lambda: 0)
-        state_info: dict[int, dict[str, int|bool|list[int]]] = dict()
+        state_info: dict[int, dict[str, int|float|bool|list[int]]] = dict()
         def dfs(state: State):
             if state_visit_count[state.id()] == 0:
                 state_info[state.id()] = {
@@ -631,6 +634,56 @@ class TestState(unittest.TestCase):
             state2_id = state.id()
             state.undo()
             self.assertEqual(state1_id, state2_id)
+    
+    def test_true_value_consistency_with_minimax(self):
+        INF = 1000
+        visited: dict[int, int] = {}
+        def minimax(state: State, depth: int) -> int:
+            if state.id() in visited.keys():
+                self.assertEqual(state.true_value(), visited[state.id()])
+                return state.true_value()
+            if state.is_terminal():
+                return state.true_value()
+            if depth == 0:
+                return state.true_value()
+            if state.player() == Player.MAX:
+                max_eval = -INF
+                for action in state.actions():
+                    state.make(action)
+                    s_eval = minimax(state, depth-1)
+                    state.undo()
+                    max_eval = max(max_eval, s_eval)
+                visited[state.id()] = max_eval
+                return max_eval
+            else:
+                min_eval = INF
+                for action in state.actions():
+                    state.make(action)
+                    s_eval = minimax(state, depth-1)
+                    state.undo()
+                    min_eval = min(min_eval, s_eval)			
+                visited[state.id()] = min_eval
+                return min_eval
+        N_TRIALS = 100
+        for _ in range(N_TRIALS):
+            state = State(seed=next(seeds))
+            value = minimax(state, 5)
+            self.assertEqual(value, state.true_value())
+            visited.clear()
+        for _ in range(N_TRIALS):
+            state = State(seed=next(seeds), branching_factor_base=5)
+            value = minimax(state, 3)
+            self.assertEqual(value, state.true_value())
+            visited.clear()
+        # for _ in range(N_TRIALS):
+        #     state = State(
+        #         seed=next(seeds), 
+        #         branching_factor_base=100, 
+        #         transposition_space_function=lambda *args: 5, # type: ignore
+        #         max_depth=100)
+        #     value = minimax(state, 10)
+        #     self.assertEqual(value, state.true_value())
+        #     visited.clear()
 
 
 if __name__ == '__main__':
