@@ -446,12 +446,12 @@ class TestState(unittest.TestCase):
         self.assertEqual(id, 0)
     
     # TODO: docstring
-    def test_encode_id_all_1s(self):
+    def test_encode_id_all_to_1s(self):
         state_node = State()._current
         # create id
         value = decode_value_bits(1)
         id = state_node._encode_id(value, Player(1), 1, 1)
-        bin_str = str(bin(id))[2:].zfill(63)
+        bin_str = str(bin(id))[2:].zfill(HASH_OUTPUT_BIT_SIZE - 1)
         # define margins
         id_value_offset = 0
         id_player_offset = ID_TRUE_VALUE_BIT_SIZE
@@ -477,7 +477,7 @@ class TestState(unittest.TestCase):
             tspace_record = rng.next_int(0, state_node.globals.vars.max_transposition_space_size)
             # create id
             id = state_node._encode_id(value, player, depth, tspace_record)
-            bin_str = str(bin(id))[2:].zfill(63)
+            bin_str = str(bin(id))[2:].zfill(HASH_OUTPUT_BIT_SIZE - 1)
             # define margins
             id_value_offset = 0
             id_player_offset = ID_TRUE_VALUE_BIT_SIZE
@@ -699,3 +699,4 @@ class TestState(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+    # TestState().test_encode_id_all_to_1s()
