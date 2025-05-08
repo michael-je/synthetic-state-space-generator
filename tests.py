@@ -653,6 +653,37 @@ class TestState(unittest.TestCase):
             value = minimax(state, 3)
             self.assertEqual(value, state.true_value())
             visited.clear()
+        
+    def test_extreme_symmetry(self):
+        bf = 1000
+        state = State(
+            symmetry_factor=0.000001, symmetry_frequency=1.0, 
+            branching_factor_base=bf)
+        while not state.is_terminal():
+            state.actions()
+            children = state._current.children
+            self.assertTrue(all([child == children[0] for child in children]))
+            self.assertEqual(len(children), bf)
+            state.make_random()
+    
+    def test_symmetry_values(self):
+        bfunc = lambda randint, randf, params: randint(10, 1000) # type: ignore
+        symmetries = [0.5, 0.25, 0.125]
+        for symmetry_factor in symmetries:
+            state = State(
+                symmetry_factor=symmetry_factor, symmetry_frequency=1,
+                branching_function=bfunc) # type: ignore
+            while not state.is_terminal():
+                state.actions()
+                self.assertEqual(
+                    len(state._current.children), 
+                    state._current.branching_factor(),
+                    "There should be branching_factor number of children.")
+                self.assertEqual(
+                    len(set(child.id for child in state._current.children)), 
+                    math.floor(state._current.branching_factor() * symmetry_factor),
+                    "Incorrect number of unique children.")
+                state.make_random()
 
 
 if __name__ == '__main__':

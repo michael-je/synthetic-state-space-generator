@@ -14,7 +14,6 @@ def default_branching_function(randint: RandomIntFunction, randf: RandomFloatFun
     return branching_factor
 
 
-# TODO: write better default
 def default_child_value_function(
         randint: RandomIntFunction, randf: RandomFloatFunction, params: StateParams, 
         self_branching_factor: int, sibling_value_information: SiblingValueInformation) -> int:

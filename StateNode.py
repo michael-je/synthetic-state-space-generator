@@ -184,7 +184,7 @@ class StateNode():
         new_children: list["StateNode"] = []
         sibling_value_information = SiblingValueInformation()
         if self._RNG.next_float() < self.globals.vars.symmetry_frequency:
-            unique_children_count = math.floor(self.branching_factor() * self.globals.vars.symmetry_factor)
+            unique_children_count = max(1, math.floor(self.branching_factor() * self.globals.vars.symmetry_factor))
         else:
             unique_children_count = self.branching_factor()
         for _ in range(unique_children_count):
