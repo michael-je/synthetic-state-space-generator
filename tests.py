@@ -557,14 +557,14 @@ class TestState(unittest.TestCase):
         def dfs(state: State):
             if state_visit_count[state.id()] == 0:
                 state_info[state.id()] = {
-                    "val": state._extract_true_value_from_id(),
+                    "val": state.true_value(),
                     "hval": state.heuristic_value(),
                     "depth": state.depth(),
                     "terminal": state.is_terminal(),
                     "actions": state.actions(),
                 }
             else:
-                self.assertEqual(state._extract_true_value_from_id(),      state_info[state.id()]["val"])
+                self.assertEqual(state.true_value(),      state_info[state.id()]["val"])
                 self.assertEqual(state.heuristic_value(), state_info[state.id()]["hval"])
                 self.assertEqual(state.depth(),           state_info[state.id()]["depth"])
                 self.assertEqual(state.is_terminal(),     state_info[state.id()]["terminal"])
@@ -618,13 +618,13 @@ class TestState(unittest.TestCase):
         visited: dict[int, int] = {}
         def minimax(state: State, depth: int) -> int:
             if state.id() in visited.keys():
-                self.assertEqual(state._extract_true_value_from_id(), visited[state.id()])
-                return state._extract_true_value_from_id()
+                self.assertEqual(state.true_value(), visited[state.id()])
+                return state.true_value()
             if state.is_terminal():
-                return state._extract_true_value_from_id()
+                return state.true_value()
             if depth == 0:
-                return state._extract_true_value_from_id()
-            if state._extract_player_from_id() == Player.MAX:
+                return state.true_value()
+            if state.player() == Player.MAX:
                 max_eval = -INF
                 for action in state.actions():
                     state.make(action)
@@ -646,12 +646,12 @@ class TestState(unittest.TestCase):
         for _ in range(N_TRIALS):
             state = State(seed=next(seeds))
             value = minimax(state, 5)
-            self.assertEqual(value, state._extract_true_value_from_id())
+            self.assertEqual(value, state.true_value())
             visited.clear()
         for _ in range(N_TRIALS):
             state = State(seed=next(seeds), branching_factor_base=5)
             value = minimax(state, 3)
-            self.assertEqual(value, state._extract_true_value_from_id())
+            self.assertEqual(value, state.true_value())
             visited.clear()
 
 
