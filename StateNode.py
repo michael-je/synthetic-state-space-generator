@@ -11,9 +11,17 @@ from custom_exceptions import IdOverflow
 class StateNode():
     def __init__(self, stateid: int,
                  globals: GlobalParameters, 
+                 true_value: int,
+                 player: Player,
+                 depth: int,
+                 tspace_record: int,
                  parent: "StateNode|None"=None):
         self.id: int = stateid
         self.globals = globals
+        self.true_value = true_value
+        self.player = player
+        self.depth = depth
+        self.tspace_record = tspace_record
         self.parent = parent
         self._random_values_generated: bool = False
         self._branching_factor: int|None = None
@@ -25,7 +33,7 @@ class StateNode():
             distribution=self.globals.vars.distribution, nodeid=self.id, seed=self.globals.vars.seed)
     
     def __str__(self) -> str:
-        return f"{self.true_value()}-{self.player().name}-{self.depth()}-{self.tspace_record()}"
+        return f"{self.true_value}-{self.player.name}-{self.depth}-{self.tspace_record}"
         # return ""
 
     def __repr__(self) -> str:
@@ -66,10 +74,10 @@ class StateNode():
         """Construct StateParams, this contains necessary information used by behavioral functions."""
         state_params_self = StateParamsSelf(
             id = self.id,
-            true_value = self.true_value(),
-            player = self.player(),
-            depth = self.depth(),
-            transposition_space_record = self.tspace_record(),
+            true_value = self.true_value,
+            player = self.player,
+            depth = self.depth,
+            transposition_space_record = self.tspace_record,
         )
         state_params = StateParams(
             globals = self.globals.vars,
@@ -86,7 +94,7 @@ class StateNode():
     # TODO: docstring
     # TODO: think about adding a custom function for this
     def _calculate_child_player(self) -> Player:
-        return Player.MAX if self.player() == Player.MIN else Player.MIN
+        return Player.MAX if self.player == Player.MIN else Player.MIN
     
     def _calculate_child_depth(self) -> int:
         """Calculate depth of a child node and ensure it stays within the allowed range."""
@@ -102,11 +110,11 @@ class StateNode():
     # TODO: docstring
     def _calculate_child_tspace_record(self, child_depth: int) -> int:
         self_tspace_size = self.globals.funcs.transposition_space_function(
-            self._RNG.next_int, self._RNG.next_float, self.get_state_params().globals, self.depth())
+            self._RNG.next_int, self._RNG.next_float, self.get_state_params().globals, self.depth)
         child_tspace_size = self.globals.funcs.transposition_space_function(
             self._RNG.next_int, self._RNG.next_float, self.get_state_params().globals, child_depth)
         tspace_scaling_factor = child_tspace_size / self_tspace_size
-        child_tspace_record_center = math.floor(self.tspace_record() * tspace_scaling_factor)
+        child_tspace_record_center = math.floor(self.tspace_record * tspace_scaling_factor)
         child_tspace_variance_margin = (child_tspace_size - 1) * (1-self.globals.vars.locality) / 2 
         lower_margin = math.floor(child_tspace_record_center - child_tspace_variance_margin)
         upper_margin = math.floor(child_tspace_record_center + child_tspace_variance_margin)
@@ -122,7 +130,9 @@ class StateNode():
         child_tspace_record = self._calculate_child_tspace_record(child_depth)
         child_id = self._encode_id(child_value, child_player, child_depth, child_tspace_record)
         new_child = StateNode(
-            stateid=child_id, globals=self.globals, parent=self)
+            stateid=child_id, globals=self.globals, true_value=child_value, 
+            player=child_player, depth=child_depth, tspace_record=child_tspace_record,
+            parent=self)
         return new_child
     
     def get_state_params(self) -> StateParams:
@@ -133,43 +143,11 @@ class StateNode():
 
     def is_terminal(self) -> bool:
         """Return true if the state is a terminal."""
-        return self.depth() >= self.globals.vars.max_depth - 1 or self.branching_factor() < 1
+        return self.depth >= self.globals.vars.max_depth - 1 or self.branching_factor() < 1
     
     def is_root(self) -> bool:
         """Return true if the state is the root."""
         return self.parent is None
-    
-    def true_value(self) -> int:
-        """Return the true value of the state."""
-        value_bits = self._extract_information_from_id(
-            self.id, 
-            0, 
-            ID_TRUE_VALUE_BIT_SIZE)
-        return decode_value_bits(value_bits)
-    
-    def player(self) -> Player:
-        """Return the player associated with the state."""
-        return Player(self._extract_information_from_id(
-            self.id, 
-            ID_TRUE_VALUE_BIT_SIZE, 
-            ID_PLAYER_BIT_SIZE))
-    
-    def depth(self) -> int:
-        """Return the depth of the state."""
-        result = self._extract_information_from_id(
-            self.id, 
-            ID_TRUE_VALUE_BIT_SIZE + ID_PLAYER_BIT_SIZE, 
-            bit_size(self.globals.vars.max_depth))
-        return result
-    
-    def tspace_record(self) -> int:
-        """Return the transposition space record of the state."""
-        tspace_record_bit_size = bit_size(self.globals.vars.max_transposition_space_size)
-        tspace_record = self._extract_information_from_id(
-            self.id,
-            ID_BIT_SIZE - tspace_record_bit_size,
-            tspace_record_bit_size)
-        return tspace_record
     
     def branching_factor(self) -> int:
         """Get or set branching factor."""
@@ -208,7 +186,7 @@ class StateNode():
         for _ in range(self.branching_factor()):
             new_child = self._generate_child(sibling_value_information)
             sibling_value_information.total_siblings_generated += 1
-            match new_child.true_value():
+            match new_child.true_value:
                 case 1:
                     sibling_value_information.total_sibling_wins +=1
                 case 0:

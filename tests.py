@@ -343,7 +343,7 @@ class TestState(unittest.TestCase):
                 transposition_space_function=lambda *args: tspace_size, # type: ignore
                 branching_factor_base=10000)
             state.actions()
-            unique_records = set(child.tspace_record() for child in state._current.children)
+            unique_records = set(child.tspace_record for child in state._current.children)
             # should succeed with high probability
             self.assertEqual(tspace_size, len(unique_records),
                              f"There should be {tspace_size} unique records. unique_records: {unique_records}")
@@ -353,10 +353,10 @@ class TestState(unittest.TestCase):
         state = State(branching_factor_base=4, locality=1, max_depth=100)
         while not state.is_terminal():
             state.actions()
-            child_records = [child.tspace_record() for child in state._current.children]
+            child_records = [child.tspace_record for child in state._current.children]
             self.assertTrue(child_records[0] == child_records[1] == child_records[2] == child_records[3], 
                             f"All children should have the same tspace record. records: {child_records}")
-            self.assertEqual(state._root.tspace_record(), state._current.tspace_record(),
+            self.assertEqual(state._root.tspace_record, state._current.tspace_record,
                              "Children should have same tspace record as root.")
             state.make_random()
         
@@ -374,7 +374,7 @@ class TestState(unittest.TestCase):
             state.actions()
             bins: defaultdict[int, int] = defaultdict(lambda: 0)
             for child in state._current.children:
-                tspace_record = child.tspace_record()
+                tspace_record = child.tspace_record
                 bins[tspace_record] += 1
             expected_bin_size = N_CHILDREN / tspace_size
             for k in bins:
@@ -392,7 +392,7 @@ class TestState(unittest.TestCase):
                     locality=locality,
                     transposition_space_function=lambda *args: tspace_size) # type: ignore
                 state.actions()
-                unique_records = set(child.tspace_record() for child in state._current.children)
+                unique_records = set(child.tspace_record for child in state._current.children)
                 self.assertLessEqual(len(unique_records), math.ceil(tspace_size * (1-locality) + 1),
                                      f"Too many unique record ids ({len(unique_records)}) for given locality {locality} .")
     
@@ -409,9 +409,9 @@ class TestState(unittest.TestCase):
         for i in range(1, len(tspace_sizes)):
             parent_tspace_size, child_tspace_size = tspace_sizes[i-1], tspace_sizes[i]
             state.actions()
-            unique_records = set(child.tspace_record() for child in state._current.children)
+            unique_records = set(child.tspace_record for child in state._current.children)
             transposition_space_ratio = child_tspace_size / parent_tspace_size
-            parent_record = state._current.tspace_record()
+            parent_record = state._current.tspace_record
             child_record_center = math.floor(parent_record * transposition_space_ratio)
             child_record_margin = (child_tspace_size-1) * (1-LOCALITY) / 2
             lower_variance_margin = math.floor(child_record_center - child_record_margin) % (child_tspace_size + 1)
@@ -478,42 +478,20 @@ class TestState(unittest.TestCase):
             self.assertEqual(int(bin_str[id_depth_offset:id_record_offset], 2), depth)
             self.assertEqual(int(bin_str[id_record_offset:],                2), tspace_record)
     
-    def test_extract_true_value(self):
-        state_node = State()._current
-        values = [-1, 0, 1]
-        for value in values:
-            state_node.id = state_node._encode_id(value, Player(0), 0, 0)
-            self.assertEqual(state_node.true_value(), value)
-
-    def test_extract_player(self):
-        state_node = State()._current
-        players = [Player.MIN, Player.MAX]
-        for player in players:
-            value = decode_value_bits(0)
-            state_node.id = state_node._encode_id(value, player, 0, 0)
-            self.assertEqual(state_node.player(), player)
-
-    def test_extract_depth(self):
-        rng = State()._RNG
-        N_TRIALS = 1000
-        for _ in range(N_TRIALS):
-            max_depth = rng.next_int(0, 2**32)
-            state_node = State(max_depth=max_depth)._current
-            depth = rng.next_int(0, state_node.globals.vars.max_depth)
-            value = decode_value_bits(0)
-            state_node.id = state_node._encode_id(value, Player(0), depth, 0)
-            self.assertEqual(state_node.depth(), depth)
-
-    def test_extract_tspace_record(self):
-        rng = State()._RNG
-        N_TRIALS = 1000
-        for _ in range(N_TRIALS):
-            max_depth = rng.next_int(0, 2**32)
-            state_node = State(max_depth=max_depth)._current
-            record = rng.next_int(0, state_node.globals.vars.max_transposition_space_size)
-            value = decode_value_bits(0)
-            state_node.id = state_node._encode_id(value, Player(0), 0, record)
-            self.assertEqual(state_node.tspace_record(), record)
+    def test_set_root(self):
+        """Tests State.set_root(). Also inadvertently tests the extraction functions
+        in utils.py."""
+        state = State()
+        state.make(state.actions()[0])
+        true_value = state.true_value()
+        player = state.player()
+        depth = state.depth()
+        tspace_record = state._current.tspace_record
+        state.set_root(state.id())
+        self.assertEqual(state.true_value(), true_value)
+        self.assertEqual(state.player(), player)
+        self.assertEqual(state.depth(), depth)
+        self.assertEqual(state._current.tspace_record, tspace_record)
 
     def test_simple_child_regeneration_determinism(self):
         state = State()
@@ -579,14 +557,14 @@ class TestState(unittest.TestCase):
         def dfs(state: State):
             if state_visit_count[state.id()] == 0:
                 state_info[state.id()] = {
-                    "val": state.true_value(),
+                    "val": state._extract_true_value_from_id(),
                     "hval": state.heuristic_value(),
                     "depth": state.depth(),
                     "terminal": state.is_terminal(),
                     "actions": state.actions(),
                 }
             else:
-                self.assertEqual(state.true_value(),      state_info[state.id()]["val"])
+                self.assertEqual(state._extract_true_value_from_id(),      state_info[state.id()]["val"])
                 self.assertEqual(state.heuristic_value(), state_info[state.id()]["hval"])
                 self.assertEqual(state.depth(),           state_info[state.id()]["depth"])
                 self.assertEqual(state.is_terminal(),     state_info[state.id()]["terminal"])
@@ -635,18 +613,18 @@ class TestState(unittest.TestCase):
             state.undo()
             self.assertEqual(state1_id, state2_id)
     
-    def test_true_value_consistency_with_minimax(self):
+    def test_true_value_consistency_using_minimax(self):
         INF = 1000
         visited: dict[int, int] = {}
         def minimax(state: State, depth: int) -> int:
             if state.id() in visited.keys():
-                self.assertEqual(state.true_value(), visited[state.id()])
-                return state.true_value()
+                self.assertEqual(state._extract_true_value_from_id(), visited[state.id()])
+                return state._extract_true_value_from_id()
             if state.is_terminal():
-                return state.true_value()
+                return state._extract_true_value_from_id()
             if depth == 0:
-                return state.true_value()
-            if state.player() == Player.MAX:
+                return state._extract_true_value_from_id()
+            if state._extract_player_from_id() == Player.MAX:
                 max_eval = -INF
                 for action in state.actions():
                     state.make(action)
@@ -668,22 +646,13 @@ class TestState(unittest.TestCase):
         for _ in range(N_TRIALS):
             state = State(seed=next(seeds))
             value = minimax(state, 5)
-            self.assertEqual(value, state.true_value())
+            self.assertEqual(value, state._extract_true_value_from_id())
             visited.clear()
         for _ in range(N_TRIALS):
             state = State(seed=next(seeds), branching_factor_base=5)
             value = minimax(state, 3)
-            self.assertEqual(value, state.true_value())
+            self.assertEqual(value, state._extract_true_value_from_id())
             visited.clear()
-        # for _ in range(N_TRIALS):
-        #     state = State(
-        #         seed=next(seeds), 
-        #         branching_factor_base=100, 
-        #         transposition_space_function=lambda *args: 5, # type: ignore
-        #         max_depth=100)
-        #     value = minimax(state, 10)
-        #     self.assertEqual(value, state.true_value())
-        #     visited.clear()
 
 
 if __name__ == '__main__':

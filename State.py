@@ -98,26 +98,30 @@ class State():
     
     def __repr__(self) -> str:
         return self._current.__repr__()
-
-    def is_terminal(self) -> bool:
-        """Return true if the state is a terminal."""
-        return self._current.is_terminal()
     
     def is_root(self) -> bool:
         """Return true if the state is the root."""
         return self._current.is_root()
     
+    def is_terminal(self) -> bool:
+        """Return true if the state is a terminal."""
+        return self._current.is_terminal()
+    
     def true_value(self) -> int:
         """Return the current state's true value. Value is in [-1, 1]"""
-        return self._current.true_value()
+        return self._current.true_value
+    
+    def heuristic_value(self) -> float:
+        """Return the estimated value of the current state using the heuristic evaluation function."""
+        return self._current.heuristic_value()
     
     def player(self) -> Player:
         """Return the player associated with the current state."""
-        return self._current.player()
+        return self._current.player
     
     def depth(self) -> int:
         """Return the depth of the current node."""
-        return self._current.depth()
+        return self._current.depth
 
     def id(self) -> int:
         """Return the id of the current state."""
@@ -126,10 +130,6 @@ class State():
     def actions(self) -> list[int]:
         """Return the current state's possible actions."""
         return self._current.actions()
-    
-    def heuristic_value(self) -> float:
-        """Return the estimated value of the current state using the heuristic evaluation function."""
-        return self._current.heuristic_value()
 
     def make(self, action: int) -> Self:
         """Transition to the next state via action (represented as an index into the states children)."""
@@ -162,7 +162,14 @@ class State():
     def set_root(self, state_id: int) -> Self:
         """Set the given state_id as the new root.
         Note that doing this with retain_graph=True will destroy the previous graph."""
-        self._root: StateNode = StateNode(stateid=state_id, globals=self.globals, parent=None)
+        true_value = extract_true_value_from_id(state_id)
+        player = extract_player_from_id(state_id)
+        depth = extract_depth_from_id(state_id, bit_size(self.globals.vars.max_depth))
+        tspace_record = extract_tspace_record_from_id(state_id, 
+                            bit_size(self.globals.vars.max_transposition_space_size))
+        self._root = StateNode(
+            stateid=state_id, globals=self.globals, true_value=true_value, 
+            player=player, depth=depth, tspace_record=tspace_record, parent=None)
         self._current: StateNode = self._root
         return self
 
