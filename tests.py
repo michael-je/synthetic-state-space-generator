@@ -91,10 +91,10 @@ class TestRNG(unittest.TestCase):
         BAND_3 = 0.5 - BAND_1 - BAND_2
         self.assertAlmostEqual(bins[-2]/N_TRIALS, BAND_3, places=2)
         self.assertAlmostEqual(bins[-1]/N_TRIALS, BAND_2, places=2)
-        self.assertAlmostEqual(bins[0]/N_TRIALS,  BAND_1, places=2)
-        self.assertAlmostEqual(bins[1]/N_TRIALS,  BAND_1, places=2)
-        self.assertAlmostEqual(bins[2]/N_TRIALS,  BAND_2, places=2)
-        self.assertAlmostEqual(bins[3]/N_TRIALS,  BAND_3, places=2)
+        self.assertAlmostEqual(bins[ 0]/N_TRIALS, BAND_1, places=2)
+        self.assertAlmostEqual(bins[ 1]/N_TRIALS, BAND_1, places=2)
+        self.assertAlmostEqual(bins[ 2]/N_TRIALS, BAND_2, places=2)
+        self.assertAlmostEqual(bins[ 3]/N_TRIALS, BAND_3, places=2)
     
     def test_uniform_distribution(self):
         N_TRIALS = 1000000
@@ -253,7 +253,18 @@ class TestState(unittest.TestCase):
         self.assertRaises(ValueError, lambda: State(terminal_minimum_depth=-1))
         self.assertRaises(ValueError, lambda: State(branching_factor_base=-1))
         self.assertRaises(ValueError, lambda: State(branching_factor_variance=-1))
-        # TODO add more for new parameters
+        self.assertRaises(ValueError, lambda: State(symmetry_factor=0))
+        self.assertRaises(ValueError, lambda: State(symmetry_factor=1.5))
+        self.assertRaises(ValueError, lambda: State(symmetry_frequency=-1))
+        self.assertRaises(ValueError, lambda: State(symmetry_frequency=1.5))
+        self.assertRaises(ValueError, lambda: State(true_value_forced_ratio=-1))
+        self.assertRaises(ValueError, lambda: State(true_value_forced_ratio=1.5))
+        self.assertRaises(ValueError, lambda: State(true_value_similarity_chance=-1))
+        self.assertRaises(ValueError, lambda: State(true_value_similarity_chance=1.5))
+        self.assertRaises(ValueError, lambda: State(true_value_tie_chance=-1))
+        self.assertRaises(ValueError, lambda: State(true_value_tie_chance=1.5))
+        self.assertRaises(ValueError, lambda: State(locality=-1))
+        self.assertRaises(ValueError, lambda: State(locality=1.5))
     
     def test_basic_state_determinism_1(self):
         state1 = State()

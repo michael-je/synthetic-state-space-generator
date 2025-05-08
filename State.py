@@ -49,8 +49,18 @@ class State():
             raise ValueError("branching_factor_base must be >= 0.")
         if branching_factor_variance < 0:
             raise ValueError("branching_factor_variance must be >= 0.")
+        if not 0 <= locality <= 1:
+            raise ValueError("locality must be in [0, 1].")
+        if not 0 <= true_value_forced_ratio <= 1:
+            raise ValueError("true_value_forced_ratio must be in [0, 1].")
+        if not 0 <= true_value_similarity_chance <= 1:
+            raise ValueError("true_value_similarity_chance must be in [0, 1].")
+        if not 0 <= true_value_tie_chance <= 1:
+            raise ValueError("true_value_tie_chance must be in [0, 1].")
         if not 0 < symmetry_factor <= 1:
             raise ValueError("symmetry_factor must be in (0, 1].")
+        if not 0 <= symmetry_frequency <= 1:
+            raise ValueError("symmetry_frequency must be in [0, 1].")
         
         self._RNG = RNGHasher(distribution=distribution, seed=seed)
         max_transposition_space = 2**(ID_BIT_SIZE - ID_TRUE_VALUE_BIT_SIZE - ID_PLAYER_BIT_SIZE - bit_size(max_depth)) - 1
