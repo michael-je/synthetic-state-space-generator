@@ -183,7 +183,11 @@ class StateNode():
             return self
         new_children: list["StateNode"] = []
         sibling_value_information = SiblingValueInformation()
-        for _ in range(self.branching_factor()):
+        if self._RNG.next_float() < self.globals.vars.symmetry_frequency:
+            unique_children_count = math.floor(self.branching_factor() * self.globals.vars.symmetry_factor)
+        else:
+            unique_children_count = self.branching_factor()
+        for _ in range(unique_children_count):
             new_child = self._generate_child(sibling_value_information)
             sibling_value_information.total_siblings_generated += 1
             match new_child.true_value:
@@ -196,6 +200,9 @@ class StateNode():
                 case _: # should never happen, but handles type error
                     raise ValueError("Invalid child value.")
             new_children.append(new_child)
+        for i in range(self.branching_factor() - unique_children_count):
+            symmetrical_child = new_children[i % unique_children_count]
+            new_children.append(symmetrical_child)
         self.children = new_children
         return self
     

@@ -26,8 +26,10 @@ class State():
                  child_depth_maximum: int=1,
                  locality: float=0,
                  true_value_forced_ratio: float=0.1,
-                 true_value_similarity_ratio: float=0.5,
+                 true_value_similarity_chance: float=0.5,
                  true_value_tie_chance: float=0.2,
+                 symmetry_factor: float=1.0,
+                 symmetry_frequency: float=0.0,
 
                  branching_function: BranchingFunction=default_branching_function, 
                  child_value_function: ChildValueFunction=default_child_value_function, 
@@ -47,6 +49,8 @@ class State():
             raise ValueError("branching_factor_base must be >= 0.")
         if branching_factor_variance < 0:
             raise ValueError("branching_factor_variance must be >= 0.")
+        if not 0 < symmetry_factor <= 1:
+            raise ValueError("symmetry_factor must be in (0, 1].")
         
         self._RNG = RNGHasher(distribution=distribution, seed=seed)
         max_transposition_space = 2**(ID_BIT_SIZE - ID_TRUE_VALUE_BIT_SIZE - ID_PLAYER_BIT_SIZE - bit_size(max_depth)) - 1
@@ -75,8 +79,10 @@ class State():
             child_depth_maximum = child_depth_maximum,
             locality = locality,
             true_value_forced_ratio = true_value_forced_ratio,
-            true_value_similarity_ratio = true_value_similarity_ratio,
+            true_value_similarity_chance = true_value_similarity_chance,
             true_value_tie_chance = true_value_tie_chance,
+            symmetry_factor = symmetry_factor,
+            symmetry_frequency = symmetry_frequency,
             max_transposition_space_size = max_transposition_space
         )
         global_funcs = GlobalFunctions(

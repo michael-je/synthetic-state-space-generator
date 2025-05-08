@@ -38,7 +38,7 @@ def default_child_value_function(
         return self_win
     if randf() < params.globals.true_value_tie_chance:
         return 0
-    if randf() < params.globals.true_value_similarity_ratio:
+    if randf() < params.globals.true_value_similarity_chance:
         return self_win
     return self_loss
 

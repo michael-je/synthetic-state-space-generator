@@ -33,8 +33,10 @@ class GlobalVariables:
     child_depth_maximum: int
     locality: float
     true_value_forced_ratio: float
-    true_value_similarity_ratio: float
+    true_value_similarity_chance: float
     true_value_tie_chance: float
+    symmetry_factor: float
+    symmetry_frequency: float
     max_transposition_space_size: int
 @dataclass
 class StateParamsSelf:
