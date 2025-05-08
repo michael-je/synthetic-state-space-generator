@@ -78,9 +78,9 @@ class StateNode():
         return state_params
     
     # TODO: docstring
-    def _calculate_child_value(self, sibling_values: list[int]) -> int:
+    def _calculate_child_value(self, sibling_value_information: SiblingValueInformation) -> int:
         value = self.globals.funcs.child_value_function(
-            self._RNG.next_int, self._RNG.next_float, self.get_state_params(), self.branching_factor(), sibling_values)
+            self._RNG.next_int, self._RNG.next_float, self.get_state_params(), self.branching_factor(), sibling_value_information)
         return value
     
     # TODO: docstring
@@ -114,13 +114,16 @@ class StateNode():
         child_tspace_record %= (child_tspace_size + 1) # +1 because the maximum is inclusive
         return child_tspace_record
     
-    def _generate_child_id(self, siblings: list["StateNode"]) -> int:
+    def _generate_child(self, sibling_value_information: SiblingValueInformation) -> "StateNode":
         """Generate a child id using values for depth and random bits."""
-        child_value = self._calculate_child_value([sibling.true_value() for sibling in siblings])
+        child_value = self._calculate_child_value(sibling_value_information)
         child_player = self._calculate_child_player()
         child_depth = self._calculate_child_depth()
         child_tspace_record = self._calculate_child_tspace_record(child_depth)
-        return self._encode_id(child_value, child_player, child_depth, child_tspace_record)
+        child_id = self._encode_id(child_value, child_player, child_depth, child_tspace_record)
+        new_child = StateNode(
+            stateid=child_id, globals=self.globals, parent=self)
+        return new_child
     
     def get_state_params(self) -> StateParams:
         """Construct StateParams, if necessary, and return them."""
@@ -201,10 +204,19 @@ class StateNode():
         if self.children:
             return self
         new_children: list["StateNode"] = []
+        sibling_value_information = SiblingValueInformation()
         for _ in range(self.branching_factor()):
-            child_id = self._generate_child_id(new_children)
-            new_child = StateNode(
-                stateid=child_id, globals=self.globals, parent=self)
+            new_child = self._generate_child(sibling_value_information)
+            sibling_value_information.total_siblings_generated += 1
+            match new_child.true_value():
+                case 1:
+                    sibling_value_information.total_sibling_wins +=1
+                case 0:
+                    sibling_value_information.total_sibling_ties += 1
+                case -1:
+                    sibling_value_information.total_sibling_losses += 1
+                case _: # should never happen, but handles type error
+                    raise ValueError("Invalid child value.")
             new_children.append(new_child)
         self.children = new_children
         return self

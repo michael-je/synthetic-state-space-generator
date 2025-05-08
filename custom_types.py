@@ -12,6 +12,12 @@ class Player(Enum):
     MAX = 1
 
 @dataclass
+class SiblingValueInformation:
+    total_siblings_generated: int=0
+    total_sibling_wins: int=0
+    total_sibling_losses: int=0
+    total_sibling_ties: int=0
+@dataclass
 class GlobalVariables:
     seed: int
     max_depth: int
@@ -48,7 +54,7 @@ class RandomFloatFunction(Protocol):
 class RandomIntFunction(Protocol):
     def __call__(self, low: int=..., high: int=..., distribution: RandomnessDistribution|None=...) -> int: ...
 BranchingFunction = Callable[[RandomIntFunction, RandomFloatFunction, StateParams], int]
-ChildValueFunction = Callable[[RandomIntFunction, RandomFloatFunction, StateParams, int, list[int]], int]
+ChildValueFunction = Callable[[RandomIntFunction, RandomFloatFunction, StateParams, int, SiblingValueInformation], int]
 ChildDepthFunction = Callable[[RandomIntFunction, RandomFloatFunction, StateParams], int]
 TranspositionSpaceFunction = Callable[[RandomIntFunction, RandomFloatFunction, GlobalVariables, int], int]
 HeuristicValueFunction = Callable[[RandomIntFunction, RandomFloatFunction, StateParams], int]

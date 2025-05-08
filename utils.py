@@ -9,23 +9,11 @@ def bit_size(n: int) -> int:
     return bits
 
 def encode_value_to_bits(value: int) -> int:
-    match value:
-        case -1:
-            return 0
-        case 0:
-            return 1
-        case 1:
-            return 2
-        case _:
-            raise ValueError(f"Invalid value {value}. Value must be in [-1, 1].")
+    if not -1 <= value <= 1:
+        raise ValueError(f"Invalid value {value}. Value must be in [-1, 1].")
+    return value + 1
         
 def decode_value_bits(value_bits: int) -> int:
-    match value_bits:
-        case 0:
-            return -1
-        case 1:
-            return 0
-        case 2:
-            return 1
-        case _:
-            raise ValueError(f"Invalid bit representation {bin(value_bits)[2:]} of Value.")
+    if not 0 <= value_bits <= 2:
+        raise ValueError(f"Invalid bit representation {bin(value_bits)[2:]} of Value.")
+    return value_bits - 1
