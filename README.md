@@ -206,7 +206,7 @@ After meeting the minimum forced match requirement, this sets the chance that a 
 For children not covered by `forced value` or `similarity chance`, this sets the probability of the child being assigned a draw. (NOTE: the actual expected number og draws is dependent on `true_value_forced_ratio` and `true_value_similarity_chance`)
 
 
-    ![True Value Graph](./documentation_images/true_value_distribution_image.jpg)
+    ![True Value Graph](./documentation_images/value_propagation.gif)
 
 
 -  **`branching_function`** (`function`, default: [`default_branching_function`](#default_branching_function))
