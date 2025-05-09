@@ -55,3 +55,22 @@ def extract_tspace_record_from_id(state_id: int, tspace_record_bit_size: int) ->
         state_id,
         ID_BIT_SIZE - tspace_record_bit_size,
         tspace_record_bit_size)
+
+def assign_child_true_value_information(
+    child_true_value_information: ChildTrueValueInformation, player: Player, child_true_value: int):
+    match child_true_value:
+        case 0:
+            child_true_value_information.total_child_ties += 1
+        case 1:
+            if player == Player.MAX:
+                child_true_value_information.total_child_wins += 1
+            else:
+                child_true_value_information.total_child_losses += 1
+        case -1:
+            if player == Player.MIN:
+                child_true_value_information.total_child_wins += 1
+            else:
+                child_true_value_information.total_child_losses += 1
+        case _: # should never happen, but handles type error
+            raise ValueError("Invalid child value.")
+    

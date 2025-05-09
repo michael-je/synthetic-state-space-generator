@@ -374,7 +374,7 @@ class TestState(unittest.TestCase):
     
     def test_locality_0_distribution(self):
         """Transposition space records should be evenly spaced out accross the space when locality=0."""
-        N_CHILDREN = 100000
+        N_CHILDREN = 200000
         T_SPACE_SIZES = [5, 10, 51, 100]
         ERROR_MARGIN = 0.1
         for tspace_size in T_SPACE_SIZES:
@@ -696,48 +696,36 @@ class TestState(unittest.TestCase):
                     "Incorrect number of unique children.")
                 state.make_random()
     
-    # TODO: WIP
     def test_very_low_true_value_forced_ratio(self):
-        """"With a very low true value forced ratio, only one child should be
-        FORCED to be the same as its parent."""
+        """"With a very low true_value_forced_ratio, and tie/similarity chances set to 0, 
+        only one child should share a value with its parent."""
+        N_TRIALS = 1000
         state = State(
             true_value_forced_ratio=0.0001,
             true_value_similarity_chance=0,
-            transposition_space_function=lambda *args: 100, 
+            true_value_tie_chance=0,
+            transposition_space_function=lambda *args: 100,  # type: ignore
             max_depth=7,
-            branching_factor_base=7
-            )
+            branching_factor_base=7)
         rng = RNG(distribution=RandomnessDistribution.UNIFORM)
-        for _ in range(1000):
+        for _ in range(N_TRIALS):
             if rng.next_float() < 0.8 and not state.is_terminal():
                 state.make_random()
             elif not state.is_root():
                 state.undo()
-            if not state.is_terminal():
-                #Check if win
-                win: bool = True if ((state.player() == Player.MAX and state.true_value() == 1) or (state.player() == Player.MIN and state.true_value() == -1)) else False 
-                draw: bool = True if state.true_value() == 0 else False
-                parent_true_value = state.true_value()
-                child_values: list[int] = []
-                for action in state.actions():
-                    state.make(action)
-                    child_values.append(state.true_value())
-                    state.undo()
-                
-                if win or draw:
-                    print("WIN or DRAW")
-                    print(state.id() % 100)
-                    print(state.player())
-                    print(parent_true_value)
-                    print(child_values)
-                    self.assertEqual(child_values.count(parent_true_value), 1)
-                else:
-                    print("LOSS")
-                    print(state.id() % 100)
-                    print(state.player())
-                    print(parent_true_value)
-                    print(child_values)
-                print()
+            if state.is_terminal():
+                continue
+            win: bool = (state.player() == Player.MAX and state.true_value() == 1) or \
+                (state.player() == Player.MIN and state.true_value() == -1)
+            draw: bool = True if state.true_value() == 0 else False
+            parent_true_value = state.true_value()
+            child_values: list[int] = []
+            for action in state.actions():
+                state.make(action)
+                child_values.append(state.true_value())
+                state.undo()
+            if win or draw:
+                self.assertEqual(child_values.count(parent_true_value), 1)
 
 if __name__ == '__main__':
     unittest.main()

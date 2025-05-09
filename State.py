@@ -107,7 +107,15 @@ class State():
             global_funcs,
             retain_graph
         )
-        self.set_root(0) # TODO: if value/player is encoded then we might need to change this
+        root_node = StateNode(
+            stateid=0, globals=self.globals, true_value=0, 
+            player=Player.MAX, depth=0, tspace_record=0, parent=None)
+        self.set_root(root_node._encode_id( # type: ignore
+            root_node.true_value,
+            root_node.player,
+            root_node.depth,
+            root_node.tspace_record
+        ))
     
     def __str__(self) -> str:
         return str(self._current)

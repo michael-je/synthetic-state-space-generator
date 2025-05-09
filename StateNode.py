@@ -86,7 +86,7 @@ class StateNode():
         return state_params
     
     # TODO: docstring
-    def _calculate_child_true_value(self, sibling_true_value_information: SiblingTrueValueInformation) -> int:
+    def _calculate_child_true_value(self, sibling_true_value_information: ChildTrueValueInformation) -> int:
         true_value = self.globals.funcs.child_true_value_function(
             self._RNG.next_int, self._RNG.next_float, self.get_state_params(), self.branching_factor(), sibling_true_value_information)
         return true_value
@@ -122,7 +122,7 @@ class StateNode():
         child_tspace_record %= (child_tspace_size + 1) # +1 because the maximum is inclusive
         return child_tspace_record
     
-    def _generate_child(self, sibling_value_information: SiblingTrueValueInformation) -> "StateNode":
+    def _generate_child(self, sibling_value_information: ChildTrueValueInformation) -> "StateNode":
         """Generate a child id using values for depth and random bits."""
         child_true_value = self._calculate_child_true_value(sibling_value_information)
         child_player = self._calculate_child_player()
@@ -182,23 +182,16 @@ class StateNode():
         if self.children:
             return self
         new_children: list["StateNode"] = []
-        sibling_true_value_information = SiblingTrueValueInformation()
+        sibling_true_value_information = ChildTrueValueInformation()
         if self._RNG.next_float() < self.globals.vars.symmetry_frequency:
             unique_children_count = max(1, math.floor(self.branching_factor() * self.globals.vars.symmetry_factor))
         else:
             unique_children_count = self.branching_factor()
         for _ in range(unique_children_count):
             new_child = self._generate_child(sibling_true_value_information)
-            sibling_true_value_information.total_siblings_generated += 1
-            match new_child.true_value:
-                case 1:
-                    sibling_true_value_information.total_sibling_wins +=1
-                case 0:
-                    sibling_true_value_information.total_sibling_ties += 1
-                case -1:
-                    sibling_true_value_information.total_sibling_losses += 1
-                case _: # should never happen, but handles type error
-                    raise ValueError("Invalid child value.")
+            sibling_true_value_information.total_children_generated += 1
+            assign_child_true_value_information(
+                sibling_true_value_information, self.player, new_child.true_value)
             new_children.append(new_child)
         for i in range(self.branching_factor() - unique_children_count):
             symmetrical_child = new_children[i % unique_children_count]
