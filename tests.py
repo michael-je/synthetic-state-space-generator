@@ -441,24 +441,24 @@ class TestState(unittest.TestCase):
     # TODO: docstring
     def test_encode_id_0(self):
         state_node = State()._current
-        value = decode_value_bits(0)
-        id = state_node._encode_id(value, Player(0), 0, 0)
+        true_value = decode_true_value_bits(0)
+        id = state_node._encode_id(true_value, Player(0), 0, 0)
         self.assertEqual(id, 0)
     
     # TODO: docstring
     def test_encode_id_all_to_1s(self):
         state_node = State()._current
         # create id
-        value = decode_value_bits(1)
-        id = state_node._encode_id(value, Player(1), 1, 1)
+        true_value = decode_true_value_bits(1)
+        id = state_node._encode_id(true_value, Player(1), 1, 1)
         bin_str = str(bin(id))[2:].zfill(HASH_OUTPUT_BIT_SIZE - 1)
         # define margins
-        id_value_offset = 0
+        id_true_value_offset = 0
         id_player_offset = ID_TRUE_VALUE_BIT_SIZE
         id_depth_offset = id_player_offset + ID_PLAYER_BIT_SIZE
         id_record_offset = id_depth_offset + bit_size(state_node.globals.vars.max_depth)
         # run assertions
-        self.assertEqual(int(bin_str[id_value_offset:id_player_offset], 2), 1)
+        self.assertEqual(int(bin_str[id_true_value_offset:id_player_offset], 2), 1)
         self.assertEqual(int(bin_str[id_player_offset:id_depth_offset], 2), 1)
         self.assertEqual(int(bin_str[id_depth_offset:id_record_offset], 2), 1)
         self.assertEqual(int(bin_str[id_record_offset:],                2), 1)
@@ -471,12 +471,12 @@ class TestState(unittest.TestCase):
             # define random values
             max_depth = rng.next_int(0, 2**32)
             state_node = State(max_depth=max_depth)._current
-            value = rng.next_int(-1, 1)
+            true_value = rng.next_int(-1, 1)
             player = Player(rng.next_int(0, 1))
             depth = rng.next_int(0, state_node.globals.vars.max_depth)
             tspace_record = rng.next_int(0, state_node.globals.vars.max_transposition_space_size)
             # create id
-            id = state_node._encode_id(value, player, depth, tspace_record)
+            id = state_node._encode_id(true_value, player, depth, tspace_record)
             bin_str = str(bin(id))[2:].zfill(HASH_OUTPUT_BIT_SIZE - 1)
             # define margins
             id_value_offset = 0
@@ -484,7 +484,7 @@ class TestState(unittest.TestCase):
             id_depth_offset = id_player_offset + ID_PLAYER_BIT_SIZE
             id_record_offset = id_depth_offset + bit_size(state_node.globals.vars.max_depth)
             # run assertions
-            self.assertEqual(int(bin_str[id_value_offset:id_player_offset], 2), encode_value_to_bits(value))
+            self.assertEqual(int(bin_str[id_value_offset:id_player_offset], 2), encode_true_value_to_bits(true_value))
             self.assertEqual(int(bin_str[id_player_offset:id_depth_offset], 2), player.value)
             self.assertEqual(int(bin_str[id_depth_offset:id_record_offset], 2), depth)
             self.assertEqual(int(bin_str[id_record_offset:],                2), tspace_record)
@@ -656,13 +656,13 @@ class TestState(unittest.TestCase):
         N_TRIALS = 100
         for _ in range(N_TRIALS):
             state = State(seed=next(seeds))
-            value = minimax(state, 5)
-            self.assertEqual(value, state.true_value())
+            true_value = minimax(state, 5)
+            self.assertEqual(true_value, state.true_value())
             visited.clear()
         for _ in range(N_TRIALS):
             state = State(seed=next(seeds), branching_factor_base=5)
-            value = minimax(state, 3)
-            self.assertEqual(value, state.true_value())
+            true_value = minimax(state, 3)
+            self.assertEqual(true_value, state.true_value())
             visited.clear()
         
     def test_extreme_symmetry(self):

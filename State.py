@@ -32,7 +32,7 @@ class State():
                  symmetry_frequency: float=0.0,
 
                  branching_function: BranchingFunction=default_branching_function, 
-                 child_value_function: ChildValueFunction=default_child_value_function, 
+                 child_value_function: ChildTrueValueFunction=default_child_true_value_function, 
                  child_depth_function: ChildDepthFunction=default_child_depth_function,
                  transposition_space_function: TranspositionSpaceFunction=default_transposition_space_function,
                  heuristic_value_function: HeuristicValueFunction=default_heuristic_value_function):
@@ -97,7 +97,7 @@ class State():
         )
         global_funcs = GlobalFunctions(
             branching_function = branching_function,
-            child_value_function = child_value_function,
+            child_true_value_function = child_value_function,
             child_depth_function = child_depth_function,
             transposition_space_function = transposition_space_function_wrapper,
             heuristic_value_function = heuristic_value_function

@@ -57,7 +57,7 @@ class StateNode():
         player_bit_shift = true_value_bit_shift - ID_PLAYER_BIT_SIZE
         depth_bit_shift = player_bit_shift - bit_size(self.globals.vars.max_depth)
         player_bits = player.value << player_bit_shift
-        true_value_bits = encode_value_to_bits(true_value) << true_value_bit_shift
+        true_value_bits = encode_true_value_to_bits(true_value) << true_value_bit_shift
         depth_bits = depth << depth_bit_shift
         return true_value_bits | player_bits | depth_bits | tspace_record
     
@@ -86,10 +86,10 @@ class StateNode():
         return state_params
     
     # TODO: docstring
-    def _calculate_child_value(self, sibling_value_information: SiblingValueInformation) -> int:
-        value = self.globals.funcs.child_value_function(
-            self._RNG.next_int, self._RNG.next_float, self.get_state_params(), self.branching_factor(), sibling_value_information)
-        return value
+    def _calculate_child_true_value(self, sibling_true_value_information: SiblingTrueValueInformation) -> int:
+        true_value = self.globals.funcs.child_true_value_function(
+            self._RNG.next_int, self._RNG.next_float, self.get_state_params(), self.branching_factor(), sibling_true_value_information)
+        return true_value
     
     # TODO: docstring
     # TODO: think about adding a custom function for this
@@ -122,15 +122,15 @@ class StateNode():
         child_tspace_record %= (child_tspace_size + 1) # +1 because the maximum is inclusive
         return child_tspace_record
     
-    def _generate_child(self, sibling_value_information: SiblingValueInformation) -> "StateNode":
+    def _generate_child(self, sibling_value_information: SiblingTrueValueInformation) -> "StateNode":
         """Generate a child id using values for depth and random bits."""
-        child_value = self._calculate_child_value(sibling_value_information)
+        child_true_value = self._calculate_child_true_value(sibling_value_information)
         child_player = self._calculate_child_player()
         child_depth = self._calculate_child_depth()
         child_tspace_record = self._calculate_child_tspace_record(child_depth)
-        child_id = self._encode_id(child_value, child_player, child_depth, child_tspace_record)
+        child_id = self._encode_id(child_true_value, child_player, child_depth, child_tspace_record)
         new_child = StateNode(
-            stateid=child_id, globals=self.globals, true_value=child_value, 
+            stateid=child_id, globals=self.globals, true_value=child_true_value, 
             player=child_player, depth=child_depth, tspace_record=child_tspace_record,
             parent=self)
         return new_child
@@ -182,21 +182,21 @@ class StateNode():
         if self.children:
             return self
         new_children: list["StateNode"] = []
-        sibling_value_information = SiblingValueInformation()
+        sibling_true_value_information = SiblingTrueValueInformation()
         if self._RNG.next_float() < self.globals.vars.symmetry_frequency:
             unique_children_count = max(1, math.floor(self.branching_factor() * self.globals.vars.symmetry_factor))
         else:
             unique_children_count = self.branching_factor()
         for _ in range(unique_children_count):
-            new_child = self._generate_child(sibling_value_information)
-            sibling_value_information.total_siblings_generated += 1
+            new_child = self._generate_child(sibling_true_value_information)
+            sibling_true_value_information.total_siblings_generated += 1
             match new_child.true_value:
                 case 1:
-                    sibling_value_information.total_sibling_wins +=1
+                    sibling_true_value_information.total_sibling_wins +=1
                 case 0:
-                    sibling_value_information.total_sibling_ties += 1
+                    sibling_true_value_information.total_sibling_ties += 1
                 case -1:
-                    sibling_value_information.total_sibling_losses += 1
+                    sibling_true_value_information.total_sibling_losses += 1
                 case _: # should never happen, but handles type error
                     raise ValueError("Invalid child value.")
             new_children.append(new_child)

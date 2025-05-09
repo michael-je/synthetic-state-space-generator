@@ -14,9 +14,9 @@ def default_branching_function(randint: RandomIntFunction, randf: RandomFloatFun
     return branching_factor
 
 
-def default_child_value_function(
+def default_child_true_value_function(
         randint: RandomIntFunction, randf: RandomFloatFunction, params: StateParams, 
-        self_branching_factor: int, sibling_value_information: SiblingValueInformation) -> int:
+        self_branching_factor: int, sibling_true_value_information: SiblingTrueValueInformation) -> int:
     """""" # TODO: docstring
     self_win = 1 if params.self.player == Player.MAX else -1
     self_loss = -self_win
@@ -25,14 +25,14 @@ def default_child_value_function(
         return self_loss
     # if we are a tie, at least true_value_forced_ratio children must be a tie
     if params.self.true_value == 0:
-        sibling_tie_ratio =  sibling_value_information.total_sibling_ties / self_branching_factor
+        sibling_tie_ratio =  sibling_true_value_information.total_sibling_ties / self_branching_factor
         if sibling_tie_ratio < params.globals.true_value_forced_ratio:
             return 0
         if randf() < params.globals.true_value_tie_chance:
             return 0
         return self_loss
     # else, if we are a win, at least true_value_forced_radio children must be wins
-    sibling_win_ratio =  sibling_value_information.total_sibling_wins / self_branching_factor
+    sibling_win_ratio =  sibling_true_value_information.total_sibling_wins / self_branching_factor
     if sibling_win_ratio < params.globals.true_value_forced_ratio:
         return self_win
     if randf() < params.globals.true_value_tie_chance:

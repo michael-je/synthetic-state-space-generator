@@ -9,15 +9,15 @@ def bit_size(n: int) -> int:
         bits += 1
     return bits
 
-def encode_value_to_bits(value: int) -> int:
-    if not -1 <= value <= 1:
-        raise ValueError(f"Invalid value {value}. Value must be in [-1, 1].")
-    return value + 1
+def encode_true_value_to_bits(true_value: int) -> int:
+    if not -1 <= true_value <= 1:
+        raise ValueError(f"Invalid value {true_value}. Value must be in [-1, 1].")
+    return true_value + 1
         
-def decode_value_bits(value_bits: int) -> int:
-    if not 0 <= value_bits <= 2:
-        raise ValueError(f"Invalid bit representation {bin(value_bits)[2:]} of Value.")
-    return value_bits - 1
+def decode_true_value_bits(true_value_bits: int) -> int:
+    if not 0 <= true_value_bits <= 2:
+        raise ValueError(f"Invalid bit representation {bin(true_value_bits)[2:]} of Value.")
+    return true_value_bits - 1
 
 def extract_information_from_id(state_id: int, msb_offset: int, bit_size: int) -> int:
     """Used to extract information encoded in a state_id using bit offsets. msb_position 
@@ -32,7 +32,7 @@ def extract_true_value_from_id(state_id: int) -> int:
         state_id, 
         0, 
         ID_TRUE_VALUE_BIT_SIZE)
-    return decode_value_bits(value_bits)
+    return decode_true_value_bits(value_bits)
 
 def extract_player_from_id(state_id: int) -> Player:
     """Extract and return the player from a state's id."""
