@@ -696,12 +696,48 @@ class TestState(unittest.TestCase):
                     "Incorrect number of unique children.")
                 state.make_random()
     
-    # TODO: write test
+    # TODO: WIP
     def test_very_low_true_value_forced_ratio(self):
         """"With a very low true value forced ratio, only one child should be
         FORCED to be the same as its parent."""
-        pass
-
+        state = State(
+            true_value_forced_ratio=0.0001,
+            true_value_similarity_chance=0,
+            transposition_space_function=lambda *args: 100, 
+            max_depth=7,
+            branching_factor_base=7
+            )
+        rng = RNG(distribution=RandomnessDistribution.UNIFORM)
+        for _ in range(1000):
+            if rng.next_float() < 0.8 and not state.is_terminal():
+                state.make_random()
+            elif not state.is_root():
+                state.undo()
+            if not state.is_terminal():
+                #Check if win
+                win: bool = True if ((state.player() == Player.MAX and state.true_value() == 1) or (state.player() == Player.MIN and state.true_value() == -1)) else False 
+                draw: bool = True if state.true_value() == 0 else False
+                parent_true_value = state.true_value()
+                child_values: list[int] = []
+                for action in state.actions():
+                    state.make(action)
+                    child_values.append(state.true_value())
+                    state.undo()
+                
+                if win or draw:
+                    print("WIN or DRAW")
+                    print(state.id() % 100)
+                    print(state.player())
+                    print(parent_true_value)
+                    print(child_values)
+                    self.assertEqual(child_values.count(parent_true_value), 1)
+                else:
+                    print("LOSS")
+                    print(state.id() % 100)
+                    print(state.player())
+                    print(parent_true_value)
+                    print(child_values)
+                print()
 
 if __name__ == '__main__':
     unittest.main()
