@@ -65,10 +65,10 @@ class StateNode():
     # TODO docstring 
     def _extract_information_from_id(self, id: int, msb_offset: int, bit_size: int) -> int:
         """
-        msb_position is the number of bits that the value's msb is away from the id's msb."""
+        msb_position is the number of bits that the attributes's msb is away from the id's msb."""
         bit_mask = (1 << bit_size) - 1
-        shifted_value = id >> (ID_BIT_SIZE - msb_offset - bit_size)
-        return shifted_value & bit_mask
+        shifted_attribute_bits = id >> (ID_BIT_SIZE - msb_offset - bit_size)
+        return shifted_attribute_bits & bit_mask
     
     def _construct_state_params(self) -> StateParams:
         """Construct StateParams, this contains necessary information used by behavioral functions."""
@@ -151,19 +151,19 @@ class StateNode():
     
     def branching_factor(self) -> int:
         """Get or set branching factor."""
-        self._generate_all_random_values()
+        self._execute_all_randomness_dependant_functions()
         assert(self._branching_factor is not None)
         return self._branching_factor
     
     def heuristic_value(self) -> float:
         """Return a heuristic value estimate based on the state's true value."""
-        self._generate_all_random_values()
+        self._execute_all_randomness_dependant_functions()
         assert(self._heuristic_value is not None)
         return self._heuristic_value
 
     def actions(self) -> list[int]:
         """Return indices of children."""
-        self._generate_all_random_values()
+        self._execute_all_randomness_dependant_functions()
         return list(range(len(self.children)))
     
     def reset(self) -> Self:
@@ -206,7 +206,7 @@ class StateNode():
         self.children = new_children
         return self
     
-    def _generate_all_random_values(self) -> Self:
+    def _execute_all_randomness_dependant_functions(self) -> Self:
         if self._random_values_generated:
             return self
         self._random_values_generated = True

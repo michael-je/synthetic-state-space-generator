@@ -176,8 +176,8 @@ class State():
         return self
     
     def set_root(self, state_id: int) -> Self:
-        """Set the given state_id as the new root.
-        Note that doing this with retain_graph=True will destroy the previous graph."""
+        """Set the given state_id as the new root. Note that doing this with retain_graph=True 
+        will destroy the previously retained graph."""
         true_value = extract_true_value_from_id(state_id)
         player = extract_player_from_id(state_id)
         depth = extract_depth_from_id(state_id, bit_size(self.globals.vars.max_depth))

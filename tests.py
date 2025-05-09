@@ -695,8 +695,13 @@ class TestState(unittest.TestCase):
                     math.floor(state._current.branching_factor() * symmetry_factor),
                     "Incorrect number of unique children.")
                 state.make_random()
+    
+    # TODO: write test
+    def test_very_low_true_value_forced_ratio(self):
+        """"With a very low true value forced ratio, only one child should be
+        FORCED to be the same as its parent."""
+        pass
 
 
 if __name__ == '__main__':
     unittest.main()
-    # TestState().test_encode_id_all_to_1s()

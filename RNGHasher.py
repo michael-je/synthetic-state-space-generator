@@ -40,7 +40,7 @@ def inverse_normal(p: float) -> float:
 
 
 class RNGHasher():
-    """Deterministic random number generator. Outputs uniform values from given input"""
+    """Deterministic random number generator. Outputs uniform values from given input""" # TODO: fix docstring
     def __init__(self, distribution: Dist, nodeid: int=0, seed: int=0):
         self.distribution = distribution
         self.nodeid = nodeid
