@@ -2,8 +2,6 @@ from custom_types import *
 from constants import *
 from utils import *
 
-# TODO: make sure default functions are behaving the same after refactor
-
 def default_branching_function(randint: RandomIntFunction, randf: RandomFloatFunction, params: StateParams) -> int:
     """Constant branching factor with variance."""
     variance = randf(low=-params.globals.branching_factor_variance, high=params.globals.branching_factor_variance)
@@ -23,23 +21,27 @@ def default_child_true_value_function(
     # no winning moves 
     if params.self.true_value == self_loss:
         return self_loss
-    # if we are a tie, at least true_value_forced_ratio children must be a tie
-    if params.self.true_value == 0:
+    # if we are a tie, at least true_value_forced_ratio children must be a tie. The rest are losses
+    elif params.self.true_value == 0:
         sibling_tie_ratio =  sibling_true_value_information.total_sibling_ties / self_branching_factor
         if sibling_tie_ratio < params.globals.true_value_forced_ratio:
             return 0
         if randf() < params.globals.true_value_tie_chance:
             return 0
         return self_loss
-    # else, if we are a win, at least true_value_forced_radio children must be wins
-    sibling_win_ratio =  sibling_true_value_information.total_sibling_wins / self_branching_factor
-    if sibling_win_ratio < params.globals.true_value_forced_ratio:
-        return self_win
-    if randf() < params.globals.true_value_tie_chance:
-        return 0
-    if randf() < params.globals.true_value_similarity_chance:
-        return self_win
-    return self_loss
+    # else, we are a win
+    else:
+        # in that case, at least true_value_forced_ratio children must be wins.
+        sibling_win_ratio =  sibling_true_value_information.total_sibling_wins / self_branching_factor
+        if sibling_win_ratio < params.globals.true_value_forced_ratio:
+            return self_win
+        # then we check if we are a tie
+        if randf() < params.globals.true_value_tie_chance:
+            return 0
+        # if not a tie, we check if we should be the same as our parent or not
+        if randf() < params.globals.true_value_similarity_chance:
+            return self_win
+        return self_loss
 
 
 def default_child_depth_function(randint: RandomIntFunction, randf: RandomFloatFunction, params: StateParams) -> int:
