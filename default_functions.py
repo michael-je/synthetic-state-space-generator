@@ -2,7 +2,6 @@ from custom_types import *
 from constants import *
 from utils import *
 
-
 def default_branching_function(randint: RandomIntFunction, randf: RandomFloatFunction, params: StateParams) -> int:
     """Constant branching factor with variance."""
     variance = randf(low=-params.globals.branching_factor_variance, high=params.globals.branching_factor_variance)
@@ -13,9 +12,36 @@ def default_branching_function(randint: RandomIntFunction, randf: RandomFloatFun
     return branching_factor
 
 
-def default_value_function(randint: RandomIntFunction, randf: RandomFloatFunction, params: StateParams) -> int:
-    """Randomly generate a value between -1 and 1."""
-    return randint(low=-1, high=1, distribution=RandomnessDistribution.UNIFORM)
+def default_child_true_value_function(
+        randint: RandomIntFunction, randf: RandomFloatFunction, params: StateParams, 
+        self_branching_factor: int, child_true_value_information: ChildTrueValueInformation) -> int:
+    """""" # TODO: docstring
+    self_win = 1 if params.self.player == Player.MAX else -1
+    self_loss = -self_win
+    # no winning moves 
+    if params.self.true_value == self_loss:
+        return self_loss
+    # if we are a tie, at least true_value_forced_ratio children must be a tie. The rest are losses
+    elif params.self.true_value == 0:
+        child_tie_ratio =  child_true_value_information.total_child_ties / self_branching_factor
+        if child_tie_ratio < params.globals.true_value_forced_ratio:
+            return 0
+        if randf() < params.globals.true_value_tie_chance:
+            return 0
+        return self_loss
+    # else, we are a win
+    else:
+        # in that case, at least true_value_forced_ratio children must be wins.
+        child_win_ratio =  child_true_value_information.total_child_wins / self_branching_factor
+        if child_win_ratio < params.globals.true_value_forced_ratio:
+            return self_win
+        # then we check if we are a tie
+        if randf() < params.globals.true_value_tie_chance:
+            return 0
+        # if not a tie, we check if we should be the same as our parent or not
+        if randf() < params.globals.true_value_similarity_chance:
+            return self_win
+        return self_loss
 
 
 def default_child_depth_function(randint: RandomIntFunction, randf: RandomFloatFunction, params: StateParams) -> int:
@@ -30,7 +56,8 @@ def default_transposition_space_function(randint: RandomIntFunction, randf: Rand
     return globals.max_transposition_space_size
 
 
-def default_heuristic_value_function(randint: RandomIntFunction, randf: RandomFloatFunction, params: StateParams, value: int) -> int:
+def default_heuristic_value_function(randint: RandomIntFunction, randf: RandomFloatFunction, params: StateParams) -> int:
     """Simulates a heuristic function with 70%-85% accuracy depending on depth."""
     accuracy = 0.7 + (0.15 * params.self.depth / params.globals.max_depth)
-    return value if randf() < accuracy else -value
+    # TODO: might need to change how Value is encoded, need in range [-1, 1]
+    return params.self.true_value if randf() < accuracy else -params.self.true_value
