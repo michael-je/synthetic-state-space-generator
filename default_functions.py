@@ -2,8 +2,10 @@ from custom_types import *
 from constants import *
 from utils import *
 
+
 def default_branching_function(randint: RandomIntFunction, randf: RandomFloatFunction, params: StateParams) -> int:
-    """Constant branching factor with variance."""
+    """Constant branching factor with variance. Does not allow a branching factor < 0 until a depth 
+    of terminal_minimum_depth has been reached."""
     variance = randf(low=-params.globals.branching_factor_variance, high=params.globals.branching_factor_variance)
     branching_factor = max(0, params.globals.branching_factor_base + round(variance))
     # make sure we do not prematurely create a terminal
@@ -15,7 +17,14 @@ def default_branching_function(randint: RandomIntFunction, randf: RandomFloatFun
 def default_child_true_value_function(
         randint: RandomIntFunction, randf: RandomFloatFunction, params: StateParams, 
         self_branching_factor: int, child_true_value_information: ChildTrueValueInformation) -> int:
-    """""" # TODO: docstring
+    """Generates a true value for a child state. Ensures that the values behave in a sensible
+    manner by adhering to the following rules:
+      1. If we are a winning state, then at least some fixed number of our children must 
+        share our value. The rest of the children can have any values.
+      2. If we are a tied state, then at least some fixed number of our children must share 
+         our value. The rest of the children can either be ties, or be losses for us.
+      3. If we are a losing state, then all of our children must share our value.
+    A more detailed explanation can be found in the documentation."""
     self_win = 1 if params.self.player == Player.MAX else -1
     self_loss = -self_win
     # no winning moves 

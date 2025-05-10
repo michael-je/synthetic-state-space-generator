@@ -45,8 +45,8 @@ class StateNode():
         return self.id == other.id
     
     # TODO: test
-    # TODO: docstring
     def _encode_id(self, true_value: int, player: Player, depth: int, tspace_record: int) -> int:
+        """"Encodes provided state attributes to a unique state id."""
         if not -1 <= true_value <= 1:
             raise ValueError(f"Invalid value {true_value}. Value should be in [-1, 1].")
         if not 0 <= depth <= self.globals.vars.max_depth:
@@ -62,16 +62,17 @@ class StateNode():
         return true_value_bits | player_bits | depth_bits | tspace_record
     
     # TODO test
-    # TODO docstring 
     def _extract_information_from_id(self, id: int, msb_offset: int, bit_size: int) -> int:
-        """
-        msb_position is the number of bits that the attributes's msb is away from the id's msb."""
+        """Helper function to decode state attributes from an id. 
+        msb_position is the number of bits that the attributes's msb is away from 
+        the id's msb."""
         bit_mask = (1 << bit_size) - 1
         shifted_attribute_bits = id >> (ID_BIT_SIZE - msb_offset - bit_size)
         return shifted_attribute_bits & bit_mask
     
     def _construct_state_params(self) -> StateParams:
-        """Construct StateParams, this contains necessary information used by behavioral functions."""
+        """Construct StateParams, this contains necessary information used by 
+        behavioral functions."""
         state_params_self = StateParamsSelf(
             id = self.id,
             true_value = self.true_value,
@@ -85,15 +86,17 @@ class StateNode():
         )
         return state_params
     
-    # TODO: docstring
     def _calculate_child_true_value(self, sibling_true_value_information: ChildTrueValueInformation) -> int:
+        """Wrapper function to calculate a true value for a child state, by calling the
+        child_true_value_function."""
         true_value = self.globals.funcs.child_true_value_function(
-            self._RNG.next_int, self._RNG.next_float, self.get_state_params(), self.branching_factor(), sibling_true_value_information)
+            self._RNG.next_int, self._RNG.next_float, self.get_state_params(), 
+            self.branching_factor(), sibling_true_value_information)
         return true_value
     
-    # TODO: docstring
     # TODO: think about adding a custom function for this
     def _calculate_child_player(self) -> Player:
+        """Calculate the player attribute for child states."""
         return Player.MAX if self.player == Player.MIN else Player.MIN
     
     def _calculate_child_depth(self) -> int:
@@ -107,12 +110,15 @@ class StateNode():
         return child_depth
     
     # TODO: test
-    # TODO: docstring
     def _calculate_child_tspace_record(self, child_depth: int) -> int:
+        """Calculate a transposition space record for a state at a given depth. The main bulk
+        of this function is correctly scaling the tspace record from one depth to the next,
+        based on the relative sizes of the transposition spaces and the locality parameter."""
         self_tspace_size = self.globals.funcs.transposition_space_function(
             self._RNG.next_int, self._RNG.next_float, self.get_state_params().globals, self.depth)
         child_tspace_size = self.globals.funcs.transposition_space_function(
             self._RNG.next_int, self._RNG.next_float, self.get_state_params().globals, child_depth)
+        # the below code applies the locality scaling
         tspace_scaling_factor = child_tspace_size / self_tspace_size
         child_tspace_record_center = math.floor(self.tspace_record * tspace_scaling_factor)
         child_tspace_variance_margin = (child_tspace_size - 1) * (1-self.globals.vars.locality) / 2 
@@ -200,6 +206,9 @@ class StateNode():
         return self
     
     def _execute_all_randomness_dependant_functions(self) -> Self:
+        """To ensure determinism, all calls to the RNG within the state must be taken in the 
+        same order each time. When a random calculation is needed, we frist call this function 
+        to ensure that all other calculations are also performed in a specific sequence."""
         if self._random_values_generated:
             return self
         self._random_values_generated = True

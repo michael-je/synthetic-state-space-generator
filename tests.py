@@ -218,10 +218,7 @@ class TestState(unittest.TestCase):
             state.make(0)
         self.assertRaises(TerminalHasNoChildren, lambda: state.make(0))
     
-    def test_make_random(self):
-        # TODO
-        pass
-    
+    # TODO: docstring
     def test_depth(self):
         N_TRIALS = 100
         rng = RNGHasher.RNGHasher(RandomnessDistribution.UNIFORM)
@@ -438,15 +435,16 @@ class TestState(unittest.TestCase):
                              "Records outside of the locality margin should not be included.")
             state.make_random()
 
-    # TODO: docstring
     def test_encode_id_0(self):
+        """All bits of the id should be 0 if we pass in appropriate parameters."""
         state_node = State()._current
         true_value = decode_true_value_bits(0)
         id = state_node._encode_id(true_value, Player(0), 0, 0)
         self.assertEqual(id, 0)
     
-    # TODO: docstring
     def test_encode_id_all_to_1s(self):
+        """All bit representations of values in the id should equal 1 if we pass
+        in appropriate parameters."""
         state_node = State()._current
         # create id
         true_value = decode_true_value_bits(1)
@@ -463,8 +461,8 @@ class TestState(unittest.TestCase):
         self.assertEqual(int(bin_str[id_depth_offset:id_record_offset], 2), 1)
         self.assertEqual(int(bin_str[id_record_offset:],                2), 1)
     
-    # TODO: docstring
     def test_encode_id_random(self):
+        """Attributes encoded in the id should retain their correct value."""
         rng = State()._RNG
         N_TRIALS = 100
         for _ in range(N_TRIALS):
