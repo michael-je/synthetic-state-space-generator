@@ -213,12 +213,8 @@ class TestState(unittest.TestCase):
         state = State()
         while not state.is_terminal():
             state.make(0)
-        self.assertRaises(TerminalHasNoChildren, lambda: state.make(0))
-    
-    def test_make_random(self):
-        # TODO
-        pass
-    
+        self.assertRaises(TerminalHasNoChildren, lambda: state.make(0))    
+
     def test_depth(self):
         N_TRIALS = 100
         rng = RNGHasher.RNGHasher(RandomnessDistribution.UNIFORM)
@@ -420,6 +416,111 @@ class TestState(unittest.TestCase):
                              "Records outside of the locality margin should not be included.")
             state.make_random()
 
+
+    def test_loss_true_value_forced(self):
+        """"When in a loosing position, make sure that parents 
+        true value is propogated to all children"""
+        N_TRIALS = 1000
+        state = State(
+            transposition_space_function=lambda *args: 100,  # type: ignore
+            max_depth=7,
+            branching_factor_base=7)
+        rng = RNG(distribution=RandomnessDistribution.UNIFORM)
+        for _ in range(N_TRIALS):
+            if rng.next_float() < 0.8 and not state.is_terminal():
+                state.make_random()
+            elif not state.is_root():
+                state.undo()
+            if state.is_terminal():
+                continue
+            loss: bool = (state.player() == Player.MAX and state.true_value() == -1) or \
+                (state.player() == Player.MIN and state.true_value() == 1)
+            if not loss:
+                continue
+            parent_true_value = state.true_value()
+            child_values: list[int] = []
+            for action in state.actions():
+                state.make(action)
+                child_values.append(state.true_value())
+                state.undo()
+            self.assertEqual(child_values.count(parent_true_value), len(child_values))
+
+
+    def test_set_root_determinism(self):
+        """Testing whether set_root() breaks determinism. This test traverses the whole graph
+            and collects information about all states while also randomly picking some states 
+            for sampling. For each sampled state s, we call set_root(s) and traverse the graph 
+            again to make sure that the revisited states produce the same attributes
+        """
+        def child_depth_function_cycles_allowed(randint: RandomIntFunction, randf: RandomFloatFunction, params: StateParams) -> int:
+            if randf() < 0.1:
+                return abs(params.self.depth - 3)
+            else:
+                return params.self.depth + 1
+        state = State(
+            transposition_space_function=lambda *args: 100,
+            child_depth_function=child_depth_function_cycles_allowed,
+            branching_factor_base=10,
+            max_depth=7)
+        rng_test = RNG(RandomnessDistribution.UNIFORM)
+        state_info_from_root: dict[int, dict[str, int|float|bool]] = dict()
+        set_root_tests: list[int] = []
+        #Search from original state/root
+        def dfs_from_original_root(state: State):
+            if state.id() in state_info_from_root:
+                return
+            state_info_from_root[state.id()] = {
+                    "val": state.true_value(),
+                    "hval": state.heuristic_value(),
+                    "depth": state.depth(),
+                    "terminal": state.is_terminal(),
+                    "child_count": len(state.actions())
+                }
+            if state.is_terminal():
+                return
+            elif rng_test.next_float() < 0.00025:
+                set_root_tests.append(state.id()) #randomly sample state
+            for action in state.actions():
+                state.make(action)
+                dfs_from_original_root(state)
+                state.undo()
+            return
+        visited: set[int] = set()
+        def dfs_from_new_root(state: State):
+            if state.id() in visited:
+                return
+            #Testing reproducability
+            self.assertIn(state.id(),                 state_info_from_root)
+            self.assertEqual(state.true_value(),      state_info_from_root[state.id()]["val"])
+            self.assertEqual(state.heuristic_value(), state_info_from_root[state.id()]["hval"])
+            self.assertEqual(state.depth(),           state_info_from_root[state.id()]["depth"])
+            self.assertEqual(state.is_terminal(),     state_info_from_root[state.id()]["terminal"])
+            self.assertEqual(len(state.actions()),    state_info_from_root[state.id()]["child_count"])
+            if state.is_terminal():
+                return
+            visited.add(state.id())
+            for action in state.actions():
+                state.make(action)
+                dfs_from_new_root(state)
+                state.undo()
+        #call dfs from root
+        dfs_from_original_root(state)
+        for sampled_id in set_root_tests:
+            visited = set()
+            state.set_root(sampled_id)
+            dfs_from_new_root(state)
+
+
+    def test_set_terminal_root(self):
+        """Take random walk until we reach terminal node, set it as root 
+        and make sure that we can't make any moves or undo. 
+        """
+        state = State(max_depth=5)
+        while not state.is_terminal():
+            state.make_random()
+        state.set_root(state.id())
+        self.assertRaises(TerminalHasNoChildren, lambda: state.make_random())
+        self.assertRaises(RootHasNoParent, lambda: state.undo())
 
 if __name__ == '__main__':
     unittest.main()
