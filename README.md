@@ -161,8 +161,6 @@ print(val1)
   
 
 # Parameters
--  **`root_value`** (`int`, default: `1`)
-The true value of the root node
 
 -  **`seed`** (`int`, default: `0`)
 Determines the starting seed for the graph generator. Ensures reproducibility.
@@ -170,8 +168,12 @@ Determines the starting seed for the graph generator. Ensures reproducibility.
 -  **`max_depth`** (`int`, default: `2^8 - 1`)
 Sets the maximum depth of the graph. If `None`, the graph can grow infinitely deep.
 
--  **`distribution`** (`RandomnessDistribution`, default: `Dist.UNIFORM`)
+-  **`distribution`** ([`RandomnessDistribution`](#enums), default: `Dist.UNIFORM`)
+
 Determines what distribution the random number generator follows.
+
+-  **`root_value`** (`int`, default: `1`)
+The true value of the root node
 
 -  **`retain_tree`** (`bool`, default: `False`)
 Stores tree in memory, used to draw tree
@@ -235,10 +237,8 @@ A custom function provided by the user to determine the heuristic values of stat
 # Default Behavioural Functions
 
 Passing in functions as parameters allows the user to gain fine-grained control over the structure of the generated graph. All of the behavioural functions passed in, must have the following parameters (plus some function-specific parameters):
-
 -  **Parameters:**
 	-  `randint` ([`RandomIntFunction`](#use-of-deterministic-randomness-in-custom-functionality)): A callable that returns random integers given a range and distribution.
-
 	-  `randf` ([`RandomFloatFunction`](#use-of-deterministic-randomness-in-custom-functionality)): A callable that returns random floats given a range and distribution.
   
   
@@ -268,26 +268,20 @@ Passing in functions as parameters allows the user to gain fine-grained control 
 
 ### `default_child_depth_function()`
 -  **Parameters:**
-
-	-  `depth` (`int`): A container holding global state information
+	-  `params` (`StateParams`): A container holding global and local state information.
 
 -  **Return Type : `int`**
 
--  **Description:** Uses the `randint` to randomly generate a depth between minimum and maximum depth and returns that value.
+-  **Description:** Uses the `randint` to randomly generate a depth between minimum and maximum child depth and returns that value.
 
 ---
 
 ### `default_transposition_space_function()`
 
 -  **Parameters:**
+	-  `globals` (`GlobalVariables`): A container holding global state information.
 
-	-  `randint` (`RandomIntFunction`): A callable that returns random integers given a range and distribution.
-
-	-  `randf` (`RandomFloatFunction`): A callable that returns random floats, used to introduce branching variance.
-
-	-  `globals` (`GlobalVariables`): A container holding global state information
-
-	-  `depth` (`int`): A container holding global state information
+	-  `depth` (`int`): An integer specifying the depth of the current state.
 
 -  **Return Type : `int`**
 
@@ -297,14 +291,7 @@ Passing in functions as parameters allows the user to gain fine-grained control 
 ### `default_heuristic_value_function()`
 
 -  **Parameters:**
-
-	-  `randint` (`RandomIntFunction`): A callable that returns random integers given a range and distribution.
-
-	-  `randf` (`RandomFloatFunction`): A callable that returns random floats, used to introduce branching variance.
-
 	-  `params` (`StateParams`): A container holding global and local state information, including depth and branching settings.
-
-	-  `value` (`int`): The true value of the current state
 
 -  **Return Type : `int`**
 
@@ -361,6 +348,29 @@ state = State(branching_function=uniform3_branching_function)
   
 
 ```
+
+# Custom Types and Containers
+## Enums
+**`RandomnessDistribution`**
+
+The type RandomnessDistribution is a enumerable. It has only 2 classes UNIFORM and GAUSSIAN. It is used to declare when we want either. Example usage:
+
+```python
+from custom_types import RandomnessDistribution
+
+state = State(distribution=RandomnessDistribution.GAUSSIAN)
+```
+Now when ever there is a call to the random number generator, it will follow a gaussian distribution unless explicitly specified otherwise:
+
+```python
+from custom_types import RandomnessDistribution
+
+def uniform3_branching_function(randint:RandomIntFunction, randf: RandomFloatFunction, params: StateParams) -> int:
+	return randint(low=0, high=3, distribution=RandomnessDistribution.UNIFORM)
+
+state = State(distribution=RandomnessDistribution.GAUSSIAN)
+```
+Here we explicitly tell randint in `uniform3_branching_function` to follow a uniform distribution even though we specified the state's default to follow a Gaussian distribution.
 
 
 # API Reference
