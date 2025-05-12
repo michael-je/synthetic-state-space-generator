@@ -25,10 +25,6 @@ class GlobalVariables:
     branching_factor_base: int
     branching_factor_variance: int
     terminal_minimum_depth: int
-    # TODO: add something to control value
-    # TODO: add something to control heuristic value
-    # terminal_minimum_density: float
-    # terminal_maximum_density: float
     child_depth_minumum: int # depth can be negative
     child_depth_maximum: int
     locality: float
@@ -37,6 +33,8 @@ class GlobalVariables:
     true_value_tie_chance: float
     symmetry_factor: float
     symmetry_frequency: float
+    heuristic_depth_scaling: float
+    heuristic_locality_scaling: float
     max_transposition_space_size: int
 @dataclass
 class StateParamsSelf:

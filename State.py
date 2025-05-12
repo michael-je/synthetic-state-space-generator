@@ -30,6 +30,8 @@ class State():
                  true_value_tie_chance: float=0.2,
                  symmetry_factor: float=1.0,
                  symmetry_frequency: float=0.0,
+                 heuristic_depth_scaling: float=0.5,
+                 heuristic_locality_scaling: float=0.5,
 
                  branching_function: BranchingFunction=default_branching_function, 
                  child_value_function: ChildTrueValueFunction=default_child_true_value_function, 
@@ -37,17 +39,17 @@ class State():
                  transposition_space_function: TranspositionSpaceFunction=default_transposition_space_function,
                  heuristic_value_function: HeuristicValueFunction=default_heuristic_value_function):
         
-        if max_depth <= 0:
+        if not max_depth > 0:
             raise ValueError("max_depth must be > 0.")
         if bit_size(max_depth) >= ID_BIT_SIZE - ID_TRUE_VALUE_BIT_SIZE - ID_PLAYER_BIT_SIZE:
             raise ValueError("max_depth too large.")
-        if child_depth_minumum > child_depth_maximum:
-            raise ValueError("child_depth_minimum must be >= child_depth_maximum.")
-        if terminal_minimum_depth < 0:
+        if not child_depth_maximum >= child_depth_minumum:
+            raise ValueError("child_depth_maximum must be >= child_depth_minimum.")
+        if not terminal_minimum_depth >= 0:
             raise ValueError("terminal_minimum_depth must be >= 0.")
-        if branching_factor_base < 0:
+        if not branching_factor_base >= 0:
             raise ValueError("branching_factor_base must be >= 0.")
-        if branching_factor_variance < 0:
+        if not branching_factor_variance >= 0:
             raise ValueError("branching_factor_variance must be >= 0.")
         if not 0 <= locality <= 1:
             raise ValueError("locality must be in [0, 1].")
@@ -61,6 +63,10 @@ class State():
             raise ValueError("symmetry_factor must be in (0, 1].")
         if not 0 <= symmetry_frequency <= 1:
             raise ValueError("symmetry_frequency must be in [0, 1].")
+        if not 0 <= heuristic_depth_scaling <= 1:
+            raise ValueError("heuristic_depth_scaling must be in [0, 1].")
+        if not 0 <= heuristic_locality_scaling <= 1:
+            raise ValueError("heuristic_locality_scaling must be in [0, 1].")
         
         self._RNG = RNGHasher(distribution=distribution, seed=seed)
         max_transposition_space = 2**(ID_BIT_SIZE - ID_TRUE_VALUE_BIT_SIZE - ID_PLAYER_BIT_SIZE - bit_size(max_depth)) - 1
@@ -93,6 +99,8 @@ class State():
             true_value_tie_chance = true_value_tie_chance,
             symmetry_factor = symmetry_factor,
             symmetry_frequency = symmetry_frequency,
+            heuristic_depth_scaling = heuristic_depth_scaling,
+            heuristic_locality_scaling = heuristic_locality_scaling,
             max_transposition_space_size = max_transposition_space
         )
         global_funcs = GlobalFunctions(
