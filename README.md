@@ -122,7 +122,7 @@ main()
 -  **`seed`** (`int`, default: `0`, range: `Positive Integer`)
 Determines the starting seed for the graph generator. Ensures reproducibility.
 
--  **`max_depth`** (`int`, default: `$2^8 - 1$`)
+-  **`max_depth`** (`int`, default: `\(2^8 - 1\)`)
 Sets the maximum depth of the graph. If `None`, the graph can grow infinitely deep.
 
 -  **`distribution`** ([`RandomnessDistribution`](#enums), default: `Dist.UNIFORM`)Determines what distribution the random number generator follows.
