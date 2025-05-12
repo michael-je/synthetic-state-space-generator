@@ -17,6 +17,7 @@ class State():
                  seed: int=0, 
                  max_depth: int=2**8-1,
                  distribution: RandomnessDistribution=Dist.UNIFORM,
+                 root_true_value: int=0,
                  retain_graph: bool=False,
                  
                  branching_factor_base: int=2,
@@ -24,12 +25,15 @@ class State():
                  terminal_minimum_depth: int=0,
                  child_depth_minumum: int=1,
                  child_depth_maximum: int=1,
-                 locality: float=0,
+                 locality_grouping: float=0,
                  true_value_forced_ratio: float=0.1,
                  true_value_similarity_chance: float=0.5,
                  true_value_tie_chance: float=0.2,
                  symmetry_factor: float=1.0,
                  symmetry_frequency: float=0.0,
+                 heuristic_accuracy_base: float=0.7,
+                 heuristic_depth_scaling: float=0.5,
+                 heuristic_locality_scaling: float=0.5,
 
                  branching_function: BranchingFunction=default_branching_function, 
                  child_value_function: ChildTrueValueFunction=default_child_true_value_function, 
@@ -37,19 +41,23 @@ class State():
                  transposition_space_function: TranspositionSpaceFunction=default_transposition_space_function,
                  heuristic_value_function: HeuristicValueFunction=default_heuristic_value_function):
         
-        if max_depth <= 0:
+        if not 0 <= seed <= 0xFFFFFFFF:
+            raise ValueError("seed must be in [0, 0xFFFFFFFF].") # restriction imposed by mmh3
+        if not max_depth > 0:
             raise ValueError("max_depth must be > 0.")
+        if not root_true_value in [-1, 0, 1]:
+            raise ValueError("root_value must be -1, 0, or 1.")
         if bit_size(max_depth) >= ID_BIT_SIZE - ID_TRUE_VALUE_BIT_SIZE - ID_PLAYER_BIT_SIZE:
             raise ValueError("max_depth too large.")
-        if child_depth_minumum > child_depth_maximum:
-            raise ValueError("child_depth_minimum must be >= child_depth_maximum.")
-        if terminal_minimum_depth < 0:
+        if not child_depth_maximum >= child_depth_minumum:
+            raise ValueError("child_depth_maximum must be >= child_depth_minimum.")
+        if not terminal_minimum_depth >= 0:
             raise ValueError("terminal_minimum_depth must be >= 0.")
-        if branching_factor_base < 0:
+        if not branching_factor_base >= 0:
             raise ValueError("branching_factor_base must be >= 0.")
-        if branching_factor_variance < 0:
+        if not branching_factor_variance >= 0:
             raise ValueError("branching_factor_variance must be >= 0.")
-        if not 0 <= locality <= 1:
+        if not 0 <= locality_grouping <= 1:
             raise ValueError("locality must be in [0, 1].")
         if not 0 <= true_value_forced_ratio <= 1:
             raise ValueError("true_value_forced_ratio must be in [0, 1].")
@@ -61,6 +69,10 @@ class State():
             raise ValueError("symmetry_factor must be in (0, 1].")
         if not 0 <= symmetry_frequency <= 1:
             raise ValueError("symmetry_frequency must be in [0, 1].")
+        if not 0 <= heuristic_depth_scaling <= 1:
+            raise ValueError("heuristic_depth_scaling must be in [0, 1].")
+        if not 0 <= heuristic_locality_scaling <= 1:
+            raise ValueError("heuristic_locality_scaling must be in [0, 1].")
         
         self._RNG = RNGHasher(distribution=distribution, seed=seed)
         max_transposition_space = 2**(ID_BIT_SIZE - ID_TRUE_VALUE_BIT_SIZE - ID_PLAYER_BIT_SIZE - bit_size(max_depth)) - 1
@@ -87,12 +99,15 @@ class State():
             terminal_minimum_depth = terminal_minimum_depth,
             child_depth_minumum = child_depth_minumum,
             child_depth_maximum = child_depth_maximum,
-            locality = locality,
+            locality_grouping = locality_grouping,
             true_value_forced_ratio = true_value_forced_ratio,
             true_value_similarity_chance = true_value_similarity_chance,
             true_value_tie_chance = true_value_tie_chance,
             symmetry_factor = symmetry_factor,
             symmetry_frequency = symmetry_frequency,
+            heuristic_accuracy_base = heuristic_accuracy_base,
+            heuristic_depth_scaling = heuristic_depth_scaling,
+            heuristic_locality_scaling = heuristic_locality_scaling,
             max_transposition_space_size = max_transposition_space
         )
         global_funcs = GlobalFunctions(
@@ -108,7 +123,7 @@ class State():
             retain_graph
         )
         root_node = StateNode(
-            stateid=0, globals=self.globals, true_value=0, 
+            stateid=0, globals=self.globals, true_value=root_true_value, 
             player=Player.MAX, depth=0, tspace_record=0, parent=None)
         self.set_root(root_node._encode_id( # type: ignore
             root_node.true_value,

@@ -33,7 +33,7 @@ class StateNode():
             distribution=self.globals.vars.distribution, nodeid=self.id, seed=self.globals.vars.seed)
     
     def __str__(self) -> str:
-        return f"{self.true_value}-{self.player.name}-{self.depth}-{self.tspace_record}"
+        return f"true_value: {self.true_value}, player: {self.player.name}, depth: {self.depth}, tspace_record: {self.tspace_record}"
         # return ""
 
     def __repr__(self) -> str:
@@ -61,24 +61,19 @@ class StateNode():
         depth_bits = depth << depth_bit_shift
         return true_value_bits | player_bits | depth_bits | tspace_record
     
-    # TODO test
-    def _extract_information_from_id(self, id: int, msb_offset: int, bit_size: int) -> int:
-        """Helper function to decode state attributes from an id. 
-        msb_position is the number of bits that the attributes's msb is away from 
-        the id's msb."""
-        bit_mask = (1 << bit_size) - 1
-        shifted_attribute_bits = id >> (ID_BIT_SIZE - msb_offset - bit_size)
-        return shifted_attribute_bits & bit_mask
-    
     def _construct_state_params(self) -> StateParams:
         """Construct StateParams, this contains necessary information used by 
         behavioral functions."""
+        transposition_space_size = self.globals.funcs.transposition_space_function(
+            self._RNG.next_int, self._RNG.next_float, self.globals.vars, self.depth
+        )
         state_params_self = StateParamsSelf(
             id = self.id,
             true_value = self.true_value,
             player = self.player,
             depth = self.depth,
             transposition_space_record = self.tspace_record,
+            transposition_space_size = transposition_space_size,
         )
         state_params = StateParams(
             globals = self.globals.vars,
@@ -121,7 +116,7 @@ class StateNode():
         # the below code applies the locality scaling
         tspace_scaling_factor = child_tspace_size / self_tspace_size
         child_tspace_record_center = math.floor(self.tspace_record * tspace_scaling_factor)
-        child_tspace_variance_margin = (child_tspace_size - 1) * (1-self.globals.vars.locality) / 2 
+        child_tspace_variance_margin = (child_tspace_size - 1) * (1-self.globals.vars.locality_grouping) / 2 
         lower_margin = math.floor(child_tspace_record_center - child_tspace_variance_margin)
         upper_margin = math.floor(child_tspace_record_center + child_tspace_variance_margin)
         child_tspace_record = self._RNG.next_int(low=lower_margin, high=upper_margin)

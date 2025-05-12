@@ -274,8 +274,8 @@ class TestState(unittest.TestCase):
         self.assertRaises(ValueError, lambda: State(true_value_similarity_chance=1.5))
         self.assertRaises(ValueError, lambda: State(true_value_tie_chance=-1))
         self.assertRaises(ValueError, lambda: State(true_value_tie_chance=1.5))
-        self.assertRaises(ValueError, lambda: State(locality=-1))
-        self.assertRaises(ValueError, lambda: State(locality=1.5))
+        self.assertRaises(ValueError, lambda: State(locality_grouping=-1))
+        self.assertRaises(ValueError, lambda: State(locality_grouping=1.5))
     
     # TODO: docstring
     def test_basic_state_determinism_1(self):
@@ -380,7 +380,7 @@ class TestState(unittest.TestCase):
     
     def test_locality_1(self):
         """All transposition space records should be the same when locality=1"""
-        state = State(branching_factor_base=4, locality=1, max_depth=100)
+        state = State(branching_factor_base=4, locality_grouping=1, max_depth=100)
         while not state.is_terminal():
             state.actions()
             child_records = [child.tspace_record for child in state._current.children]
@@ -399,7 +399,7 @@ class TestState(unittest.TestCase):
         for tspace_size in T_SPACE_SIZES:
             state = State(
                 branching_factor_base=N_CHILDREN,
-                locality=0,
+                locality_grouping=0,
                 transposition_space_function=lambda *args: tspace_size) # type: ignore
             state.actions()
             bins: defaultdict[int, int] = defaultdict(lambda: 0)
@@ -419,7 +419,7 @@ class TestState(unittest.TestCase):
             for locality in [0.0, 0.25, 0.5, 0.75, 1.0]:
                 state = State(
                     branching_factor_base=N_CHILDREN,
-                    locality=locality,
+                    locality_grouping=locality,
                     transposition_space_function=lambda *args: tspace_size) # type: ignore
                 state.actions()
                 unique_records = set(child.tspace_record for child in state._current.children)
@@ -435,7 +435,7 @@ class TestState(unittest.TestCase):
         state = State(
             transposition_space_function=lambda *args: tspace_sizes[args[-1]], # type: ignore
             branching_factor_base=N_CHILDREN,
-            locality=LOCALITY)
+            locality_grouping=LOCALITY)
         for i in range(1, len(tspace_sizes)):
             parent_tspace_size, child_tspace_size = tspace_sizes[i-1], tspace_sizes[i]
             state.actions()

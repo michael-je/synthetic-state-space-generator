@@ -25,18 +25,17 @@ class GlobalVariables:
     branching_factor_base: int
     branching_factor_variance: int
     terminal_minimum_depth: int
-    # TODO: add something to control value
-    # TODO: add something to control heuristic value
-    # terminal_minimum_density: float
-    # terminal_maximum_density: float
     child_depth_minumum: int # depth can be negative
     child_depth_maximum: int
-    locality: float
+    locality_grouping: float
     true_value_forced_ratio: float
     true_value_similarity_chance: float
     true_value_tie_chance: float
     symmetry_factor: float
     symmetry_frequency: float
+    heuristic_accuracy_base: float
+    heuristic_depth_scaling: float
+    heuristic_locality_scaling: float
     max_transposition_space_size: int
 @dataclass
 class StateParamsSelf:
@@ -45,6 +44,7 @@ class StateParamsSelf:
     player: Player
     depth: int
     transposition_space_record: int
+    transposition_space_size: int
 @dataclass
 class StateParams:
     globals: GlobalVariables
@@ -59,7 +59,7 @@ BranchingFunction = Callable[[RandomIntFunction, RandomFloatFunction, StateParam
 ChildTrueValueFunction = Callable[[RandomIntFunction, RandomFloatFunction, StateParams, int, ChildTrueValueInformation], int]
 ChildDepthFunction = Callable[[RandomIntFunction, RandomFloatFunction, StateParams], int]
 TranspositionSpaceFunction = Callable[[RandomIntFunction, RandomFloatFunction, GlobalVariables, int], int]
-HeuristicValueFunction = Callable[[RandomIntFunction, RandomFloatFunction, StateParams], int]
+HeuristicValueFunction = Callable[[RandomIntFunction, RandomFloatFunction, StateParams], float]
 
 @dataclass
 class GlobalFunctions:
