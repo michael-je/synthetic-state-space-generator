@@ -208,7 +208,7 @@ For children not covered by `forced value` or `similarity chance`, this sets the
 
     ![True Value Graph](./documentation_images/value_propagation.gif)
 
-
+<a name="true-value-parameters"></a>
 -  **`branching_function`** (`function`, default: [`default_branching_function`](#default_branching_function))
 A custom function provided by the user to determine the branching factor of states.
 
@@ -233,41 +233,42 @@ A custom function provided by the user to determine the heuristic values of stat
 
 # Default Behavioural Functions
 
-Passing in functions as parameters allows the user to gain fine-grained control over the structure of the generated graph. Most of the behavioural functions passed in, must have the following parameters (unless parameters are explicitly stated):
+Passing in functions as parameters allows the user to gain fine-grained control over the structure of the generated graph. All of the behavioural functions passed in, must have the following parameters (plus some function-specific parameters):
 
 -  **Parameters:**
 	-  `randint` ([`RandomIntFunction`](#use-of-deterministic-randomness-in-custom-functionality)): A callable that returns random integers given a range and distribution.
 
 	-  `randf` ([`RandomFloatFunction`](#use-of-deterministic-randomness-in-custom-functionality)): A callable that returns random floats given a range and distribution.
-
-	-  `params` (`StateParams`): A container holding global and local state information, including depth and branching settings.
-
   
   
-  
+---
   
 
 ### `default_branching_function()`
+-  **Parameters:**
+	-  `params` (`StateParams`): A container holding global and local state information.
 -  **Return Type : `int`**
-
 -  **Description:** Uses the `randf` function to add random variance (bounded by `branching_factor_variance`) to the `base_branching_factor` and returns this value.
 
   
 
 ---
 
-  
-  
-
 ### `default_value_function()`
-
+-  **Parameters:**
+	-  `params` (`StateParams`): A container holding global and local state information.
+	-  `self_branching_factor` (`int`): The number of children associated with the current state.
+	-  `child_true_value_information` (`ChildTrueValueInformation`): Stores data on the true values of all children generated so far.
 -  **Return Type : `int`**
 
--  **Description:** Uses the `randint` function to uniformly sample an integer between -1 and 1 and returns that value.
+-  **Description:** Generates a true value for a child state. Ensures that the values behave in a sensible manner by adhering to the rules and the [true value parameters](#true-value-parameters).
 
 ---
 
 ### `default_child_depth_function()`
+-  **Parameters:**
+
+	-  `depth` (`int`): A container holding global state information
 
 -  **Return Type : `int`**
 
