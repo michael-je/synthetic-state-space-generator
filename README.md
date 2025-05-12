@@ -121,6 +121,7 @@ main()
 
 -  **`seed`** (`int`, default: `0`)
 Determines the starting seed for the graph generator. Ensures reproducibility.
+	- **Range:** Any non-negative integer
 
 -  **`max_depth`** (`int`, default: `2^8 - 1`)
 Sets the maximum depth of the graph. If `None`, the graph can grow infinitely deep.
@@ -305,7 +306,9 @@ state = State(branching_function=uniform3_branching_function)
 ```
 
 # Custom Types and Containers
-## Enums
+
+
+
 **`RandomnessDistribution`**
 
 `RandomnessDistribution` is an enum with two options: UNIFORM and GAUSSIAN. It specifies the distribution type used by the random number generator.
@@ -330,8 +333,8 @@ Here, the state's default is Gaussian, but `randint` in `uniform3_branching_func
 
 ___
 **`Player`**
-
-`Player` is an enum with two options: MIN and MAX. It used by the api to know who the current player is and can be used by user in searching algorithms. A detailed example can be seen in the [minimax example](#minimax-search) section
+Player is an enum with two values: MIN and MAX. It is used by the API to identify the current player and can also be utilized by users in search algorithms.
+For a more detailed usage, see the [minimax example](#minimax-search).
 # API Reference
 
 | Method              | Description                                                                 | Arguments                                   |
