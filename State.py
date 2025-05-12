@@ -17,6 +17,7 @@ class State():
                  seed: int=0, 
                  max_depth: int=2**8-1,
                  distribution: RandomnessDistribution=Dist.UNIFORM,
+                 root_true_value: int=0,
                  retain_graph: bool=False,
                  
                  branching_factor_base: int=2,
@@ -42,6 +43,8 @@ class State():
         
         if not max_depth > 0:
             raise ValueError("max_depth must be > 0.")
+        if not root_true_value in [-1, 0, 1]:
+            raise ValueError("root_value must be -1, 0, or 1.")
         if bit_size(max_depth) >= ID_BIT_SIZE - ID_TRUE_VALUE_BIT_SIZE - ID_PLAYER_BIT_SIZE:
             raise ValueError("max_depth too large.")
         if not child_depth_maximum >= child_depth_minumum:
@@ -118,7 +121,7 @@ class State():
             retain_graph
         )
         root_node = StateNode(
-            stateid=0, globals=self.globals, true_value=0, 
+            stateid=0, globals=self.globals, true_value=root_true_value, 
             player=Player.MAX, depth=0, tspace_record=0, parent=None)
         self.set_root(root_node._encode_id( # type: ignore
             root_node.true_value,
