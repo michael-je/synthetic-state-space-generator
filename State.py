@@ -41,6 +41,8 @@ class State():
                  transposition_space_function: TranspositionSpaceFunction=default_transposition_space_function,
                  heuristic_value_function: HeuristicValueFunction=default_heuristic_value_function):
         
+        if not 0 <= seed <= 0xFFFFFFFF:
+            raise ValueError("seed must be in [0, 0xFFFFFFFF].") # restriction imposed by mmh3
         if not max_depth > 0:
             raise ValueError("max_depth must be > 0.")
         if not root_true_value in [-1, 0, 1]:
