@@ -33,7 +33,7 @@ class StateNode():
             distribution=self.globals.vars.distribution, nodeid=self.id, seed=self.globals.vars.seed)
     
     def __str__(self) -> str:
-        return f"{self.true_value}-{self.player.name}-{self.depth}-{self.tspace_record}"
+        return f"true_value: {self.true_value}, player: {self.player.name}, depth: {self.depth}, tspace_record: {self.tspace_record}"
         # return ""
 
     def __repr__(self) -> str:
