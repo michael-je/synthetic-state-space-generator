@@ -40,7 +40,8 @@ def inverse_normal(p: float) -> float:
 
 
 class RNGHasher():
-    """Deterministic random number generator. Outputs uniform values from given input"""
+    """Deterministic random number generator. Supports multiple random distributions
+    to output sequences of pseudo-random numbers unique to a state id."""
     def __init__(self, distribution: Dist, nodeid: int=0, seed: int=0):
         self.distribution = distribution
         self.nodeid = nodeid
@@ -51,9 +52,10 @@ class RNGHasher():
         """Return a pseudo random integer value based on the nodeid and global seed."""
         hash_input = f"{self.nodeid}.{self._times_hashed}"
         hash_input_bytes = hash_input.encode()
-        hash_64bit, _ = mmh3.mmh3_x64_128_utupledigest(hash_input_bytes, self.seed)
+        hash_64bit_msb, hash_64bit_lsb = mmh3.mmh3_x64_128_utupledigest(hash_input_bytes, self.seed)
+        hash_128bit = (hash_64bit_msb << 64) + hash_64bit_lsb
         self._times_hashed += 1
-        return hash_64bit
+        return hash_128bit
     
     def next_float(self, low: float=0, high: float=1, distribution: Dist|None=None) -> float:
         """Return a pseudo-random float in [low, high]."""
@@ -62,7 +64,6 @@ class RNGHasher():
             raise ValueError("low must be <= high.")
         if distribution is None:
             distribution = self.distribution
-        
         match distribution:
             case Dist.UNIFORM:
                 return (self.hash() / HASH_OUTPUT_TMAX) * dist_range + low
@@ -84,7 +85,6 @@ class RNGHasher():
             raise ValueError("low and high must be integers.")
         if distribution is None:
             distribution = self.distribution
-        
         match distribution:
             case Dist.UNIFORM:
                 return self.hash() % (dist_range + 1) + low
