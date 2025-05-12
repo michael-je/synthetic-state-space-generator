@@ -212,11 +212,11 @@ class TestState(unittest.TestCase):
         self.assertRaises(RootHasNoParent, lambda: state.undo())
     
     def test_make_terminal(self):
+        """An error should be raised when trying to use .make() on a terminal state."""
         state = State()
         while not state.is_terminal():
             state.make(0)
-        self.assertRaises(TerminalHasNoChildren, lambda: state.make(0),
-            "An error should be raised when trying to use .make() on a terminal state.")
+        self.assertRaises(TerminalHasNoChildren, lambda: state.make(0))
     
     def test_depth(self):
         N_TRIALS = 100
@@ -333,6 +333,7 @@ class TestState(unittest.TestCase):
         state.make_random()
     
     def test_transposition_space_above_maximum(self):
+        mtss = State().globals.vars.max_transposition_space_size
         state = State(transposition_space_function=lambda *_: mtss+1) # type: ignore
         self.assertRaises(IdOverflow, lambda: state.make_random())
     
@@ -535,25 +536,6 @@ class TestState(unittest.TestCase):
         state.undo()
         self.assertEqual(child_ids, child_ids)
 
-    def test_simple_child_regeneration_determinism_with_retain_graph(self):
-        state = State(retain_graph=True)
-        actions = state.actions()
-        child_ids: list[int] = []
-        state.make(actions[0])
-        child_ids.append(state.id())
-        state.undo()
-        state.make(actions[1])
-        child_ids.append(state.id())
-        state.undo()
-        child_ids: list[int] = []
-        state.make(actions[0])
-        child_ids.append(state.id())
-        state.undo()
-        state.make(actions[1])
-        child_ids.append(state.id())
-        state.undo()
-        self.assertEqual(child_ids, child_ids)
-
     def test_compare_child_generation_with_unrelated_parameters(self):
         state1 = State()
         actions = state1.actions()
@@ -563,7 +545,7 @@ class TestState(unittest.TestCase):
         state1.undo()
         state1.make(actions[1])
         child_ids.append(state1.id())
-        state2 = State(retain_graph=True)
+        state2 = State()
         child_ids: list[int] = []
         state2.make(actions[0])
         child_ids.append(state2.id())

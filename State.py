@@ -1,4 +1,3 @@
-from graphviz import Digraph
 from typing import Self
 
 from StateNode import StateNode
@@ -18,7 +17,6 @@ class State():
                  max_depth: int=2**8-1,
                  distribution: RandomnessDistribution=Dist.UNIFORM,
                  root_true_value: int=0,
-                 retain_graph: bool=False,
                  
                  branching_factor_base: int=2,
                  branching_factor_variance: int=0,
@@ -69,6 +67,8 @@ class State():
             raise ValueError("symmetry_factor must be in (0, 1].")
         if not 0 <= symmetry_frequency <= 1:
             raise ValueError("symmetry_frequency must be in [0, 1].")
+        if not 0 <= heuristic_accuracy_base <= 1:
+            raise ValueError("heuristic_accuracy_base must be in [0, 1].")
         if not 0 <= heuristic_depth_scaling <= 1:
             raise ValueError("heuristic_depth_scaling must be in [0, 1].")
         if not 0 <= heuristic_locality_scaling <= 1:
@@ -120,7 +120,6 @@ class State():
         self.globals = GlobalParameters(
             global_vars,
             global_funcs,
-            retain_graph
         )
         root_node = StateNode(
             stateid=0, globals=self.globals, true_value=root_true_value, 
@@ -194,13 +193,12 @@ class State():
         if self._current.parent is None:
             raise RootHasNoParent()
         self._current = self._current.parent
-        if not self.globals.retain_graph:
-            self._current.reset() # release memory as we climb back up the tree
+        self._current.reset() # release memory as we climb back up the tree
         return self
     
     def set_root(self, state_id: int) -> Self:
-        """Set the given state_id as the new root. Note that doing this with retain_graph=True 
-        will destroy the previously retained graph."""
+        """Set the given state_id as the new root. This will destroy anything already
+        generated."""
         true_value = extract_true_value_from_id(state_id)
         player = extract_player_from_id(state_id)
         depth = extract_depth_from_id(state_id, bit_size(self.globals.vars.max_depth))
@@ -211,21 +209,3 @@ class State():
             player=player, depth=depth, tspace_record=tspace_record, parent=None)
         self._current: StateNode = self._root
         return self
-
-    def draw(self) -> None:
-        """Draw the current node graph. Best used when retaining the tree."""
-        visited: set[tuple[int, int]] = set()
-        def draw_graph_recur(graph: Digraph, node: StateNode):
-            graph.node(name=str(node.id), label=str(node))
-            if node.is_terminal():
-                return
-            for child in node.children:
-                edge = (node.id, child.id)
-                if edge not in visited:
-                    visited.add(edge)
-                    graph.edge(str(node.id), str(child.id))
-                draw_graph_recur(graph, child)
-        
-        graph = Digraph(format="png")
-        draw_graph_recur(graph, self._root)
-        graph.render(f"trees/tree_seed_{self.globals.vars.seed}" , view=True)

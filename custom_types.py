@@ -73,4 +73,3 @@ class GlobalFunctions:
 class GlobalParameters:
     vars: GlobalVariables
     funcs: GlobalFunctions
-    retain_graph: bool
