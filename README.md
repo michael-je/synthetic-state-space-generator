@@ -77,6 +77,7 @@ Example of a minimax search in the graph:
 
 ```python
 from State import State
+from custom_types import Player
 
 INF = 1000
 visited: dict[int, int] = {}
@@ -86,7 +87,8 @@ def minimax(state: State, depth: int) -> int:
 	if state.is_terminal():
 		return state.true_value()
 	if depth == 0:
-		return state.hueristic_value()
+		return state.heuristic_value()
+	
 	if state.player() == Player.MAX:
 		max_eval = -INF
 		for action in state.actions():
@@ -107,9 +109,12 @@ def minimax(state: State, depth: int) -> int:
 		return min_eval
 
 def main():
-	state = State(max_depth=10)
-	val = minimax(state, 5, isMaximizingPlayer=True)
-	print(val1)
+	state = State(max_depth=9)
+	val = minimax(state, 9)
+	print(f"Minimax Value: {val}")
+	print(f"True value: {state.true_value()}")
+
+main()
 ```
 
 # Parameters

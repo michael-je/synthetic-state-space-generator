@@ -1,67 +1,39 @@
-from  State  import  State
+from State import State
+from custom_types import Player
 
 INF = 1000
-def minimax(state: State, depth: int, isMaximizingPlayer: bool):
-    if state.is_terminal():
-        return state.value()
-    if depth == 0:
-        print(state.value())
-        return state.value()
-        return state.heuristic_value()
+visited: dict[int, int] = {}
+def minimax(state: State, depth: int) -> int:
+	if state.id() in visited.keys():
+		return state.true_value()
+	if state.is_terminal():
+		return state.true_value()
+	if depth == 0:
+		return state.heuristic_value()
+	
+	if state.player() == Player.MAX:
+		max_eval = -INF
+		for action in state.actions():
+			state.make(action)
+			s_eval = minimax(state, depth-1)
+			state.undo()
+			max_eval = max(max_eval, s_eval)
+		visited[state.id()] = max_eval
+		return max_eval
+	else:
+		min_eval = INF
+		for action in state.actions():
+			state.make(action)
+			s_eval = minimax(state, depth-1)
+			state.undo()
+			min_eval = min(min_eval, s_eval)			
+		visited[state.id()] = min_eval
+		return min_eval
 
-    if isMaximizingPlayer:
-        maxEval = -INF
+def main():
+	state = State(max_depth=9)
+	val = minimax(state, 9)
+	print(f"Minimax Value: {val}")
+	print(f"True value: {state.true_value()}")
 
-        for action in state.actions():
-            state.make(action)
-            sEval = minimax(state, depth-1, not isMaximizingPlayer)
-            state.undo()
-            maxEval = max(maxEval, sEval)
-        return maxEval
-    else:
-        minEval = INF
-        for action in state.actions():
-            state.make(action)
-            sEval = minimax(state, depth-1, not isMaximizingPlayer)
-            state.undo()
-            minEval = min(minEval, sEval)			
-        return minEval
-
-def dfs(state: State):
-    
-    def dfs_recur(state: State, depth: int):
-        if depth == 1:
-            print(state.id())
-            return 
-        for action in state.actions():
-            state.make(action)
-            dfs_recur(state, depth+1)
-            state.undo()
-    
-    dfs_recur(state, 0)
-
-
-def  main():
-    state = State()
-    print("not in dfs: ", state.id())
-    print("DFS:")
-    print("not in dfs: ", state.id())
-    dfs(state)
-    print("DFS:")
-    print("not in dfs: ", state.id())
-    dfs(state)
-    print("DFS:")
-    dfs(state)
-    print("DFS:")
-    dfs(state)
-
-    """
-    print("Minimax")
-    rootVal = minimax(state, 3, isMaximizingPlayer=True)
-    print(f"Value of root is {rootVal}")
-    """
-
-
-
-if __name__ == "__main__":
-    main()
+main()
