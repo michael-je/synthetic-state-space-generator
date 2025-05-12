@@ -64,13 +64,7 @@ Initialize a new state-space graph by using the `State` constructor.
   
 
 ```python
-
-  
-
 state = State()
-
-  
-
 ```
 
   
@@ -78,87 +72,45 @@ state = State()
 This creates a simple graph, with default values for each parameter. This default graph is a binary tree, with no maximum depth, no state values and no transpositions or cycles.
 
   
-
+<a name="minimax-search"></a>
 Example of a minimax search in the graph:
 
-  
-
 ```python
-
 from State import State
 
-  
-
 INF = 1000
+visited: dict[int, int] = {}
+def minimax(state: State, depth: int) -> int:
+	if state.id() in visited.keys():
+		return state.true_value()
+	if state.is_terminal():
+		return state.true_value()
+	if depth == 0:
+		return state.hueristic_value()
+	if state.player() == Player.MAX:
+		max_eval = -INF
+		for action in state.actions():
+			state.make(action)
+			s_eval = minimax(state, depth-1)
+			state.undo()
+			max_eval = max(max_eval, s_eval)
+		visited[state.id()] = max_eval
+		return max_eval
+	else:
+		min_eval = INF
+		for action in state.actions():
+			state.make(action)
+			s_eval = minimax(state, depth-1)
+			state.undo()
+			min_eval = min(min_eval, s_eval)			
+		visited[state.id()] = min_eval
+		return min_eval
 
-def  minimax(state: State, depth: int, isMaximizingPlayer: bool):
-
-if state.is_terminal():
-
-return state.value()
-
-if depth == 0:
-
-print(state.value())
-
-return state.value()
-
-return state.heuristic_value()
-
-  
-
-if isMaximizingPlayer:
-
-maxEval = -INF
-
-  
-
-for action in state.actions():
-
-state.make(action)
-
-sEval = minimax(state, depth-1, not isMaximizingPlayer)
-
-state.undo()
-
-maxEval = max(maxEval, sEval)
-
-return maxEval
-
-else:
-
-minEval = INF
-
-for action in state.actions():
-
-state.make(action)
-
-sEval = minimax(state, depth-1, not isMaximizingPlayer)
-
-state.undo()
-
-minEval = min(minEval, sEval)
-
-return minEval
-
-  
-  
-
-  
-
-def  main():
-
-state = State(max_depth=10)
-
-val = minimax(state, 5, isMaximizingPlayer=True)
-
-print(val1)
-
-  
-
+def main():
+	state = State(max_depth=10)
+	val = minimax(state, 5, isMaximizingPlayer=True)
+	print(val1)
 ```
-
-  
 
 # Parameters
 
@@ -168,9 +120,7 @@ Determines the starting seed for the graph generator. Ensures reproducibility.
 -  **`max_depth`** (`int`, default: `2^8 - 1`)
 Sets the maximum depth of the graph. If `None`, the graph can grow infinitely deep.
 
--  **`distribution`** ([`RandomnessDistribution`](#enums), default: `Dist.UNIFORM`)
-
-Determines what distribution the random number generator follows.
+-  **`distribution`** ([`RandomnessDistribution`](#enums), default: `Dist.UNIFORM`)Determines what distribution the random number generator follows.
 
 -  **`root_value`** (`int`, default: `1`)
 The true value of the root node
@@ -353,14 +303,15 @@ state = State(branching_function=uniform3_branching_function)
 ## Enums
 **`RandomnessDistribution`**
 
-The type RandomnessDistribution is a enumerable. It has only 2 classes UNIFORM and GAUSSIAN. It is used to declare when we want either. Example usage:
-
+`RandomnessDistribution` is an enum with two options: UNIFORM and GAUSSIAN. It specifies the distribution type used by the random number generator.
 ```python
 from custom_types import RandomnessDistribution
 
 state = State(distribution=RandomnessDistribution.GAUSSIAN)
 ```
-Now when ever there is a call to the random number generator, it will follow a gaussian distribution unless explicitly specified otherwise:
+In this case, all random number generation will default to a Gaussian distribution unless overridden.
+
+You can override the distribution in specific functions:
 
 ```python
 from custom_types import RandomnessDistribution
@@ -370,9 +321,12 @@ def uniform3_branching_function(randint:RandomIntFunction, randf: RandomFloatFun
 
 state = State(distribution=RandomnessDistribution.GAUSSIAN)
 ```
-Here we explicitly tell randint in `uniform3_branching_function` to follow a uniform distribution even though we specified the state's default to follow a Gaussian distribution.
+Here, the state's default is Gaussian, but `randint` in `uniform3_branching_function` explicitly uses a uniform distribution.
 
+___
+**`Player`**
 
+`Player` is an enum with two options: MIN and MAX. It used by the api to know who the current player is and can be used by user in searching algorithms. A detailed example can be seen in the [minimax example](#minimax-search) section
 # API Reference
 
 | Method              | Description                                                                 | Arguments                                   |
