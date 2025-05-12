@@ -45,6 +45,7 @@ class StateParamsSelf:
     player: Player
     depth: int
     transposition_space_record: int
+    transposition_space_size: int
 @dataclass
 class StateParams:
     globals: GlobalVariables

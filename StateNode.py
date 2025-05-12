@@ -64,12 +64,16 @@ class StateNode():
     def _construct_state_params(self) -> StateParams:
         """Construct StateParams, this contains necessary information used by 
         behavioral functions."""
+        transposition_space_size = self.globals.funcs.transposition_space_function(
+            self._RNG.next_int, self._RNG.next_float, self.globals.vars, self.depth
+        )
         state_params_self = StateParamsSelf(
             id = self.id,
             true_value = self.true_value,
             player = self.player,
             depth = self.depth,
             transposition_space_record = self.tspace_record,
+            transposition_space_size = transposition_space_size,
         )
         state_params = StateParams(
             globals = self.globals.vars,
