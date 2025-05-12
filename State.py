@@ -24,12 +24,13 @@ class State():
                  terminal_minimum_depth: int=0,
                  child_depth_minumum: int=1,
                  child_depth_maximum: int=1,
-                 locality: float=0,
+                 locality_grouping: float=0,
                  true_value_forced_ratio: float=0.1,
                  true_value_similarity_chance: float=0.5,
                  true_value_tie_chance: float=0.2,
                  symmetry_factor: float=1.0,
                  symmetry_frequency: float=0.0,
+                 heuristic_accuracy_base: float=0.7,
                  heuristic_depth_scaling: float=0.5,
                  heuristic_locality_scaling: float=0.5,
 
@@ -51,7 +52,7 @@ class State():
             raise ValueError("branching_factor_base must be >= 0.")
         if not branching_factor_variance >= 0:
             raise ValueError("branching_factor_variance must be >= 0.")
-        if not 0 <= locality <= 1:
+        if not 0 <= locality_grouping <= 1:
             raise ValueError("locality must be in [0, 1].")
         if not 0 <= true_value_forced_ratio <= 1:
             raise ValueError("true_value_forced_ratio must be in [0, 1].")
@@ -93,12 +94,13 @@ class State():
             terminal_minimum_depth = terminal_minimum_depth,
             child_depth_minumum = child_depth_minumum,
             child_depth_maximum = child_depth_maximum,
-            locality = locality,
+            locality_grouping = locality_grouping,
             true_value_forced_ratio = true_value_forced_ratio,
             true_value_similarity_chance = true_value_similarity_chance,
             true_value_tie_chance = true_value_tie_chance,
             symmetry_factor = symmetry_factor,
             symmetry_frequency = symmetry_frequency,
+            heuristic_accuracy_base = heuristic_accuracy_base,
             heuristic_depth_scaling = heuristic_depth_scaling,
             heuristic_locality_scaling = heuristic_locality_scaling,
             max_transposition_space_size = max_transposition_space

@@ -9,6 +9,7 @@ def bit_size(n: int) -> int:
         bits += 1
     return bits
 
+# TODO: docstring
 def encode_true_value_to_bits(true_value: int) -> int:
     if not -1 <= true_value <= 1:
         raise ValueError(f"Invalid value {true_value}. Value must be in [-1, 1].")
@@ -56,6 +57,7 @@ def extract_tspace_record_from_id(state_id: int, tspace_record_bit_size: int) ->
         ID_BIT_SIZE - tspace_record_bit_size,
         tspace_record_bit_size)
 
+# TODO: docstring
 def assign_child_true_value_information(
     child_true_value_information: ChildTrueValueInformation, player: Player, child_true_value: int):
     match child_true_value:

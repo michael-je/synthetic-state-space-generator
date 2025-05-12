@@ -116,7 +116,7 @@ class StateNode():
         # the below code applies the locality scaling
         tspace_scaling_factor = child_tspace_size / self_tspace_size
         child_tspace_record_center = math.floor(self.tspace_record * tspace_scaling_factor)
-        child_tspace_variance_margin = (child_tspace_size - 1) * (1-self.globals.vars.locality) / 2 
+        child_tspace_variance_margin = (child_tspace_size - 1) * (1-self.globals.vars.locality_grouping) / 2 
         lower_margin = math.floor(child_tspace_record_center - child_tspace_variance_margin)
         upper_margin = math.floor(child_tspace_record_center + child_tspace_variance_margin)
         child_tspace_record = self._RNG.next_int(low=lower_margin, high=upper_margin)
