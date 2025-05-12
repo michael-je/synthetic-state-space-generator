@@ -44,15 +44,14 @@ class StateNode():
             return False
         return self.id == other.id
     
-    # TODO: test
     def _encode_id(self, true_value: int, player: Player, depth: int, tspace_record: int) -> int:
         """"Encodes provided state attributes to a unique state id."""
         if not -1 <= true_value <= 1:
             raise ValueError(f"Invalid value {true_value}. Value should be in [-1, 1].")
         if not 0 <= depth <= self.globals.vars.max_depth:
-            raise IdOverflow(f"depth {depth}.") # TODO: test
+            raise IdOverflow(f"depth {depth}.")
         if not 0 <= tspace_record <= self.globals.vars.max_transposition_space_size:
-            raise IdOverflow(f"state_space_record {tspace_record}.") # TODO: test
+            raise IdOverflow(f"state_space_record {tspace_record}.")
         true_value_bit_shift = ID_BIT_SIZE - ID_TRUE_VALUE_BIT_SIZE
         player_bit_shift = true_value_bit_shift - ID_PLAYER_BIT_SIZE
         depth_bit_shift = player_bit_shift - bit_size(self.globals.vars.max_depth)
@@ -89,7 +88,6 @@ class StateNode():
             self.branching_factor(), sibling_true_value_information)
         return true_value
     
-    # TODO: think about adding a custom function for this
     def _calculate_child_player(self) -> Player:
         """Calculate the player attribute for child states."""
         return Player.MAX if self.player == Player.MIN else Player.MIN
@@ -104,7 +102,6 @@ class StateNode():
             raise IdOverflow(f"Depth can not exceed max_depth.")
         return child_depth
     
-    # TODO: test
     def _calculate_child_tspace_record(self, child_depth: int) -> int:
         """Calculate a transposition space record for a state at a given depth. The main bulk
         of this function is correctly scaling the tspace record from one depth to the next,

@@ -201,12 +201,6 @@ class TestRNG(unittest.TestCase):
 
 class TestState(unittest.TestCase):
     
-    # TODO: test determinism with more complex graphs, especially where
-    # we revisit states multiple times from different paths
-    
-    # TODO: test memory efficiency
-
-    
     def _walk_graph(self, state: State, walk_seed: int=0):
         """Helper function to take a deterministic walk through the graph."""
         rng = RNG(distribution=RandomnessDistribution.UNIFORM, seed=walk_seed)
@@ -389,7 +383,6 @@ class TestState(unittest.TestCase):
             self.assertEqual(state._root.tspace_record, state._current.tspace_record,
                              "Children should have same tspace record as root.")
             state.make_random()
-        
     
     def test_locality_0_distribution(self):
         """Transposition space records should be evenly spaced out accross the space when locality=0."""
@@ -755,8 +748,8 @@ class TestState(unittest.TestCase):
                 self.assertEqual(child_values.count(parent_true_value), 1)
 
     def test_loss_true_value_forced(self):
-        """"When in a loosing position, make sure that parents 
-        true value is propogated to all children"""
+        """"When in a loosing position, make sure that parents true value 
+        is propogated to all children."""
         N_TRIALS = 1000
         state = State(
             transposition_space_function=lambda *args: 100,  # type: ignore
@@ -782,20 +775,18 @@ class TestState(unittest.TestCase):
                 state.undo()
             self.assertEqual(child_values.count(parent_true_value), len(child_values))
 
-
     def test_set_root_determinism(self):
         """Testing whether set_root() breaks determinism. This test traverses the whole graph
-            and collects information about all states while also randomly picking some states 
-            for sampling. For each sampled state s, we call set_root(s) and traverse the graph 
-            again to make sure that the revisited states produce the same attributes
-        """
+        and collects information about all states while also randomly picking some states 
+        for sampling. For each sampled state s, we call set_root(s) and traverse the graph 
+        again to make sure that the revisited states produce the same attributes."""
         def child_depth_function_cycles_allowed(randint: RandomIntFunction, randf: RandomFloatFunction, params: StateParams) -> int:
             if randf() < 0.1:
                 return abs(params.self.depth - 3)
             else:
                 return params.self.depth + 1
         state = State(
-            transposition_space_function=lambda *args: 100,
+            transposition_space_function=lambda *args: 100, # type: ignore
             child_depth_function=child_depth_function_cycles_allowed,
             branching_factor_base=10,
             max_depth=7)
@@ -846,7 +837,6 @@ class TestState(unittest.TestCase):
             visited = set()
             state.set_root(sampled_id)
             dfs_from_new_root(state)
-
 
     def test_set_terminal_root(self):
         """Take random walk until we reach terminal node, set it as root 
