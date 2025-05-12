@@ -61,15 +61,6 @@ class StateNode():
         depth_bits = depth << depth_bit_shift
         return true_value_bits | player_bits | depth_bits | tspace_record
     
-    # TODO test
-    def _extract_information_from_id(self, id: int, msb_offset: int, bit_size: int) -> int:
-        """Helper function to decode state attributes from an id. 
-        msb_position is the number of bits that the attributes's msb is away from 
-        the id's msb."""
-        bit_mask = (1 << bit_size) - 1
-        shifted_attribute_bits = id >> (ID_BIT_SIZE - msb_offset - bit_size)
-        return shifted_attribute_bits & bit_mask
-    
     def _construct_state_params(self) -> StateParams:
         """Construct StateParams, this contains necessary information used by 
         behavioral functions."""
