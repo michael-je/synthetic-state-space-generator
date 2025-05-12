@@ -29,7 +29,6 @@ seeds = SeedGenerator()
 
 class TestBitSize(unittest.TestCase):
     
-    # TODO: docstring
     def test_bit_size(self):
         self.assertEqual(64, bit_size(2**64-1))
         self.assertEqual(65, bit_size(2**64))
@@ -39,7 +38,6 @@ class TestBitSize(unittest.TestCase):
 
 class TestRNG(unittest.TestCase):
 
-    # TODO: docstring
     def test_basic_rng_determinism(self):
         N_TRIALS = 10000
         for _ in range(100):
@@ -50,7 +48,6 @@ class TestRNG(unittest.TestCase):
             sequence2 = [rng2.next_int() for _ in range(N_TRIALS)]
             self.assertEqual(sequence1, sequence2)
 
-    # TODO: docstring
     def test_hash_average(self):
         N_TRIALS = 100000
         for _ in range(10):
@@ -61,7 +58,6 @@ class TestRNG(unittest.TestCase):
             average = tot/N_TRIALS
             self.assertAlmostEqual(0.5, average, places=2)
     
-    # TODO: docstring
     def test_reset(self):
         for _ in range(100):
             rng = RNG(distribution=RandomnessDistribution.UNIFORM, seed=next(seeds))
@@ -70,8 +66,9 @@ class TestRNG(unittest.TestCase):
             sequence2 = [rng.next_int() for _ in range(100)]
             self.assertEqual(sequence1, sequence2)
     
-    # TODO: docstring
     def test_gaussian_distribution(self):
+        """Test whether the RNG's results correctly follow the gaussian distribution when
+        expected."""
         N_TRIALS = 1000000
         rng = RNG(distribution=RandomnessDistribution.GAUSSIAN)
         bins: defaultdict[int, float]= defaultdict(lambda: 0)
@@ -101,8 +98,9 @@ class TestRNG(unittest.TestCase):
         self.assertAlmostEqual(bins[ 2]/N_TRIALS, BAND_2, places=2)
         self.assertAlmostEqual(bins[ 3]/N_TRIALS, BAND_3, places=2)
     
-    # TODO: docstring
     def test_uniform_distribution(self):
+        """Test whether the RNG's results correctly follow the uniform distribution when
+        expected."""
         N_TRIALS = 1000000
         rng = RNG(distribution=RandomnessDistribution.UNIFORM)
         bins: defaultdict[int, int]= defaultdict(lambda: 0)
@@ -123,7 +121,6 @@ class TestRNG(unittest.TestCase):
         for result in bins.values():
             self.assertLess(abs(result - N_TRIALS/5), MARGIN)
     
-    # TODO: docstring
     def test_bad_int_arguments(self):
         rng = RNG(distribution=RandomnessDistribution.UNIFORM)
         # ranges too large
@@ -139,7 +136,6 @@ class TestRNG(unittest.TestCase):
         self.assertRaises(ValueError, lambda: rng.next_int(low=0.1)) # type: ignore
         self.assertRaises(ValueError, lambda: rng.next_int(high=0.1)) # type: ignore
     
-    # TODO: docstring
     def test_good_int_arguments(self):
         rng = RNG(distribution=RandomnessDistribution.UNIFORM)
         N_TRIALS = 10000
@@ -164,7 +160,6 @@ class TestRNG(unittest.TestCase):
             low, high = r
             rng.next_int(low=low, high=high)
     
-    # TODO: docstring
     def test_bad_float_arguments(self):
         rng = RNG(distribution=RandomnessDistribution.UNIFORM)
         # test low > high
@@ -173,7 +168,6 @@ class TestRNG(unittest.TestCase):
             low, high = r
             self.assertRaises(ValueError, lambda: rng.next_float(low=low, high=high))
 
-    # TODO: docstring
     def test_good_float_arguments(self):
         rng = RNG(distribution=RandomnessDistribution.UNIFORM)
         N_TRIALS = 10000
@@ -210,7 +204,6 @@ class TestState(unittest.TestCase):
             while rng.next_float() < 0.6 and not state.is_terminal():
                 state.make_random()
 
-    # TODO: docstring
     def test_undo_root(self):
         state = State()
         self.assertRaises(RootHasNoParent, lambda: state.undo())
@@ -218,14 +211,13 @@ class TestState(unittest.TestCase):
         state.undo()
         self.assertRaises(RootHasNoParent, lambda: state.undo())
     
-    # TODO: docstring
     def test_make_terminal(self):
         state = State()
         while not state.is_terminal():
             state.make(0)
-        self.assertRaises(TerminalHasNoChildren, lambda: state.make(0))
+        self.assertRaises(TerminalHasNoChildren, lambda: state.make(0),
+            "An error should be raised when trying to use .make() on a terminal state.")
     
-    # TODO: docstring
     def test_depth(self):
         N_TRIALS = 100
         rng = RNGHasher.RNGHasher(RandomnessDistribution.UNIFORM)
@@ -246,32 +238,42 @@ class TestState(unittest.TestCase):
                 state.make_random()
                 depth += 1
                 steps -= 1
-        self.assertEqual(state.depth(), depth)
+        self.assertEqual(state.depth(), depth,
+            "Mismatch in depth returned by the state and the expected depth.")
     
-    # TODO: docstring
     def test_state_parameter_ranges(self):
+        self.assertRaises(ValueError, lambda: State(seed=-1))
+        self.assertRaises(ValueError, lambda: State(seed=0xFFFFFFFF + 1))
         self.assertRaises(ValueError, lambda: State(max_depth=-1))
         self.assertRaises(ValueError, lambda: State(max_depth=0))
         self.assertRaises(ValueError, lambda: State(max_depth=2**ID_BIT_SIZE))
         self.assertRaises(ValueError, lambda: State(max_depth=2**(ID_BIT_SIZE - ID_TRUE_VALUE_BIT_SIZE - ID_PLAYER_BIT_SIZE)))
-        self.assertRaises(ValueError, lambda: State(child_depth_minumum=2, child_depth_maximum=1))
-        self.assertRaises(ValueError, lambda: State(terminal_minimum_depth=-1))
+        self.assertRaises(ValueError, lambda: State(root_true_value=-2))
+        self.assertRaises(ValueError, lambda: State(root_true_value=2))
+        self.assertRaises(ValueError, lambda: State(root_true_value=0.2)) # type: ignore
         self.assertRaises(ValueError, lambda: State(branching_factor_base=-1))
         self.assertRaises(ValueError, lambda: State(branching_factor_variance=-1))
-        self.assertRaises(ValueError, lambda: State(symmetry_factor=0))
-        self.assertRaises(ValueError, lambda: State(symmetry_factor=1.5))
-        self.assertRaises(ValueError, lambda: State(symmetry_frequency=-1))
-        self.assertRaises(ValueError, lambda: State(symmetry_frequency=1.5))
+        self.assertRaises(ValueError, lambda: State(child_depth_minumum=2, child_depth_maximum=1))
+        self.assertRaises(ValueError, lambda: State(terminal_minimum_depth=-1))
+        self.assertRaises(ValueError, lambda: State(locality_grouping=-1))
+        self.assertRaises(ValueError, lambda: State(locality_grouping=1.5))
         self.assertRaises(ValueError, lambda: State(true_value_forced_ratio=-1))
         self.assertRaises(ValueError, lambda: State(true_value_forced_ratio=1.5))
         self.assertRaises(ValueError, lambda: State(true_value_similarity_chance=-1))
         self.assertRaises(ValueError, lambda: State(true_value_similarity_chance=1.5))
         self.assertRaises(ValueError, lambda: State(true_value_tie_chance=-1))
         self.assertRaises(ValueError, lambda: State(true_value_tie_chance=1.5))
-        self.assertRaises(ValueError, lambda: State(locality_grouping=-1))
-        self.assertRaises(ValueError, lambda: State(locality_grouping=1.5))
+        self.assertRaises(ValueError, lambda: State(symmetry_factor=0))
+        self.assertRaises(ValueError, lambda: State(symmetry_factor=1.5))
+        self.assertRaises(ValueError, lambda: State(symmetry_frequency=-1))
+        self.assertRaises(ValueError, lambda: State(symmetry_frequency=1.5))
+        self.assertRaises(ValueError, lambda: State(heuristic_accuracy_base=-1))
+        self.assertRaises(ValueError, lambda: State(heuristic_accuracy_base=2))
+        self.assertRaises(ValueError, lambda: State(heuristic_depth_scaling=-1))
+        self.assertRaises(ValueError, lambda: State(heuristic_depth_scaling=2))
+        self.assertRaises(ValueError, lambda: State(heuristic_locality_scaling=-1))
+        self.assertRaises(ValueError, lambda: State(heuristic_locality_scaling=2))
     
-    # TODO: docstring
     def test_basic_state_determinism_1(self):
         state1 = State()
         self._walk_graph(state1)
@@ -281,7 +283,6 @@ class TestState(unittest.TestCase):
         state2_id = state2.id()
         self.assertEqual(state1_id, state2_id)
     
-    # TODO: docstring
     def test_basic_state_determinism_2(self):
         N_TRIALS = 50
         DEPTH = 30
@@ -300,45 +301,44 @@ class TestState(unittest.TestCase):
             state2.make(state2.actions()[0])
         self.assertEqual(state1.id(), state2.id())
     
-    # TODO: docstring
-    def test_maxdepth_1(self):
+    def test_maxdepth(self):
         state = State(max_depth=1)
         self.assertRaises(TerminalHasNoChildren, lambda: state.make_random())
     
-    # TODO: docstring
     def test_negative_branching_function(self):
         state = State(branching_function=lambda *_: -1) # type: ignore
         self.assertRaises(TerminalHasNoChildren, lambda: state.make_random())
     
-    # TODO: docstring
     def test_negative_child_depth(self):
         state = State(child_depth_function=lambda *_: -1) # type: ignore
         self.assertRaises(IdOverflow, lambda: state.make_random())
     
-    # TODO: docstring
     def test_large_child_depth(self):
         state = State(max_depth=2, child_depth_function=lambda *_: 3) # type: ignore
         self.assertRaises(IdOverflow, lambda: state.make_random())
     
-    # TODO: docstring
-    def test_transposition_space_functions(self):
-        # spaces too small
+    def test_transposition_space_too_small(self):
         state = State(transposition_space_function=lambda *_: 0) # type: ignore
         self.assertRaises(ValueError, lambda: state.make_random())
         state = State(transposition_space_function=lambda *_: -1) # type: ignore
         self.assertRaises(ValueError, lambda: state.make_random())
-        # space barely large enough
+    
+    def test_transposition_space_barely_large_enough(self):
         state = State(transposition_space_function=lambda *_: 1) # type: ignore
         state.make_random()
-        # space at maximum
+
+    def test_transposition_space_at_maximum(self):
         mtss = State().globals.vars.max_transposition_space_size
         state = State(transposition_space_function=lambda *_: mtss) # type: ignore
         state.make_random()
-        # space above maximum
+    
+    def test_transposition_space_above_maximum(self):
         state = State(transposition_space_function=lambda *_: mtss+1) # type: ignore
         self.assertRaises(IdOverflow, lambda: state.make_random())
     
     def test_id_bit_partitioning_1(self):
+        """The bit partition of the transition space record should adapt to 
+        the bit partition of the max depth."""
         OCCUPIED_BITS = ID_TRUE_VALUE_BIT_SIZE + ID_PLAYER_BIT_SIZE
         state = State(max_depth=2**(ID_BIT_SIZE - OCCUPIED_BITS -  1) - 1)
         self.assertEqual(2**1 -  1, state.globals.vars.max_transposition_space_size)
@@ -347,7 +347,6 @@ class TestState(unittest.TestCase):
         state = State(max_depth=2**(ID_BIT_SIZE - OCCUPIED_BITS - 32) - 1)
         self.assertEqual(2**32 - 1, state.globals.vars.max_transposition_space_size)
     
-    # TODO: docstring
     def test_id_bit_partitioning_2(self):
         state1 = State(max_depth=2**(ID_BIT_SIZE-5))
         state2 = State(max_depth=2**(ID_BIT_SIZE-20))
@@ -517,7 +516,6 @@ class TestState(unittest.TestCase):
         self.assertEqual(state.depth(), depth)
         self.assertEqual(state._current.tspace_record, tspace_record)
 
-    # TODO: docstring
     def test_simple_child_regeneration_determinism(self):
         state = State()
         actions = state.actions()
@@ -537,7 +535,6 @@ class TestState(unittest.TestCase):
         state.undo()
         self.assertEqual(child_ids, child_ids)
 
-    # TODO: docstring
     def test_simple_child_regeneration_determinism_with_retain_graph(self):
         state = State(retain_graph=True)
         actions = state.actions()
@@ -557,7 +554,6 @@ class TestState(unittest.TestCase):
         state.undo()
         self.assertEqual(child_ids, child_ids)
 
-    # TODO: docstring
     def test_compare_child_generation_with_unrelated_parameters(self):
         state1 = State()
         actions = state1.actions()
@@ -615,8 +611,8 @@ class TestState(unittest.TestCase):
         # should succeed with high probability
         self.assertNotEqual(state1.id(), state2.id())
     
-    # TODO: docstring
     def test_determinism_in_order_of_operations(self):
+        """Different orders of operations should not affect determinism."""
         def branching_function_1_to_100(randint: RandomIntFunction, randf: RandomFloatFunction, params: StateParams) -> int:
             return randint(low=1, high=100)
         rng = State()._RNG
@@ -641,8 +637,9 @@ class TestState(unittest.TestCase):
             state.undo()
             self.assertEqual(state1_id, state2_id)
     
-    # TODO: docstring
     def test_true_value_consistency_using_minimax(self):
+        """Test whether the true values of the default graph behave as expected using
+        a minimax search."""
         INF = 1000
         visited: dict[int, int] = {}
         def minimax(state: State, depth: int) -> int:
@@ -683,7 +680,6 @@ class TestState(unittest.TestCase):
             self.assertEqual(true_value, state.true_value())
             visited.clear()
         
-    # TODO: docstring
     def test_extreme_symmetry(self):
         bf = 1000
         state = State(
@@ -696,8 +692,7 @@ class TestState(unittest.TestCase):
             self.assertEqual(len(children), bf)
             state.make_random()
     
-    # TODO: docstring
-    def test_symmetry_values(self):
+    def test_various_symmetry_values(self):
         bfunc = lambda randint, randf, params: randint(10, 1000) # type: ignore
         symmetries = [0.5, 0.25, 0.125]
         for symmetry_factor in symmetries:

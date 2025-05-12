@@ -67,7 +67,6 @@ def default_transposition_space_function(randint: RandomIntFunction, randf: Rand
     return globals.max_transposition_space_size
 
 
-# TODO: test
 def default_heuristic_value_function(randint: RandomIntFunction, randf: RandomFloatFunction, params: StateParams) -> float:
     """Simulates a heuristic function whose accuracy is dependant on:
     1. heuristic_accuracy_base: Baseline accuracy of the function. Lower values give greatly less accuracy
