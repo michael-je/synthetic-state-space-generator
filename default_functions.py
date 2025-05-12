@@ -101,6 +101,6 @@ def default_heuristic_value_function(randint: RandomIntFunction, randf: RandomFl
     distance_from_mean_to_true_value = 1 - accuracy_mean
     positive_accuracy_range = distance_from_mean_to_true_value * (2 + depth_accuracy + locality_accuracy) / 4
     negative_accuracy_range = distance_from_mean_to_true_value - positive_accuracy_range
-    positive_bound = accuracy_mean + params.self.true_value * positive_accuracy_range
-    negative_bound = accuracy_mean + params.self.true_value * negative_accuracy_range
+    positive_bound = params.self.true_value * (accuracy_mean + positive_accuracy_range)
+    negative_bound = params.self.true_value * (accuracy_mean - negative_accuracy_range)
     return randf(min(positive_bound, negative_bound), max(positive_bound, negative_bound))
