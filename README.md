@@ -196,6 +196,8 @@ Defines the maximum depth of a child.
 -  **`locality `** (`float`, default: `0`)
 Controls how much of the available state space can be used when generating children. A value of `0` allows use of the full space at each depth; higher values restrict generation to a smaller portion of it.
 
+<a name="true-value-parameters"></a>
+
 -  **`true_value_forced_ratio`** (`float`, default: `0.1`)
 Controls the ratio of children that are `forced` to share the same true value as their parent state. (NOTE: this is a strict lower bound and setting this to zero breaks the integrity of true value propagation.)
 
@@ -208,7 +210,6 @@ For children not covered by `forced value` or `similarity chance`, this sets the
 
     ![True Value Graph](./documentation_images/value_propagation.gif)
 
-<a name="true-value-parameters"></a>
 -  **`branching_function`** (`function`, default: [`default_branching_function`](#default_branching_function))
 A custom function provided by the user to determine the branching factor of states.
 
