@@ -125,7 +125,7 @@ Determines the starting seed for the graph generator. Ensures reproducibility.
 -  **`max_depth`** (`int`, default: `2^8 - 1`)
 Sets the maximum depth of the graph. If `None`, the graph can grow infinitely deep.
 
--  **`distribution`** ([`RandomnessDistribution`](#enums), default: `Dist.UNIFORM`, option: `Uniform` or `Gaussian`)Determines what distribution the random number generator follows.
+-  **`distribution`** ([`RandomnessDistribution`](#RandomnessDistribution), default: `Dist.UNIFORM`, option: `Uniform` or `Gaussian`)Determines what distribution the random number generator follows.
 
 -  **`root_value`** (`int`, default: `0`, Allowed Values: `-1`, `0`, `1`)
 The true value of the root node
@@ -158,7 +158,7 @@ Controls how much of the available state space can be used when generating child
 -  **`true_value_forced_ratio`** (`float`, default: `0.1`, range: `[0, 1]`)
 Controls the ratio of children that are `forced` to share the same true value as their parent state. (NOTE: this is a strict lower bound and setting this to zero breaks the integrity of true value propagation.)
 
--  **`true_value_similarity_chance`** (`float`, default: `0.5, range: `[0, 1]`)
+-  **`true_value_similarity_chance`** (`float`, default: `0.5`, range: `[0, 1]`)
 After meeting the minimum forced match requirement, this sets the chance that a remaining child will also take on the parent’s true value (A value of `0` means only forced nodes inherit the parent’s value; `1` means all children do).
 
 -  **`true_value_tie_chance `** (`float`, default: `0.2`, range: `[0, 1]`)
@@ -306,7 +306,7 @@ state = State(branching_function=uniform3_branching_function)
 # Custom Types and Containers
 
 
-
+<a name="RandomnessDistribution"></a>
 **`RandomnessDistribution`**
 
 `RandomnessDistribution` is an enum with two options: UNIFORM and GAUSSIAN. It specifies the distribution type used by the random number generator.
