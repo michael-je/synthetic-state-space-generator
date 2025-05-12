@@ -122,25 +122,25 @@ main()
 -  **`seed`** (`int`, default: `0`, range: `Positive Integer`)
 Determines the starting seed for the graph generator. Ensures reproducibility.
 
--  **`max_depth`** (`int`, default: `\(2^8 - 1\)`)
+-  **`max_depth`** (`int`, default: `2^8 - 1`)
 Sets the maximum depth of the graph. If `None`, the graph can grow infinitely deep.
 
--  **`distribution`** ([`RandomnessDistribution`](#enums), default: `Dist.UNIFORM`)Determines what distribution the random number generator follows.
+-  **`distribution`** ([`RandomnessDistribution`](#enums), default: `Dist.UNIFORM`, option: `Uniform` or `Gaussian`)Determines what distribution the random number generator follows.
 
--  **`root_value`** (`int`, default: `1`)
+-  **`root_value`** (`int`, default: `0`, Allowed Values: `-1`, `0`, `1`)
 The true value of the root node
 
 -  **`retain_tree`** (`bool`, default: `False`)
 Stores tree in memory, used to draw tree
 
--  **`branching_factor_base`** (`int`, default: `2`)
+-  **`branching_factor_base`** (`int`, default: `2`, range: `Positive Integers`)
 The number of child nodes each state can generate.
 
 
--  **`branching_factor_variance`** (`int`, default: `0`)
+-  **`branching_factor_variance`** (`int`, default: `0`, range: `Positive Integer`)
 How much the branching factor can vary.
   
--  **`terminal_minimum_depth`** (`int`, default: `0`)
+-  **`terminal_minimum_depth`** (`int`, default: `0`, range: `Positive Integer`)
 Defines how deep a state must be before it can be considered terminal.
 
 -  **`child_depth_minimum`** (`int`, default: `1`)
@@ -150,18 +150,18 @@ Defines the minimum depth of a child.
 -  **`child_depth_maximum`** (`int`, default: `1`)
 Defines the maximum depth of a child.
 
--  **`locality `** (`float`, default: `0`)
+-  **`locality `** (`float`, default: `0`, range: `[0, 1]`)
 Controls how much of the available state space can be used when generating children. A value of `0` allows use of the full space at each depth; higher values restrict generation to a smaller portion of it.
 
 <a name="true-value-parameters"></a>
 
--  **`true_value_forced_ratio`** (`float`, default: `0.1`)
+-  **`true_value_forced_ratio`** (`float`, default: `0.1`, range: `[0, 1]`)
 Controls the ratio of children that are `forced` to share the same true value as their parent state. (NOTE: this is a strict lower bound and setting this to zero breaks the integrity of true value propagation.)
 
--  **`true_value_similarity_chance`** (`float`, default: `0.5`)
+-  **`true_value_similarity_chance`** (`float`, default: `0.5, range: `[0, 1]`)
 After meeting the minimum forced match requirement, this sets the chance that a remaining child will also take on the parent’s true value (A value of `0` means only forced nodes inherit the parent’s value; `1` means all children do).
 
--  **`true_value_tie_chance `** (`float`, default: `0.2`)
+-  **`true_value_tie_chance `** (`float`, default: `0.2`, range: `[0, 1]`)
 For children not covered by `forced value` or `similarity chance`, this sets the probability of the child being assigned a draw. (NOTE: the actual expected number og draws is dependent on `true_value_forced_ratio` and `true_value_similarity_chance`)
 
 
