@@ -21,55 +21,28 @@
 
 - [License](#license)
 
-  
-
 # Introduction
-
-  
-
-  
-
 This API allows users to generate variety of state-space graphs. The tool allows the user to use simple predefined graphs, or to fine-tune the graph by using user-defined function passing. Using Hashing and a starting seed, reproducability is ensured for each graph. This tool supports user control over branching factor, depth, values of states, heuristic values of states, cycles and transpositions among other features.
-
-  
-
-  
 
 An accompanying research paper can be found [here](www.example.org).
 
-  
-
-  
-
 # Getting Started
-
-  
-
 First, you install it:
-
-
 ....
+// TODO: michael when api is ready
 
 # Basic Usage
-
-  
-
 Initialize a new state-space graph by using the `State` constructor.
-
-  
-
 ```python
 state = State()
 ```
-
-  
-
 This creates a simple graph, with default values for each parameter. This default graph is a binary tree, with no maximum depth, no state values and no transpositions or cycles.
 
+// TODO: add a few (1-3) short examples (max 10 lines each)
   
+// TODO: move this code to new chapter "code examples"
 <a name="minimax-search"></a>
 Example of a minimax search in the graph:
-
 ```python
 from State import State
 from custom_types import Player
@@ -163,19 +136,19 @@ For children not covered by `forced value` or `similarity chance`, this sets the
 	// TODO: put somewhere else and link to it, shouldn't be in the middle of this list
 
 -  **`symmetry_factor`** (`float`, default: `1.0`, range: `[0, 1]`)
-What
+// TODO: description
 
 -  **`symmetry_frequency`** (`float`, default: `0.0`, range: `[0, 1]`)
-What
+// TODO: description
 
 -  **`heuristic_accuracy_base`** (`float`, default: `0.7`, range: `[0, 1]`)
-What
+// TODO: description
 
 -  **`heuristic_depth_scaling`** (`float`, default: `0.5`, range: `[0, 1]`)
-What
+// TODO: description
 
 -  **`heuristic_locality_scaling`** (`float`, default: `0.5`, range: `[0, 1]`)
-What
+// TODO: description
 
 
 -  **`branching_function`** (`function`, default: [`default_branching_function`](#default_branching_function))
@@ -290,8 +263,8 @@ state = State(branching_function=uniform3_branching_function)
 `StateParams` is a dataclass that stores all relevant information about a state. The API passes an instance of this object to user-defined functions, enabling access to state-related parameters from outside the class.
 
 `StateParams` is composed of two subcomponents:
-- [`GlobalVariables`](#globalvariables): global parameters shared across the entire graph
-- [`StateParamsSelf`](#stateparamsself): local information specific to the current state node
+- [`GlobalVariables`](#globalvariables): global parameters shared across the entire graph.
+- [`StateParamsSelf`](#stateparamsself): local information specific to the current state node.
 
 > **Note:** This separation exists because not all custom functions require access to both global and local data. Separating them helps ensure that functions only receive the data they actually need.
 
@@ -299,13 +272,13 @@ state = State(branching_function=uniform3_branching_function)
 
 ### **`GlobalVariables`**
 
-`GlobalVariables` is a dataclass that stores information shared across the entire graph. It mirrors the configuration options passed in during initialization — essentially a copy of the class’s [parameters](#parameters).
+`GlobalVariables` is a dataclass that stores information shared across the entire graph. It mirrors the configuration options passed in during initialization — essentially a copy of the [`State` class' parameters](#parameters).
 
 
 
 ### **`StateParamsSelf`**
 
-`StateParamsSelf` is a dataclass containing local information about the current `State` node, such as its depth, parent relationship, or node-specific values.
+`StateParamsSelf` is a dataclass containing local information about the current `StateNode`, such as its depth, parent relationship, or node-specific values.
 
 ___
 
@@ -356,6 +329,4 @@ For a more detailed usage, see the [minimax example](#minimax-search).
 
 # License
 
-
-
-GPL3 ?
+This project is licensed under the [GNU General Public License v3.0](LICENSE.txt).
