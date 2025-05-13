@@ -316,29 +316,6 @@ state = State(branching_function=uniform3_branching_function)
 
 # Custom Types and Containers
 
-**`StateParams`**
-
-`StateParams` is a dataclass that stores all relevant information about a state. The API automatically passes an instance of this object to user-defined functions, enabling access to state-related parameters from outside the class.
-
-`StateParams` is composed of two subcomponents:
-
-
-
-**`GlobalVariables`**
-
-`GlobalVariables` is a dataclass that stores global information. It's essentially a copy of the [parameters](#parameters) of the class 
-
-
-**`StateParamsSelf`**
-
-`StateParamsSelf` is a dataclass the stores local information about the current state node of the class. 
-
-NOTE on the 3 classes above:
-The reason `StateParams` is split into these subclasses is that not all of the custom functions need access to everything.
-
-
-# Custom Types and Containers
-
 ### **`StateParams`**
 
 `StateParams` is a dataclass that stores all relevant information about a state. The API passes an instance of this object to user-defined functions, enabling access to state-related parameters from outside the class.
