@@ -163,6 +163,22 @@ For children not covered by `forced value` or `similarity chance`, this sets the
 
     ![True Value Graph](./documentation_images/value_propagation.gif)
 
+-  **`symmetry_factor`** (`float`, default: `1.0`, range: `[0, 1]`)
+What
+
+-  **`symmetry_frequency`** (`float`, default: `0.0`, range: `[0, 1]`)
+What
+
+-  **`heuristic_accuracy_base`** (`float`, default: `0.7`, range: `[0, 1]`)
+What
+
+-  **`heuristic_depth_scaling`** (`float`, default: `0.5`, range: `[0, 1]`)
+What
+
+-  **`heuristic_locality_scaling`** (`float`, default: `0.5`, range: `[0, 1]`)
+What
+
+
 -  **`branching_function`** (`function`, default: [`default_branching_function`](#default_branching_function))
 A custom function provided by the user to determine the branching factor of states.
 
@@ -174,7 +190,6 @@ A custom function provided by the user to determine the true values of states.
 -  **`child_depth_function`** (`function`, default: [`default_child_depth_function`](#default_child_depth_function))
 A custom function provided by the user to determine the depth of each child.
 
-  
 
 -  **`transposition_space_function`** (`function`, default: [`default_transposition_space_function`](#default_transposition_space_function))
 A custom function provided by the user to define the upper bound of unique states at each depth (returns a dictionary).
@@ -349,7 +364,8 @@ The reason `StateParams` is split into these subclasses is that not all of the c
 ___
 
 <a name="RandomnessDistribution"></a>
-**`RandomnessDistribution`**
+
+### **`RandomnessDistribution`**
 
 `RandomnessDistribution` is an enum with two options: UNIFORM and GAUSSIAN. It specifies the distribution type used by the random number generator.
 ```python
@@ -372,10 +388,11 @@ state = State(distribution=RandomnessDistribution.GAUSSIAN)
 Here, the state's default is Gaussian, but `randint` in `uniform3_branching_function` explicitly uses a uniform distribution.
 
 
-**`Player`**
+### **`Player`**
 
 Player is an enum with two values: MIN and MAX. It is used by the API to identify the current player and can also be utilized by users in search algorithms.
 For a more detailed usage, see the [minimax example](#minimax-search).
+
 # API Reference
 
 | Method              | Description                                                                 | Arguments                                   |
