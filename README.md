@@ -112,13 +112,14 @@ def main():
 main()
 ```
 
+
 # Parameters
 
 -  **`seed`** (`int`, default: `0`, range: `Positive Integer`)
 Determines the starting seed for the graph generator. Ensures reproducibility.
 
 -  **`max_depth`** (`int`, default: `2^8 - 1`)
-Sets the maximum depth of the graph. If `None`, the graph can grow infinitely deep.
+Sets the maximum depth of the graph.
 
 -  **`distribution`** ([`RandomnessDistribution`](#RandomnessDistribution), default: `Dist.UNIFORM`, option: `Uniform` or `Gaussian`)Determines what distribution the random number generator follows.
 
@@ -129,24 +130,22 @@ The true value of the root node
 Stores tree in memory, used to draw tree
 
 -  **`branching_factor_base`** (`int`, default: `2`, range: `Positive Integers`)
-The number of child nodes each state can generate.
-
+The number of child nodes each state can generate. // TODO: improve
 
 -  **`branching_factor_variance`** (`int`, default: `0`, range: `Positive Integer`)
-How much the branching factor can vary.
+How much the branching factor can vary. // TODO: improve
   
 -  **`terminal_minimum_depth`** (`int`, default: `0`, range: `Positive Integer`)
-Defines how deep a state must be before it can be considered terminal.
+Defines how deep a state must be before it can be considered terminal. // TODO: improve
 
 -  **`child_depth_minimum`** (`int`, default: `1`)
-Defines the minimum depth of a child.
-
+Defines the minimum depth of a child relative to its parent.
   
 -  **`child_depth_maximum`** (`int`, default: `1`)
-Defines the maximum depth of a child.
+Defines the maximum depth of a child relative to its parent.
 
 -  **`locality `** (`float`, default: `0`, range: `[0, 1]`)
-Controls how much of the available state space can be used when generating children. A value of `0` allows use of the full space at each depth; higher values restrict generation to a smaller portion of it.
+Controls how much of the available state space can be used when generating children. A value of `0` allows use of the full space at each depth; higher values restrict generation to a smaller portion centered around the parent node.
 
 <a name="true-value-parameters"></a>
 
@@ -159,8 +158,9 @@ After meeting the minimum forced match requirement, this sets the chance that a 
 -  **`true_value_tie_chance `** (`float`, default: `0.2`, range: `[0, 1]`)
 For children not covered by `forced value` or `similarity chance`, this sets the probability of the child being assigned a draw. (NOTE: the actual expected number og draws is dependent on `true_value_forced_ratio` and `true_value_similarity_chance`)
 
-
     ![True Value Graph](./documentation_images/value_propagation.gif)
+	// TODO: fix "_ratio" -> "_chance"
+	// TODO: put somewhere else and link to it, shouldn't be in the middle of this list
 
 -  **`branching_function`** (`function`, default: [`default_branching_function`](#default_branching_function))
 A custom function provided by the user to determine the branching factor of states.
@@ -168,12 +168,8 @@ A custom function provided by the user to determine the branching factor of stat
 -  **`value_function`** (`function`, default: [`default_value_function`](#default_value_function))
 A custom function provided by the user to determine the true values of states.
 
-  
-
 -  **`child_depth_function`** (`function`, default: [`default_child_depth_function`](#default_child_depth_function))
 A custom function provided by the user to determine the depth of each child.
-
-  
 
 -  **`transposition_space_function`** (`function`, default: [`default_transposition_space_function`](#default_transposition_space_function))
 A custom function provided by the user to define the upper bound of unique states at each depth (returns a dictionary).
@@ -185,66 +181,48 @@ A custom function provided by the user to determine the heuristic values of stat
 
 # Default Behavioural Functions
 
-Passing in functions as parameters allows the user to gain fine-grained control over the structure of the generated graph. All of the behavioural functions passed in, must have the following parameters (plus some function-specific parameters):
+Certain functionality is controlled by what we call "behavioral functions". These functions are used to generate certain values based on other currently observed values in the graph. For example, deciding on the branching factor of a state given its depth. We provide sane defaults which can be found in [default_functions.py](default_functions.py).
+
+However, since these rules can vary so wildly between different kinds of graphs, we allow user-defined functions to be passed to the API during initialization. We recommend having a look at the default functions, as well as the [example functions](example_functions.py), to get a better idea of how to construct your own. 
+
+Following is a list of the available functions. They all accept the arguments listed directly below, unless explicitely stated otherwise: 
 -  **Parameters:**
-	-  `randint` ([`RandomIntFunction`](#use-of-deterministic-randomness-in-custom-functionality)): A callable that returns random integers given a range and distribution.
-	-  `randf` ([`RandomFloatFunction`](#use-of-deterministic-randomness-in-custom-functionality)): A callable that returns random floats given a range and distribution.
-  
-  
----
+	-  `randint` ([`RandomIntFunction`](#use-of-deterministic-randomness-in-custom-functionality)): A callable that returns random integers within an inclusive range between `low` and `high`. Optionally, a [`RandomnessDistribution`](#RandomnessDistribution) enum can be passed using the `distribution` keyword argument. This will override the state's default distribution.
+	-  `randf` ([`RandomFloatFunction`](#use-of-deterministic-randomness-in-custom-functionality)): A callable that accepts the same arguments as above.
+	-  `params` (`StateParams`): A container holding global and local state information.
   
 
 ### `default_branching_function()`
--  **Parameters:**
-	-  `params` (`StateParams`): A container holding global and local state information.
 -  **Return Type : `int`**
 -  **Description:** Uses the `randf` function to add random variance (bounded by `branching_factor_variance`) to the `base_branching_factor` and returns this value.
 
-  
-
----
 
 ### `default_value_function()`
 -  **Parameters:**
-	-  `params` (`StateParams`): A container holding global and local state information.
-	-  `self_branching_factor` (`int`): The number of children associated with the current state.
-	-  `child_true_value_information` (`ChildTrueValueInformation`): Stores data on the true values of all children generated so far.
+	-  `self_branching_factor` (`int`): *An additional parameter.* The number of children associated with the current state.
+	-  `child_true_value_information` (`ChildTrueValueInformation`): *An additional parameter.* Stores data on the true values of all children generated so far.
 -  **Return Type : `int`**
-
 -  **Description:** Generates a true value for a child state. Ensures that the values behave in a sensible manner by adhering to the rules and the [true value parameters](#true-value-parameters).
 
----
 
 ### `default_child_depth_function()`
--  **Parameters:**
-	-  `params` (`StateParams`): A container holding global and local state information.
-
 -  **Return Type : `int`**
-
 -  **Description:** Uses the `randint` to randomly generate a depth between minimum and maximum child depth and returns that value.
 
----
 
 ### `default_transposition_space_function()`
 
 -  **Parameters:**
-	-  `globals` (`GlobalVariables`): A container holding global state information.
-
-	-  `depth` (`int`): An integer specifying the depth of the current state.
-
+	-  `globals` (`GlobalVariables`): *Replaces the `params` parameter.* A container holding global state information.
+	-  `depth` (`int`): *An additional parameter.* An integer specifying the depth of the current state.
 -  **Return Type : `int`**
-
 -  **Description:** Uses `globals` to return the maximum number of different states per depth, ensuring minimal transpositions.
----
+
 
 ### `default_heuristic_value_function()`
 
--  **Parameters:**
-	-  `params` (`StateParams`): A container holding global and local state information, including depth and branching settings.
-
 -  **Return Type : `int`**
-
--  **Description:** Simulates a heuristic function with 70%-85% accuracy depending on depth.
+-  **Description:** Simulates a heuristic function with 70%-85% accuracy depending on depth. // TODO: change
 
   
 
@@ -262,7 +240,7 @@ Each state in the graph has access to a deterministic random number generator. T
 -  `RandomIntFunction`: `int`
 -  `RandomFloatFunction`: `float`
 
-Both functions sample a number between `low` and `high`, following the specified `distribution`.
+Both functions sample a number between `low` (inclusive) and `high` (inclusive), following the specified `distribution`.
 
 If no distribution is provided, the default distribution set during initialization is used (typically uniform).
 
@@ -283,26 +261,17 @@ If no distribution is provided, the default distribution set during initializati
 Graph where each state has a uniform branching factor between 0 and 3
 
 ```python
-
-  
-
 def  uniform3_branching_function(randint: RandomIntFunction, randf: RandomFloatFunction, params: StateParams) -> int:
-
-return randint(low=0, high=3, distribution=RandomnessDistribution.UNIFORM)
-
-  
+	return randint(low=0, high=3, distribution=RandomnessDistribution.UNIFORM)
 
 state = State(branching_function=uniform3_branching_function)
-
-  
-
 ```
 
 # Custom Types and Containers
 
 
 <a name="RandomnessDistribution"></a>
-**`RandomnessDistribution`**
+## `RandomnessDistribution`
 
 `RandomnessDistribution` is an enum with two options: UNIFORM and GAUSSIAN. It specifies the distribution type used by the random number generator.
 ```python
@@ -324,10 +293,9 @@ state = State(distribution=RandomnessDistribution.GAUSSIAN)
 ```
 Here, the state's default is Gaussian, but `randint` in `uniform3_branching_function` explicitly uses a uniform distribution.
 
-___
-**`Player`**
+## `Player`
 
-Player is an enum with two values: MIN and MAX. It is used by the API to identify the current player and can also be utilized by users in search algorithms.
+`Player` is an enum with two values: MIN and MAX. It is used by the API to identify the current player and can also be utilized by users in search algorithms.
 For a more detailed usage, see the [minimax example](#minimax-search).
 # API Reference
 
