@@ -1,11 +1,11 @@
 from typing import Self
 import math
 
-from RNGHasher import RNGHasher
-from custom_types import *
-from constants import *
-from utils import *
-from custom_exceptions import IdOverflow
+from .RNGHasher import RNGHasher
+from .custom_types import *
+from .constants import *
+from .utils import *
+from .custom_exceptions import IdOverflow
 
 
 class StateNode():
@@ -33,7 +33,7 @@ class StateNode():
             distribution=self.globals.vars.distribution, nodeid=self.id, seed=self.globals.vars.seed)
     
     def __str__(self) -> str:
-        return f"{self.true_value}-{self.player.name}-{self.depth}-{self.tspace_record}"
+        return f"true_value: {self.true_value}, player: {self.player.name}, depth: {self.depth}, tspace_record: {self.tspace_record}"
         # return ""
 
     def __repr__(self) -> str:
@@ -44,15 +44,14 @@ class StateNode():
             return False
         return self.id == other.id
     
-    # TODO: test
     def _encode_id(self, true_value: int, player: Player, depth: int, tspace_record: int) -> int:
         """"Encodes provided state attributes to a unique state id."""
         if not -1 <= true_value <= 1:
             raise ValueError(f"Invalid value {true_value}. Value should be in [-1, 1].")
         if not 0 <= depth <= self.globals.vars.max_depth:
-            raise IdOverflow(f"depth {depth}.") # TODO: test
+            raise IdOverflow(f"depth {depth}.")
         if not 0 <= tspace_record <= self.globals.vars.max_transposition_space_size:
-            raise IdOverflow(f"state_space_record {tspace_record}.") # TODO: test
+            raise IdOverflow(f"state_space_record {tspace_record}.")
         true_value_bit_shift = ID_BIT_SIZE - ID_TRUE_VALUE_BIT_SIZE
         player_bit_shift = true_value_bit_shift - ID_PLAYER_BIT_SIZE
         depth_bit_shift = player_bit_shift - bit_size(self.globals.vars.max_depth)
@@ -61,24 +60,19 @@ class StateNode():
         depth_bits = depth << depth_bit_shift
         return true_value_bits | player_bits | depth_bits | tspace_record
     
-    # TODO test
-    def _extract_information_from_id(self, id: int, msb_offset: int, bit_size: int) -> int:
-        """Helper function to decode state attributes from an id. 
-        msb_position is the number of bits that the attributes's msb is away from 
-        the id's msb."""
-        bit_mask = (1 << bit_size) - 1
-        shifted_attribute_bits = id >> (ID_BIT_SIZE - msb_offset - bit_size)
-        return shifted_attribute_bits & bit_mask
-    
     def _construct_state_params(self) -> StateParams:
         """Construct StateParams, this contains necessary information used by 
         behavioral functions."""
+        transposition_space_size = self.globals.funcs.transposition_space_function(
+            self._RNG.next_int, self._RNG.next_float, self.globals.vars, self.depth
+        )
         state_params_self = StateParamsSelf(
             id = self.id,
             true_value = self.true_value,
             player = self.player,
             depth = self.depth,
             transposition_space_record = self.tspace_record,
+            transposition_space_size = transposition_space_size,
         )
         state_params = StateParams(
             globals = self.globals.vars,
@@ -94,7 +88,6 @@ class StateNode():
             self.branching_factor(), sibling_true_value_information)
         return true_value
     
-    # TODO: think about adding a custom function for this
     def _calculate_child_player(self) -> Player:
         """Calculate the player attribute for child states."""
         return Player.MAX if self.player == Player.MIN else Player.MIN
@@ -109,7 +102,6 @@ class StateNode():
             raise IdOverflow(f"Depth can not exceed max_depth.")
         return child_depth
     
-    # TODO: test
     def _calculate_child_tspace_record(self, child_depth: int) -> int:
         """Calculate a transposition space record for a state at a given depth. The main bulk
         of this function is correctly scaling the tspace record from one depth to the next,
@@ -121,7 +113,7 @@ class StateNode():
         # the below code applies the locality scaling
         tspace_scaling_factor = child_tspace_size / self_tspace_size
         child_tspace_record_center = math.floor(self.tspace_record * tspace_scaling_factor)
-        child_tspace_variance_margin = (child_tspace_size - 1) * (1-self.globals.vars.locality) / 2 
+        child_tspace_variance_margin = (child_tspace_size - 1) * (1-self.globals.vars.locality_grouping) / 2 
         lower_margin = math.floor(child_tspace_record_center - child_tspace_variance_margin)
         upper_margin = math.floor(child_tspace_record_center + child_tspace_variance_margin)
         child_tspace_record = self._RNG.next_int(low=lower_margin, high=upper_margin)

@@ -1,7 +1,5 @@
 
-# Implicit, but Deterministic Generation of Graphs
-
-  
+# Synthetic State Space Generator
 
 ## Table of Contents
 
@@ -338,4 +336,4 @@ main()
 
 # License
 
-This project is licensed under the [GNU General Public License v3.0](LICENSE.txt).
+This project is licensed under the [GNU General Public License v3.0](LICENSE).

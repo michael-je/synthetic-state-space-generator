@@ -4,16 +4,18 @@ from typing import Any
 from collections import defaultdict
 import random
 
-import RNGHasher
-from RNGHasher import RNGHasher as RNG
-from State import State
-from custom_types import *
-from custom_exceptions import *
-from constants import *
-from utils import *
+import sssg.RNGHasher as RNGHasher
+from sssg.RNGHasher import RNGHasher as RNG
+from sssg.SyntheticGraph import SyntheticGraph
+from sssg.custom_types import *
+from sssg.custom_exceptions import *
+from sssg.constants import *
+from sssg.utils import *
 
 # pyright: reportPrivateUsage=false
 # pyright: reportUnknownLambdaType=false
+# pyright: reportMissingTypeStubs=false
+# pyright: reportWildcardImportFromLibrary=false
 
 random.seed(0)
 
@@ -29,7 +31,6 @@ seeds = SeedGenerator()
 
 class TestBitSize(unittest.TestCase):
     
-    # TODO: docstring
     def test_bit_size(self):
         self.assertEqual(64, bit_size(2**64-1))
         self.assertEqual(65, bit_size(2**64))
@@ -39,7 +40,6 @@ class TestBitSize(unittest.TestCase):
 
 class TestRNG(unittest.TestCase):
 
-    # TODO: docstring
     def test_basic_rng_determinism(self):
         N_TRIALS = 10000
         for _ in range(100):
@@ -50,7 +50,6 @@ class TestRNG(unittest.TestCase):
             sequence2 = [rng2.next_int() for _ in range(N_TRIALS)]
             self.assertEqual(sequence1, sequence2)
 
-    # TODO: docstring
     def test_hash_average(self):
         N_TRIALS = 100000
         for _ in range(10):
@@ -61,7 +60,6 @@ class TestRNG(unittest.TestCase):
             average = tot/N_TRIALS
             self.assertAlmostEqual(0.5, average, places=2)
     
-    # TODO: docstring
     def test_reset(self):
         for _ in range(100):
             rng = RNG(distribution=RandomnessDistribution.UNIFORM, seed=next(seeds))
@@ -70,8 +68,9 @@ class TestRNG(unittest.TestCase):
             sequence2 = [rng.next_int() for _ in range(100)]
             self.assertEqual(sequence1, sequence2)
     
-    # TODO: docstring
     def test_gaussian_distribution(self):
+        """Test whether the RNG's results correctly follow the gaussian distribution when
+        expected."""
         N_TRIALS = 1000000
         rng = RNG(distribution=RandomnessDistribution.GAUSSIAN)
         bins: defaultdict[int, float]= defaultdict(lambda: 0)
@@ -101,8 +100,9 @@ class TestRNG(unittest.TestCase):
         self.assertAlmostEqual(bins[ 2]/N_TRIALS, BAND_2, places=2)
         self.assertAlmostEqual(bins[ 3]/N_TRIALS, BAND_3, places=2)
     
-    # TODO: docstring
     def test_uniform_distribution(self):
+        """Test whether the RNG's results correctly follow the uniform distribution when
+        expected."""
         N_TRIALS = 1000000
         rng = RNG(distribution=RandomnessDistribution.UNIFORM)
         bins: defaultdict[int, int]= defaultdict(lambda: 0)
@@ -123,7 +123,6 @@ class TestRNG(unittest.TestCase):
         for result in bins.values():
             self.assertLess(abs(result - N_TRIALS/5), MARGIN)
     
-    # TODO: docstring
     def test_bad_int_arguments(self):
         rng = RNG(distribution=RandomnessDistribution.UNIFORM)
         # ranges too large
@@ -139,7 +138,6 @@ class TestRNG(unittest.TestCase):
         self.assertRaises(ValueError, lambda: rng.next_int(low=0.1)) # type: ignore
         self.assertRaises(ValueError, lambda: rng.next_int(high=0.1)) # type: ignore
     
-    # TODO: docstring
     def test_good_int_arguments(self):
         rng = RNG(distribution=RandomnessDistribution.UNIFORM)
         N_TRIALS = 10000
@@ -164,7 +162,6 @@ class TestRNG(unittest.TestCase):
             low, high = r
             rng.next_int(low=low, high=high)
     
-    # TODO: docstring
     def test_bad_float_arguments(self):
         rng = RNG(distribution=RandomnessDistribution.UNIFORM)
         # test low > high
@@ -173,7 +170,6 @@ class TestRNG(unittest.TestCase):
             low, high = r
             self.assertRaises(ValueError, lambda: rng.next_float(low=low, high=high))
 
-    # TODO: docstring
     def test_good_float_arguments(self):
         rng = RNG(distribution=RandomnessDistribution.UNIFORM)
         N_TRIALS = 10000
@@ -201,13 +197,7 @@ class TestRNG(unittest.TestCase):
 
 class TestState(unittest.TestCase):
     
-    # TODO: test determinism with more complex graphs, especially where
-    # we revisit states multiple times from different paths
-    
-    # TODO: test memory efficiency
-
-    
-    def _walk_graph(self, state: State, walk_seed: int=0):
+    def _walk_graph(self, state: SyntheticGraph, walk_seed: int=0):
         """Helper function to take a deterministic walk through the graph."""
         rng = RNG(distribution=RandomnessDistribution.UNIFORM, seed=walk_seed)
         while state.depth() < state.globals.vars.max_depth - 1:
@@ -216,26 +206,24 @@ class TestState(unittest.TestCase):
             while rng.next_float() < 0.6 and not state.is_terminal():
                 state.make_random()
 
-    # TODO: docstring
     def test_undo_root(self):
-        state = State()
+        state = SyntheticGraph()
         self.assertRaises(RootHasNoParent, lambda: state.undo())
         state.make(state.actions()[0])
         state.undo()
         self.assertRaises(RootHasNoParent, lambda: state.undo())
     
-    # TODO: docstring
     def test_make_terminal(self):
-        state = State()
+        """An error should be raised when trying to use .make() on a terminal state."""
+        state = SyntheticGraph()
         while not state.is_terminal():
             state.make(0)
         self.assertRaises(TerminalHasNoChildren, lambda: state.make(0))
     
-    # TODO: docstring
     def test_depth(self):
         N_TRIALS = 100
         rng = RNGHasher.RNGHasher(RandomnessDistribution.UNIFORM)
-        state = State(max_depth=10000)
+        state = SyntheticGraph(max_depth=10000)
         depth = 0
         self.assertEqual(state.depth(), depth)
         state.make_random()
@@ -252,47 +240,56 @@ class TestState(unittest.TestCase):
                 state.make_random()
                 depth += 1
                 steps -= 1
-        self.assertEqual(state.depth(), depth)
+        self.assertEqual(state.depth(), depth,
+            "Mismatch in depth returned by the state and the expected depth.")
     
-    # TODO: docstring
     def test_state_parameter_ranges(self):
-        self.assertRaises(ValueError, lambda: State(max_depth=-1))
-        self.assertRaises(ValueError, lambda: State(max_depth=0))
-        self.assertRaises(ValueError, lambda: State(max_depth=2**ID_BIT_SIZE))
-        self.assertRaises(ValueError, lambda: State(max_depth=2**(ID_BIT_SIZE - ID_TRUE_VALUE_BIT_SIZE - ID_PLAYER_BIT_SIZE)))
-        self.assertRaises(ValueError, lambda: State(child_depth_minumum=2, child_depth_maximum=1))
-        self.assertRaises(ValueError, lambda: State(terminal_minimum_depth=-1))
-        self.assertRaises(ValueError, lambda: State(branching_factor_base=-1))
-        self.assertRaises(ValueError, lambda: State(branching_factor_variance=-1))
-        self.assertRaises(ValueError, lambda: State(symmetry_factor=0))
-        self.assertRaises(ValueError, lambda: State(symmetry_factor=1.5))
-        self.assertRaises(ValueError, lambda: State(symmetry_frequency=-1))
-        self.assertRaises(ValueError, lambda: State(symmetry_frequency=1.5))
-        self.assertRaises(ValueError, lambda: State(true_value_forced_ratio=-1))
-        self.assertRaises(ValueError, lambda: State(true_value_forced_ratio=1.5))
-        self.assertRaises(ValueError, lambda: State(true_value_similarity_chance=-1))
-        self.assertRaises(ValueError, lambda: State(true_value_similarity_chance=1.5))
-        self.assertRaises(ValueError, lambda: State(true_value_tie_chance=-1))
-        self.assertRaises(ValueError, lambda: State(true_value_tie_chance=1.5))
-        self.assertRaises(ValueError, lambda: State(locality=-1))
-        self.assertRaises(ValueError, lambda: State(locality=1.5))
+        self.assertRaises(ValueError, lambda: SyntheticGraph(seed=-1))
+        self.assertRaises(ValueError, lambda: SyntheticGraph(seed=0xFFFFFFFF + 1))
+        self.assertRaises(ValueError, lambda: SyntheticGraph(max_depth=-1))
+        self.assertRaises(ValueError, lambda: SyntheticGraph(max_depth=0))
+        self.assertRaises(ValueError, lambda: SyntheticGraph(max_depth=2**ID_BIT_SIZE))
+        self.assertRaises(ValueError, lambda: SyntheticGraph(max_depth=2**(ID_BIT_SIZE - ID_TRUE_VALUE_BIT_SIZE - ID_PLAYER_BIT_SIZE)))
+        self.assertRaises(ValueError, lambda: SyntheticGraph(root_true_value=-2))
+        self.assertRaises(ValueError, lambda: SyntheticGraph(root_true_value=2))
+        self.assertRaises(ValueError, lambda: SyntheticGraph(root_true_value=0.2)) # type: ignore
+        self.assertRaises(ValueError, lambda: SyntheticGraph(branching_factor_base=-1))
+        self.assertRaises(ValueError, lambda: SyntheticGraph(branching_factor_variance=-1))
+        self.assertRaises(ValueError, lambda: SyntheticGraph(child_depth_minumum=2, child_depth_maximum=1))
+        self.assertRaises(ValueError, lambda: SyntheticGraph(terminal_minimum_depth=-1))
+        self.assertRaises(ValueError, lambda: SyntheticGraph(locality_grouping=-1))
+        self.assertRaises(ValueError, lambda: SyntheticGraph(locality_grouping=1.5))
+        self.assertRaises(ValueError, lambda: SyntheticGraph(true_value_forced_ratio=-1))
+        self.assertRaises(ValueError, lambda: SyntheticGraph(true_value_forced_ratio=1.5))
+        self.assertRaises(ValueError, lambda: SyntheticGraph(true_value_similarity_chance=-1))
+        self.assertRaises(ValueError, lambda: SyntheticGraph(true_value_similarity_chance=1.5))
+        self.assertRaises(ValueError, lambda: SyntheticGraph(true_value_tie_chance=-1))
+        self.assertRaises(ValueError, lambda: SyntheticGraph(true_value_tie_chance=1.5))
+        self.assertRaises(ValueError, lambda: SyntheticGraph(symmetry_factor=0))
+        self.assertRaises(ValueError, lambda: SyntheticGraph(symmetry_factor=1.5))
+        self.assertRaises(ValueError, lambda: SyntheticGraph(symmetry_frequency=-1))
+        self.assertRaises(ValueError, lambda: SyntheticGraph(symmetry_frequency=1.5))
+        self.assertRaises(ValueError, lambda: SyntheticGraph(heuristic_accuracy_base=-1))
+        self.assertRaises(ValueError, lambda: SyntheticGraph(heuristic_accuracy_base=2))
+        self.assertRaises(ValueError, lambda: SyntheticGraph(heuristic_depth_scaling=-1))
+        self.assertRaises(ValueError, lambda: SyntheticGraph(heuristic_depth_scaling=2))
+        self.assertRaises(ValueError, lambda: SyntheticGraph(heuristic_locality_scaling=-1))
+        self.assertRaises(ValueError, lambda: SyntheticGraph(heuristic_locality_scaling=2))
     
-    # TODO: docstring
     def test_basic_state_determinism_1(self):
-        state1 = State()
+        state1 = SyntheticGraph()
         self._walk_graph(state1)
         state1_id = state1.id()
-        state2 = State()
+        state2 = SyntheticGraph()
         self._walk_graph(state2)
         state2_id = state2.id()
         self.assertEqual(state1_id, state2_id)
     
-    # TODO: docstring
     def test_basic_state_determinism_2(self):
         N_TRIALS = 50
         DEPTH = 30
-        state1 = State(max_depth=DEPTH)
-        state2 = State(max_depth=DEPTH)
+        state1 = SyntheticGraph(max_depth=DEPTH)
+        state2 = SyntheticGraph(max_depth=DEPTH)
         for _ in range(N_TRIALS):
             self._walk_graph(state1, next(seeds))
             self._walk_graph(state2, next(seeds))
@@ -306,58 +303,57 @@ class TestState(unittest.TestCase):
             state2.make(state2.actions()[0])
         self.assertEqual(state1.id(), state2.id())
     
-    # TODO: docstring
-    def test_maxdepth_1(self):
-        state = State(max_depth=1)
+    def test_maxdepth(self):
+        state = SyntheticGraph(max_depth=1)
         self.assertRaises(TerminalHasNoChildren, lambda: state.make_random())
     
-    # TODO: docstring
     def test_negative_branching_function(self):
-        state = State(branching_function=lambda *_: -1) # type: ignore
+        state = SyntheticGraph(branching_function=lambda *_: -1) # type: ignore
         self.assertRaises(TerminalHasNoChildren, lambda: state.make_random())
     
-    # TODO: docstring
     def test_negative_child_depth(self):
-        state = State(child_depth_function=lambda *_: -1) # type: ignore
+        state = SyntheticGraph(child_depth_function=lambda *_: -1) # type: ignore
         self.assertRaises(IdOverflow, lambda: state.make_random())
     
-    # TODO: docstring
     def test_large_child_depth(self):
-        state = State(max_depth=2, child_depth_function=lambda *_: 3) # type: ignore
+        state = SyntheticGraph(max_depth=2, child_depth_function=lambda *_: 3) # type: ignore
         self.assertRaises(IdOverflow, lambda: state.make_random())
     
-    # TODO: docstring
-    def test_transposition_space_functions(self):
-        # spaces too small
-        state = State(transposition_space_function=lambda *_: 0) # type: ignore
+    def test_transposition_space_too_small(self):
+        state = SyntheticGraph(transposition_space_function=lambda *_: 0) # type: ignore
         self.assertRaises(ValueError, lambda: state.make_random())
-        state = State(transposition_space_function=lambda *_: -1) # type: ignore
+        state = SyntheticGraph(transposition_space_function=lambda *_: -1) # type: ignore
         self.assertRaises(ValueError, lambda: state.make_random())
-        # space barely large enough
-        state = State(transposition_space_function=lambda *_: 1) # type: ignore
+    
+    def test_transposition_space_barely_large_enough(self):
+        state = SyntheticGraph(transposition_space_function=lambda *_: 1) # type: ignore
         state.make_random()
-        # space at maximum
-        mtss = State().globals.vars.max_transposition_space_size
-        state = State(transposition_space_function=lambda *_: mtss) # type: ignore
+
+    def test_transposition_space_at_maximum(self):
+        mtss = SyntheticGraph().globals.vars.max_transposition_space_size
+        state = SyntheticGraph(transposition_space_function=lambda *_: mtss) # type: ignore
         state.make_random()
-        # space above maximum
-        state = State(transposition_space_function=lambda *_: mtss+1) # type: ignore
+    
+    def test_transposition_space_above_maximum(self):
+        mtss = SyntheticGraph().globals.vars.max_transposition_space_size
+        state = SyntheticGraph(transposition_space_function=lambda *_: mtss+1) # type: ignore
         self.assertRaises(IdOverflow, lambda: state.make_random())
     
     def test_id_bit_partitioning_1(self):
+        """The bit partition of the transition space record should adapt to 
+        the bit partition of the max depth."""
         OCCUPIED_BITS = ID_TRUE_VALUE_BIT_SIZE + ID_PLAYER_BIT_SIZE
-        state = State(max_depth=2**(ID_BIT_SIZE - OCCUPIED_BITS -  1) - 1)
+        state = SyntheticGraph(max_depth=2**(ID_BIT_SIZE - OCCUPIED_BITS -  1) - 1)
         self.assertEqual(2**1 -  1, state.globals.vars.max_transposition_space_size)
-        state = State(max_depth=2**(ID_BIT_SIZE - OCCUPIED_BITS -  2) - 1)
+        state = SyntheticGraph(max_depth=2**(ID_BIT_SIZE - OCCUPIED_BITS -  2) - 1)
         self.assertEqual(2**2 -  1, state.globals.vars.max_transposition_space_size)
-        state = State(max_depth=2**(ID_BIT_SIZE - OCCUPIED_BITS - 32) - 1)
+        state = SyntheticGraph(max_depth=2**(ID_BIT_SIZE - OCCUPIED_BITS - 32) - 1)
         self.assertEqual(2**32 - 1, state.globals.vars.max_transposition_space_size)
     
-    # TODO: docstring
     def test_id_bit_partitioning_2(self):
-        state1 = State(max_depth=2**(ID_BIT_SIZE-5))
-        state2 = State(max_depth=2**(ID_BIT_SIZE-20))
-        state3 = State(max_depth=2**(ID_BIT_SIZE-60))
+        state1 = SyntheticGraph(max_depth=2**(ID_BIT_SIZE-5))
+        state2 = SyntheticGraph(max_depth=2**(ID_BIT_SIZE-20))
+        state3 = SyntheticGraph(max_depth=2**(ID_BIT_SIZE-60))
         self.assertEqual(
             state1.globals.vars.max_depth * (state1.globals.vars.max_transposition_space_size + 1),
             state2.globals.vars.max_depth * (state2.globals.vars.max_transposition_space_size + 1))
@@ -369,7 +365,7 @@ class TestState(unittest.TestCase):
     def test_transposition_space_size(self):
         T_SPACE_SIZES = [5, 10, 51, 100]
         for tspace_size in T_SPACE_SIZES:
-            state = State(
+            state = SyntheticGraph(
                 transposition_space_function=lambda *args: tspace_size, # type: ignore
                 branching_factor_base=10000)
             state.actions()
@@ -380,7 +376,7 @@ class TestState(unittest.TestCase):
     
     def test_locality_1(self):
         """All transposition space records should be the same when locality=1"""
-        state = State(branching_factor_base=4, locality=1, max_depth=100)
+        state = SyntheticGraph(branching_factor_base=4, locality_grouping=1, max_depth=100)
         while not state.is_terminal():
             state.actions()
             child_records = [child.tspace_record for child in state._current.children]
@@ -389,7 +385,6 @@ class TestState(unittest.TestCase):
             self.assertEqual(state._root.tspace_record, state._current.tspace_record,
                              "Children should have same tspace record as root.")
             state.make_random()
-        
     
     def test_locality_0_distribution(self):
         """Transposition space records should be evenly spaced out accross the space when locality=0."""
@@ -397,9 +392,9 @@ class TestState(unittest.TestCase):
         T_SPACE_SIZES = [5, 10, 51, 100]
         ERROR_MARGIN = 0.1
         for tspace_size in T_SPACE_SIZES:
-            state = State(
+            state = SyntheticGraph(
                 branching_factor_base=N_CHILDREN,
-                locality=0,
+                locality_grouping=0,
                 transposition_space_function=lambda *args: tspace_size) # type: ignore
             state.actions()
             bins: defaultdict[int, int] = defaultdict(lambda: 0)
@@ -417,9 +412,9 @@ class TestState(unittest.TestCase):
         T_SPACE_SIZES = [5, 10, 51, 100]
         for tspace_size in T_SPACE_SIZES:
             for locality in [0.0, 0.25, 0.5, 0.75, 1.0]:
-                state = State(
+                state = SyntheticGraph(
                     branching_factor_base=N_CHILDREN,
-                    locality=locality,
+                    locality_grouping=locality,
                     transposition_space_function=lambda *args: tspace_size) # type: ignore
                 state.actions()
                 unique_records = set(child.tspace_record for child in state._current.children)
@@ -432,10 +427,10 @@ class TestState(unittest.TestCase):
         N_CHILDREN = 10000
         LOCALITY = 0.5
         tspace_sizes = [50, 20, 100, 32, 3, 41, 325, 123, 52]
-        state = State(
+        state = SyntheticGraph(
             transposition_space_function=lambda *args: tspace_sizes[args[-1]], # type: ignore
             branching_factor_base=N_CHILDREN,
-            locality=LOCALITY)
+            locality_grouping=LOCALITY)
         for i in range(1, len(tspace_sizes)):
             parent_tspace_size, child_tspace_size = tspace_sizes[i-1], tspace_sizes[i]
             state.actions()
@@ -459,7 +454,7 @@ class TestState(unittest.TestCase):
 
     def test_encode_id_0(self):
         """All bits of the id should be 0 if we pass in appropriate parameters."""
-        state_node = State()._current
+        state_node = SyntheticGraph()._current
         true_value = decode_true_value_bits(0)
         id = state_node._encode_id(true_value, Player(0), 0, 0)
         self.assertEqual(id, 0)
@@ -467,7 +462,7 @@ class TestState(unittest.TestCase):
     def test_encode_id_all_to_1s(self):
         """All bit representations of values in the id should equal 1 if we pass
         in appropriate parameters."""
-        state_node = State()._current
+        state_node = SyntheticGraph()._current
         # create id
         true_value = decode_true_value_bits(1)
         id = state_node._encode_id(true_value, Player(1), 1, 1)
@@ -485,12 +480,12 @@ class TestState(unittest.TestCase):
     
     def test_encode_id_random(self):
         """Attributes encoded in the id should retain their correct value."""
-        rng = State()._RNG
+        rng = SyntheticGraph()._RNG
         N_TRIALS = 100
         for _ in range(N_TRIALS):
             # define random values
             max_depth = rng.next_int(0, 2**32)
-            state_node = State(max_depth=max_depth)._current
+            state_node = SyntheticGraph(max_depth=max_depth)._current
             true_value = rng.next_int(-1, 1)
             player = Player(rng.next_int(0, 1))
             depth = rng.next_int(0, state_node.globals.vars.max_depth)
@@ -512,7 +507,7 @@ class TestState(unittest.TestCase):
     def test_set_root(self):
         """Tests State.set_root(). Also inadvertently tests the extraction functions
         in utils.py."""
-        state = State()
+        state = SyntheticGraph()
         state.make(state.actions()[0])
         true_value = state.true_value()
         player = state.player()
@@ -524,9 +519,8 @@ class TestState(unittest.TestCase):
         self.assertEqual(state.depth(), depth)
         self.assertEqual(state._current.tspace_record, tspace_record)
 
-    # TODO: docstring
     def test_simple_child_regeneration_determinism(self):
-        state = State()
+        state = SyntheticGraph()
         actions = state.actions()
         child_ids: list[int] = []
         state.make(actions[0])
@@ -544,29 +538,8 @@ class TestState(unittest.TestCase):
         state.undo()
         self.assertEqual(child_ids, child_ids)
 
-    # TODO: docstring
-    def test_simple_child_regeneration_determinism_with_retain_graph(self):
-        state = State(retain_graph=True)
-        actions = state.actions()
-        child_ids: list[int] = []
-        state.make(actions[0])
-        child_ids.append(state.id())
-        state.undo()
-        state.make(actions[1])
-        child_ids.append(state.id())
-        state.undo()
-        child_ids: list[int] = []
-        state.make(actions[0])
-        child_ids.append(state.id())
-        state.undo()
-        state.make(actions[1])
-        child_ids.append(state.id())
-        state.undo()
-        self.assertEqual(child_ids, child_ids)
-
-    # TODO: docstring
     def test_compare_child_generation_with_unrelated_parameters(self):
-        state1 = State()
+        state1 = SyntheticGraph()
         actions = state1.actions()
         child_ids: list[int] = []
         state1.make(actions[0])
@@ -574,7 +547,7 @@ class TestState(unittest.TestCase):
         state1.undo()
         state1.make(actions[1])
         child_ids.append(state1.id())
-        state2 = State(retain_graph=True)
+        state2 = SyntheticGraph()
         child_ids: list[int] = []
         state2.make(actions[0])
         child_ids.append(state2.id())
@@ -588,7 +561,7 @@ class TestState(unittest.TestCase):
         """Tests whether state always produces the same attributes/values"""
         state_visit_count: defaultdict[int, int] = defaultdict(lambda: 0)
         state_info: dict[int, dict[str, int|float|bool|list[int]]] = dict()
-        def dfs(state: State):
+        def dfs(state: SyntheticGraph):
             if state_visit_count[state.id()] == 0:
                 state_info[state.id()] = {
                     "val": state.true_value(),
@@ -608,26 +581,26 @@ class TestState(unittest.TestCase):
                 state.make(action)
                 dfs(state)
                 state.undo()
-        state = State(
+        state = SyntheticGraph(
             max_depth=10, 
             transposition_space_function=lambda *args: 50) # type: ignore
         dfs(state)
 
     def test_different_graphs_based_on_seed(self):
         """Test whether states with different seed produces different graphs"""
-        state1 = State(seed=0)
+        state1 = SyntheticGraph(seed=0)
         state1.make(state1.actions()[0])
-        state2 = State(seed=1)
+        state2 = SyntheticGraph(seed=1)
         state2.make(state2.actions()[0])
         # should succeed with high probability
         self.assertNotEqual(state1.id(), state2.id())
     
-    # TODO: docstring
     def test_determinism_in_order_of_operations(self):
+        """Different orders of operations should not affect determinism."""
         def branching_function_1_to_100(randint: RandomIntFunction, randf: RandomFloatFunction, params: StateParams) -> int:
             return randint(low=1, high=100)
-        rng = State()._RNG
-        state = State(branching_function=branching_function_1_to_100, seed=3)
+        rng = SyntheticGraph()._RNG
+        state = SyntheticGraph(branching_function=branching_function_1_to_100, seed=3)
         state_funcs: list[Any] = [state.actions, state.depth, state.heuristic_value, state.id, state.is_root, state.is_terminal]
         N_TRIALS = 1000
         for _ in range(N_TRIALS):
@@ -648,11 +621,12 @@ class TestState(unittest.TestCase):
             state.undo()
             self.assertEqual(state1_id, state2_id)
     
-    # TODO: docstring
     def test_true_value_consistency_using_minimax(self):
+        """Test whether the true values of the default graph behave as expected using
+        a minimax search."""
         INF = 1000
         visited: dict[int, int] = {}
-        def minimax(state: State, depth: int) -> int:
+        def minimax(state: SyntheticGraph, depth: int) -> int:
             if state.id() in visited.keys():
                 self.assertEqual(state.true_value(), visited[state.id()])
                 return state.true_value()
@@ -680,20 +654,19 @@ class TestState(unittest.TestCase):
                 return min_eval
         N_TRIALS = 100
         for _ in range(N_TRIALS):
-            state = State(seed=next(seeds))
+            state = SyntheticGraph(seed=next(seeds))
             true_value = minimax(state, 5)
             self.assertEqual(true_value, state.true_value())
             visited.clear()
         for _ in range(N_TRIALS):
-            state = State(seed=next(seeds), branching_factor_base=5)
+            state = SyntheticGraph(seed=next(seeds), branching_factor_base=5)
             true_value = minimax(state, 3)
             self.assertEqual(true_value, state.true_value())
             visited.clear()
         
-    # TODO: docstring
     def test_extreme_symmetry(self):
         bf = 1000
-        state = State(
+        state = SyntheticGraph(
             symmetry_factor=0.000001, symmetry_frequency=1.0, 
             branching_factor_base=bf)
         while not state.is_terminal():
@@ -703,12 +676,11 @@ class TestState(unittest.TestCase):
             self.assertEqual(len(children), bf)
             state.make_random()
     
-    # TODO: docstring
-    def test_symmetry_values(self):
+    def test_various_symmetry_values(self):
         bfunc = lambda randint, randf, params: randint(10, 1000) # type: ignore
         symmetries = [0.5, 0.25, 0.125]
         for symmetry_factor in symmetries:
-            state = State(
+            state = SyntheticGraph(
                 symmetry_factor=symmetry_factor, symmetry_frequency=1,
                 branching_function=bfunc) # type: ignore
             while not state.is_terminal():
@@ -727,7 +699,7 @@ class TestState(unittest.TestCase):
         """"With a very low true_value_forced_ratio, and tie/similarity chances set to 0, 
         only one child should share a value with its parent."""
         N_TRIALS = 1000
-        state = State(
+        state = SyntheticGraph(
             true_value_forced_ratio=0.0001,
             true_value_similarity_chance=0,
             true_value_tie_chance=0,
@@ -755,10 +727,10 @@ class TestState(unittest.TestCase):
                 self.assertEqual(child_values.count(parent_true_value), 1)
 
     def test_loss_true_value_forced(self):
-        """"When in a loosing position, make sure that parents 
-        true value is propogated to all children"""
+        """"When in a loosing position, make sure that parents true value 
+        is propogated to all children."""
         N_TRIALS = 1000
-        state = State(
+        state = SyntheticGraph(
             transposition_space_function=lambda *args: 100,  # type: ignore
             max_depth=7,
             branching_factor_base=7)
@@ -782,20 +754,18 @@ class TestState(unittest.TestCase):
                 state.undo()
             self.assertEqual(child_values.count(parent_true_value), len(child_values))
 
-
     def test_set_root_determinism(self):
         """Testing whether set_root() breaks determinism. This test traverses the whole graph
-            and collects information about all states while also randomly picking some states 
-            for sampling. For each sampled state s, we call set_root(s) and traverse the graph 
-            again to make sure that the revisited states produce the same attributes
-        """
+        and collects information about all states while also randomly picking some states 
+        for sampling. For each sampled state s, we call set_root(s) and traverse the graph 
+        again to make sure that the revisited states produce the same attributes."""
         def child_depth_function_cycles_allowed(randint: RandomIntFunction, randf: RandomFloatFunction, params: StateParams) -> int:
             if randf() < 0.1:
                 return abs(params.self.depth - 3)
             else:
                 return params.self.depth + 1
-        state = State(
-            transposition_space_function=lambda *args: 100,
+        state = SyntheticGraph(
+            transposition_space_function=lambda *args: 100, # type: ignore
             child_depth_function=child_depth_function_cycles_allowed,
             branching_factor_base=10,
             max_depth=7)
@@ -803,7 +773,7 @@ class TestState(unittest.TestCase):
         state_info_from_root: dict[int, dict[str, int|float|bool]] = dict()
         set_root_tests: list[int] = []
         #Search from original state/root
-        def dfs_from_original_root(state: State):
+        def dfs_from_original_root(state: SyntheticGraph):
             if state.id() in state_info_from_root:
                 return
             state_info_from_root[state.id()] = {
@@ -823,7 +793,7 @@ class TestState(unittest.TestCase):
                 state.undo()
             return
         visited: set[int] = set()
-        def dfs_from_new_root(state: State):
+        def dfs_from_new_root(state: SyntheticGraph):
             if state.id() in visited:
                 return
             #Testing reproducability
@@ -847,12 +817,11 @@ class TestState(unittest.TestCase):
             state.set_root(sampled_id)
             dfs_from_new_root(state)
 
-
     def test_set_terminal_root(self):
         """Take random walk until we reach terminal node, set it as root 
         and make sure that we can't make any moves or undo. 
         """
-        state = State(max_depth=5)
+        state = SyntheticGraph(max_depth=5)
         while not state.is_terminal():
             state.make_random()
         state.set_root(state.id())

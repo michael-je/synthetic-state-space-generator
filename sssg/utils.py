@@ -1,5 +1,5 @@
-from custom_types import *
-from constants import *
+from .custom_types import *
+from .constants import *
 
 def bit_size(n: int) -> int:
     """Return the number of bits necessary to represent integer n in binary."""
@@ -10,11 +10,13 @@ def bit_size(n: int) -> int:
     return bits
 
 def encode_true_value_to_bits(true_value: int) -> int:
+    """Encode a true value in the range [-1, 1] to an appropriate bit representation."""
     if not -1 <= true_value <= 1:
         raise ValueError(f"Invalid value {true_value}. Value must be in [-1, 1].")
     return true_value + 1
         
 def decode_true_value_bits(true_value_bits: int) -> int:
+    """Inverse to the true value encoding function."""
     if not 0 <= true_value_bits <= 2:
         raise ValueError(f"Invalid bit representation {bin(true_value_bits)[2:]} of Value.")
     return true_value_bits - 1
@@ -58,6 +60,7 @@ def extract_tspace_record_from_id(state_id: int, tspace_record_bit_size: int) ->
 
 def assign_child_true_value_information(
     child_true_value_information: ChildTrueValueInformation, player: Player, child_true_value: int):
+    """Helper function to correctly increment values of child_true_value_information."""
     match child_true_value:
         case 0:
             child_true_value_information.total_child_ties += 1
