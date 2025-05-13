@@ -1,7 +1,5 @@
 
-# Implicit, but Deterministic Generation of Graphs
-
-  
+# Synthetic State Space Generator
 
 ## Table of Contents
 
