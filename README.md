@@ -36,7 +36,7 @@ cd synthetic-state-space-generator
 ```
 3. Optionally create a new virtual environment (might be necessary on some systems):
 ```
-python -m venv venv
+python3 -m venv venv
 ```
 4. Install the package locally via pip:
 ```
@@ -53,14 +53,14 @@ state = SyntheticGraph()   # initialize a new graph
 After creating a graph, we can query the current state for available actions using `.actions()`, and transition to child states using the `.make()` method:
 ```python
 actions = state.actions()  # get a list of available transitions
-state.make(actions[0])     # tranition to the first child state
+state.make(actions[0])     # transition to the first child state
 ```
 
 We can interact with the graph programatically:
 ```python
 while not state.is_terminal():	# take random actions until we reach a terminal state
 	state.make_random()
-state.true_value()				# then query for the state's true value
+state.true_value()		# then query for the state's true value
 ```
 
 We can undo actions as often as we like to traverse back up the graph:
@@ -124,8 +124,6 @@ Stores tree in memory, used to draw tree
 
 -  **`branching_factor_variance`** (`int`, default: `0`, range: `Positive Integer`)
 Specifies how much the branching factor can vary around the base value. A value of `0` means all states have exactly `branching_factor_base` children. Higher values introduce randomness into the number of children each state generates.
-
-	> By default, the graph generator uses these two values in the `default_branching_function`
   
 -  **`terminal_minimum_depth`** (`int`, default: `0`, range: `Positive Integer`)
 Defines how deep a state must be before it can be considered terminal. // TODO: improve
@@ -193,10 +191,10 @@ Certain functionality is controlled by what we call "behavioral functions". Thes
 
 However, since these rules can vary so wildly between different kinds of graphs, we allow user-defined functions to be passed to the API during initialization. We recommend having a look at the default functions, as well as the [example functions](examples/example_behavior_functions.py), to get a better idea of how to construct your own. 
 
-Following is a list of the available functions. They all accept the arguments listed directly below, unless explicitely stated otherwise: 
+Following is a list of the available functions. They must all accept the arguments listed directly below, unless explicitely stated otherwise: 
 -  **Parameters:**
-	-  `randint` ([`RandomIntFunction`](#use-of-deterministic-randomness-in-custom-functionality)): A callable that returns random integers within an inclusive range between `low` and `high`. Optionally, a [`RandomnessDistribution`](#RandomnessDistribution) enum can be passed using the `distribution` keyword argument. This will override the state's default distribution.
-	-  `randf` ([`RandomFloatFunction`](#use-of-deterministic-randomness-in-custom-functionality)): A callable that accepts the same arguments as above.
+	-  `randint` ([`RandomIntFunction`](#use-of-deterministic-randomness-in-custom-functionality)): See [`RandomIntFunction`](#use-of-deterministic-randomness-in-custom-functionality) for a description.
+	-  `randf` ([`RandomFloatFunction`](#use-of-deterministic-randomness-in-custom-functionality)): See [`RandomFloatFunction`](#use-of-deterministic-randomness-in-custom-functionality) for a description. 
 	-  `params` (`StateParams`): A container holding global and local state information.
   
 
@@ -291,7 +289,7 @@ state = State(branching_function=uniform3_branching_function)
 
 ### **`GlobalVariables`**
 
-`GlobalVariables` is a dataclass that stores information shared across the entire graph. It mirrors the configuration options passed in during initialization — essentially a copy of the [`State` class' parameters](#parameters).
+`GlobalVariables` is a dataclass that stores information shared across the entire graph. It mirrors the configuration options passed in during initialization — essentially a copy of the [`SyntheticGraph` class' parameters](#parameters).
 
 
 
@@ -312,22 +310,22 @@ state = State(distribution=RandomnessDistribution.GAUSSIAN)
 ```
 In this case, all random number generation will default to a Gaussian distribution unless overridden.
 
-You can override the distribution in specific functions:
+If the distribution must be overriden for specific behavioral function, it can be done like so:
 
 ```python
-from custom_types import RandomnessDistribution
-
 def uniform3_branching_function(randint:RandomIntFunction, randf: RandomFloatFunction, params: StateParams) -> int:
 	return randint(low=0, high=3, distribution=RandomnessDistribution.UNIFORM)
 
-state = State(distribution=RandomnessDistribution.GAUSSIAN)
+state = State(
+	distribution=RandomnessDistribution.GAUSSIAN,
+	branching_function=uniform3_branching_function,
+)
 ```
 Here, the state's default is Gaussian, but `randint` in `uniform3_branching_function` explicitly uses a uniform distribution.
 
 ## `Player`
 
-`Player` is an enum with two values: MIN and MAX. It is used by the API to identify the current player and can also be utilized by users in search algorithms.
-For a more detailed usage, see the [minimax example](#minimax-search).
+`Player` is an enum with two values: `MIN` and `MAX`. It is used by the API to identify the current player and can also be utilized by users in search algorithms.
 
 # API Reference
 
