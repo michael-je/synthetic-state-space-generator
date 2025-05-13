@@ -1,5 +1,5 @@
-from custom_types import *
-from constants import *
+from .custom_types import *
+from .constants import *
 
 def bit_size(n: int) -> int:
     """Return the number of bits necessary to represent integer n in binary."""

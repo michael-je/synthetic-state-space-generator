@@ -1,4 +1,4 @@
-from custom_types import *
+from .custom_types import *
 
 
 def branching_function_midgame_heavy(randint: RandomIntFunction, randf: RandomFloatFunction, params: StateParams) -> int:

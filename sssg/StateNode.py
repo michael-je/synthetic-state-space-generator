@@ -1,11 +1,11 @@
 from typing import Self
 import math
 
-from RNGHasher import RNGHasher
-from custom_types import *
-from constants import *
-from utils import *
-from custom_exceptions import IdOverflow
+from .RNGHasher import RNGHasher
+from .custom_types import *
+from .constants import *
+from .utils import *
+from .custom_exceptions import IdOverflow
 
 
 class StateNode():

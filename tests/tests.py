@@ -4,16 +4,18 @@ from typing import Any
 from collections import defaultdict
 import random
 
-import RNGHasher
-from RNGHasher import RNGHasher as RNG
-from State import State
-from custom_types import *
-from custom_exceptions import *
-from constants import *
-from utils import *
+import sssg.RNGHasher as RNGHasher
+from sssg.RNGHasher import RNGHasher as RNG
+from sssg.State import State
+from sssg.custom_types import *
+from sssg.custom_exceptions import *
+from sssg.constants import *
+from sssg.utils import *
 
 # pyright: reportPrivateUsage=false
 # pyright: reportUnknownLambdaType=false
+# pyright: reportMissingTypeStubs=false
+# pyright: reportWildcardImportFromLibrary=false
 
 random.seed(0)
 

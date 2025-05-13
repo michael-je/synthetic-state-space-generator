@@ -1,8 +1,9 @@
 import math
 import mmh3
-from constants import HASH_OUTPUT_TMAX
-from custom_types import RandomnessDistribution as Dist
-from custom_exceptions import *
+
+from .constants import HASH_OUTPUT_TMAX
+from .custom_types import RandomnessDistribution as Dist
+from .custom_exceptions import *
 
 
 GAUSSIAN_MAX_DIST_FROM_MEAN = 3.4 # not a true maximum, but we don't care about extreme outliers

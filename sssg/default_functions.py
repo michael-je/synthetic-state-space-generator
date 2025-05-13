@@ -1,8 +1,8 @@
-from custom_types import *
-from constants import *
-from utils import *
-
 import math
+
+from .custom_types import *
+from .constants import *
+from .utils import *
 
 
 def default_branching_function(randint: RandomIntFunction, randf: RandomFloatFunction, params: StateParams) -> int:

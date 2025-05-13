@@ -327,4 +327,4 @@ For a more detailed usage, see the [minimax example](#minimax-search).
 
 # License
 
-This project is licensed under the [GNU General Public License v3.0](LICENSE.txt).
+This project is licensed under the [GNU General Public License v3.0](LICENSE).
