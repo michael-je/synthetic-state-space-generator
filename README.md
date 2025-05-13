@@ -32,6 +32,50 @@ First, you install it:
 // TODO: michael when api is ready
 
 # Basic Usage
+
+## 1. Create a State
+
+```python
+state = State()
+print(state)
+```
+
+**Output:**
+```
+0-MAX-0-0
+```
+> This initializes the root of the graph. The printed output shows basic information about the state — such as its ID, true value, and depth.
+
+
+## 2. Get Available Actions
+
+```python
+actions = state.actions()
+```
+
+**Output:**
+```
+[0, 1]
+```
+
+> The `actions()` method returns a list of possible transitions (i.e., children) from the current state. Each action represents a move to a new state.
+
+
+## 3. Move to a Child State
+
+```python
+state.make(actions[0])
+print(state)
+```
+
+**Output:**
+```
+0-MIN-1-3985006587900624001667906114197238
+```
+
+> The `make()` method applies the selected action, transitioning to the chosen child state. The state is now updated, and the new values reflect the change.
+
+
 Initialize a new state-space graph by using the `State` constructor.
 ```python
 state = State()
