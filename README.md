@@ -22,42 +22,97 @@
 # Introduction
 This API allows users to generate variety of state-space graphs. The tool allows the user to use simple predefined graphs, or to fine-tune the graph by using user-defined function passing. Using Hashing and a starting seed, reproducability is ensured for each graph. This tool supports user control over branching factor, depth, values of states, heuristic values of states, cycles and transpositions among other features.
 
-An accompanying research paper can be found [here](www.example.org).
+An accompanying research paper will be linked here once available.
 
 # Getting Started
-First, you install it:
-....
-// TODO: michael when api is ready
+To install the API, simply,
+1. Clone the repository:
+```
+git clone git@github.com:michael-je/synthetic-state-space-generator.git
+```
+2. Move into the repository directory:
+```
+cd synthetic-state-space-generator
+```
+3. Optionally create a new virtual environment (might be necessary on some systems):
+```
+python -m venv venv
+```
+4. Install the package locally via pip:
+```
+pip3 install .
+```
 
 # Basic Usage
-
+## Methods
+To initialize a new state-space graph, use the `SyntheticGraph` constructor. The default graph is a simple binary tree:
 ```python
-state = State()            #Initialize State
-print(state)               
-actions = state.actions()  #actions() returns list of transitions
-state.make(actions[0])     #make(action) tranitions to the given state
-print(state)               
+state = SyntheticGraph()   # initialize a new graph
 ```
-This creates a simple graph, with default values for each parameter. By default we get a binary tree with no transpositions.
 
+After creating a graph, we can query the current state for available actions using `.actions()`, and transition to child states using the `.make()` method:
+```python
+actions = state.actions()  # get a list of available transitions
+state.make(actions[0])     # tranition to the first child state
+```
 
-// TODO: add a few (1-3) short examples (max 10 lines each)
-  
+We can interact with the graph programatically:
+```python
+while not state.is_terminal():	# take random actions until we reach a terminal state
+	state.make_random()
+state.true_value()				# then query for the state's true value
+```
 
-For more detailed code examples click [here](#minimax-search)
+We can undo actions as often as we like to traverse back up the graph:
+```python
+while not state.is_root():	# undo the actions until we return to the root state
+	state.undo()
+```
+
+More detailed examples can be found in [example_usage.py](examples/example_usage.py).
+
+## Parametrization
+
+To quickly create graphs with different properties, we can initialize `SyntheticGraph` with keyword arguments.
+```python
+# create a graph with a high branching factor
+state = SyntheticGraph(
+	branching_factor_base = 40,
+	branching_factor_variance = 10
+)
+```
+```python
+# create a graph with a very good heuristic evaluation function
+state = SyntheticGraph(
+	heuristic_accuracy_base = 0.9,
+	heuristic_depth_scaling = 0.8
+)
+```
+```python
+# create a graph with a custom child depth function that randomly creates cycles 10% of the time.
+def custom_child_depth_function(randint, randf, params):
+	if randf() < 0.1:
+		return randint(-6, -2)
+	return 1
+
+state = SyntheticGraph(
+	child_depth_function = custom_child_depth_function
+)
+```
+These parameters can of course be combined in interesting ways to construct all sorts of different game-state graphs.  For examples of creating more complex graphs, see [example_graphs.py](examples/example_graphs.py).
 
 <a name="parameters"></a>
 # Parameters
 
--  **`seed`** (`int`, default: `0`, range: `Positive Integer`)
+-  **`seed`** (`int`, default: `0`, range: `[0, 0xFFFFFFFF]`)
 Determines the starting seed for the graph generator. Ensures reproducibility.
 
 -  **`max_depth`** (`int`, default: `2^8 - 1`)
 Sets the maximum depth of the graph.
 
--  **`distribution`** ([`RandomnessDistribution`](#RandomnessDistribution), default: `Dist.UNIFORM`, option: `Uniform` or `Gaussian`)Determines what distribution the random number generator follows.
+-  **`distribution`** ([`RandomnessDistribution`](#RandomnessDistribution), default: `UNIFORM`, option: `UNIFORM` or `GAUSSIAN`)Determines what distribution the random number generator follows.
 
--  **`root_value`** (`int`, default: `0`, Allowed Values: `-1`, `0`, `1`)
+-  **`root_value`** (`int`, default: `0`, Allowed Values: `[-1, 0, 1]`)
 The true value of the root node
 
 -  **`retain_tree`** (`bool`, default: `False`)
@@ -136,7 +191,7 @@ A custom function provided by the user to determine the heuristic values of stat
 
 Certain functionality is controlled by what we call "behavioral functions". These functions are used to generate certain values based on other currently observed values in the graph. For example, deciding on the branching factor of a state given its depth. We provide sane defaults which can be found in [default_functions.py](default_functions.py).
 
-However, since these rules can vary so wildly between different kinds of graphs, we allow user-defined functions to be passed to the API during initialization. We recommend having a look at the default functions, as well as the [example functions](example_functions.py), to get a better idea of how to construct your own. 
+However, since these rules can vary so wildly between different kinds of graphs, we allow user-defined functions to be passed to the API during initialization. We recommend having a look at the default functions, as well as the [example functions](examples/example_behavior_functions.py), to get a better idea of how to construct your own. 
 
 Following is a list of the available functions. They all accept the arguments listed directly below, unless explicitely stated otherwise: 
 -  **Parameters:**

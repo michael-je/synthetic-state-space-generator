@@ -87,7 +87,7 @@ def default_heuristic_value_function(randint: RandomIntFunction, randf: RandomFl
     if randf() < 0.1 * (1 - params.globals.heuristic_accuracy_base) * (3 - depth_accuracy - locality_accuracy):
         return randf(-1, 1)
     # otherwise, we calculate an estimated heuristic value that is based off the true value of the state.
-    # The accuracy of this estimate is also based off of the previous accuracy variables.
+    # The accuracy of this estimate is also based off of the previously defined accuracy variables.
     # The final value is a random variable within some calculated upper and lower bounds.
     if params.self.true_value == 0:
         # if we are a tie, then the accuracy is centered around 0

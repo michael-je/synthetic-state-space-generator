@@ -7,7 +7,7 @@ from .constants import ID_BIT_SIZE
 from .custom_types import *
 from .custom_types import RandomnessDistribution as Dist
 from .custom_exceptions import *
-from .default_functions import *
+from .default_behavior_functions import *
 
 
 class SyntheticGraph():
