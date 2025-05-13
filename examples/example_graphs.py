@@ -1,4 +1,4 @@
-from .State import State
+from sssg.SyntheticGraph import SyntheticGraph
 
 
-state = State()
+state = SyntheticGraph()

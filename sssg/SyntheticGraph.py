@@ -10,8 +10,9 @@ from .custom_exceptions import *
 from .default_functions import *
 
 
-class State():
-    """Wrapper class for state nodes. Should be used as the main API."""
+class SyntheticGraph():
+    """Based on initial parameters, generates a synthetic state-space graph, keeps track
+    of the current state and allows interaction with the them via public methods."""
     def __init__(self,
                  seed: int=0, 
                  max_depth: int=2**8-1,
