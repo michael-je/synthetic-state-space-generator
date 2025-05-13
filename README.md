@@ -33,101 +33,20 @@ First, you install it:
 
 # Basic Usage
 
-## 1. Create a State
-
 ```python
-state = State()
-print(state)
+state = State()            #Initialize State
+print(state)               
+actions = state.actions()  #actions() returns list of transitions
+state.make(actions[0])     #make(action) tranitions to the given state
+print(state)               
 ```
+This creates a simple graph, with default values for each parameter. By default we get a binary tree with no transpositions.
 
-**Output:**
-```
-0-MAX-0-0
-```
-> This initializes the root of the graph. The printed output shows basic information about the state — such as its ID, true value, and depth.
-
-
-## 2. Get Available Actions
-
-```python
-actions = state.actions()
-```
-
-**Output:**
-```
-[0, 1]
-```
-
-> The `actions()` method returns a list of possible transitions (i.e., children) from the current state. Each action represents a move to a new state.
-
-
-## 3. Move to a Child State
-
-```python
-state.make(actions[0])
-print(state)
-```
-
-**Output:**
-```
-0-MIN-1-3985006587900624001667906114197238
-```
-
-> The `make()` method applies the selected action, transitioning to the chosen child state. The state is now updated, and the new values reflect the change.
-
-
-Initialize a new state-space graph by using the `State` constructor.
-```python
-state = State()
-```
-This creates a simple graph, with default values for each parameter. This default graph is a binary tree, with no maximum depth, no state values and no transpositions or cycles.
 
 // TODO: add a few (1-3) short examples (max 10 lines each)
   
-// TODO: move this code to new chapter "code examples"
-<a name="minimax-search"></a>
-Example of a minimax search in the graph:
-```python
-from State import State
-from custom_types import Player
 
-INF = 1000
-visited: dict[int, int] = {}
-def minimax(state: State, depth: int) -> int:
-	if state.id() in visited.keys():
-		return state.true_value()
-	if state.is_terminal():
-		return state.true_value()
-	if depth == 0:
-		return state.heuristic_value()
-	
-	if state.player() == Player.MAX:
-		max_eval = -INF
-		for action in state.actions():
-			state.make(action)
-			s_eval = minimax(state, depth-1)
-			state.undo()
-			max_eval = max(max_eval, s_eval)
-		visited[state.id()] = max_eval
-		return max_eval
-	else:
-		min_eval = INF
-		for action in state.actions():
-			state.make(action)
-			s_eval = minimax(state, depth-1)
-			state.undo()
-			min_eval = min(min_eval, s_eval)			
-		visited[state.id()] = min_eval
-		return min_eval
-
-def main():
-	state = State(max_depth=9)
-	val = minimax(state, 9)
-	print(f"Minimax Value: {val}")
-	print(f"True value: {state.true_value()}")
-
-main()
-```
+For more detailed code examples click [here](#minimax-search)
 
 <a name="parameters"></a>
 # Parameters
@@ -147,10 +66,13 @@ The true value of the root node
 Stores tree in memory, used to draw tree
 
 -  **`branching_factor_base`** (`int`, default: `2`, range: `Positive Integers`)
-The number of child nodes each state can generate. // TODO: improve
+  Sets the base branching factor, it represents the typical number of children each state will generate in the graph. This value serves as the starting point for determining how many child nodes are created per state.
+
 
 -  **`branching_factor_variance`** (`int`, default: `0`, range: `Positive Integer`)
-How much the branching factor can vary. // TODO: improve
+Specifies how much the branching factor can vary around the base value. A value of `0` means all states have exactly `branching_factor_base` children. Higher values introduce randomness into the number of children each state generates.
+
+	> By default, the graph generator uses these two values in the `default_branching_function`
   
 -  **`terminal_minimum_depth`** (`int`, default: `0`, range: `Positive Integer`)
 Defines how deep a state must be before it can be considered terminal. // TODO: improve
@@ -369,7 +291,50 @@ For a more detailed usage, see the [minimax example](#minimax-search).
 | `undo()`            | Undoes the last action taken.                                               | None                                        |
 | `draw()`            | Visualizes the current state and its immediate children.                    | None                                        |
 
+<a name="minimax-search"></a>
+# Code Examples
 
+```python
+from State import State
+from custom_types import Player
+
+INF = 1000
+visited: dict[int, int] = {}
+def minimax(state: State, depth: int) -> int:
+	if state.id() in visited.keys():
+		return state.true_value()
+	if state.is_terminal():
+		return state.true_value()
+	if depth == 0:
+		return state.heuristic_value()
+	
+	if state.player() == Player.MAX:
+		max_eval = -INF
+		for action in state.actions():
+			state.make(action)
+			s_eval = minimax(state, depth-1)
+			state.undo()
+			max_eval = max(max_eval, s_eval)
+		visited[state.id()] = max_eval
+		return max_eval
+	else:
+		min_eval = INF
+		for action in state.actions():
+			state.make(action)
+			s_eval = minimax(state, depth-1)
+			state.undo()
+			min_eval = min(min_eval, s_eval)			
+		visited[state.id()] = min_eval
+		return min_eval
+
+def main():
+	state = State(max_depth=9)
+	val = minimax(state, 9)
+	print(f"Minimax Value: {val}")
+	print(f"True value: {state.true_value()}")
+
+main()
+```
 
 # License
 

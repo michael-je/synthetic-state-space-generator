@@ -31,9 +31,18 @@ def minimax(state: State, depth: int) -> int:
 		return min_eval
 
 def main():
-	state = State(max_depth=9)
-	val = minimax(state, 9)
-	print(f"Minimax Value: {val}")
-	print(f"True value: {state.true_value()}")
+
+	state = State()
+	print(state)
+	actions = state.actions()
+	state.make(actions[0])
+	print(state)
+
+	"""
+	state = State(
+		branching_factor_base=3,
+		branching_factor_variance=1,
+		max_depth=10)
+	"""
 
 main()
