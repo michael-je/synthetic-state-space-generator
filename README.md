@@ -112,7 +112,7 @@ def main():
 main()
 ```
 
-
+<a name="parameters"></a>
 # Parameters
 
 -  **`seed`** (`int`, default: `0`, range: `Positive Integer`)
@@ -161,6 +161,22 @@ For children not covered by `forced value` or `similarity chance`, this sets the
     ![True Value Graph](./documentation_images/value_propagation.gif)
 	// TODO: fix "_ratio" -> "_chance"
 	// TODO: put somewhere else and link to it, shouldn't be in the middle of this list
+
+-  **`symmetry_factor`** (`float`, default: `1.0`, range: `[0, 1]`)
+What
+
+-  **`symmetry_frequency`** (`float`, default: `0.0`, range: `[0, 1]`)
+What
+
+-  **`heuristic_accuracy_base`** (`float`, default: `0.7`, range: `[0, 1]`)
+What
+
+-  **`heuristic_depth_scaling`** (`float`, default: `0.5`, range: `[0, 1]`)
+What
+
+-  **`heuristic_locality_scaling`** (`float`, default: `0.5`, range: `[0, 1]`)
+What
+
 
 -  **`branching_function`** (`function`, default: [`default_branching_function`](#default_branching_function))
 A custom function provided by the user to determine the branching factor of states.
@@ -269,6 +285,29 @@ state = State(branching_function=uniform3_branching_function)
 
 # Custom Types and Containers
 
+### **`StateParams`**
+
+`StateParams` is a dataclass that stores all relevant information about a state. The API passes an instance of this object to user-defined functions, enabling access to state-related parameters from outside the class.
+
+`StateParams` is composed of two subcomponents:
+- [`GlobalVariables`](#globalvariables): global parameters shared across the entire graph
+- [`StateParamsSelf`](#stateparamsself): local information specific to the current state node
+
+> **Note:** This separation exists because not all custom functions require access to both global and local data. Separating them helps ensure that functions only receive the data they actually need.
+
+
+
+### **`GlobalVariables`**
+
+`GlobalVariables` is a dataclass that stores information shared across the entire graph. It mirrors the configuration options passed in during initialization — essentially a copy of the class’s [parameters](#parameters).
+
+
+
+### **`StateParamsSelf`**
+
+`StateParamsSelf` is a dataclass containing local information about the current `State` node, such as its depth, parent relationship, or node-specific values.
+
+___
 
 <a name="RandomnessDistribution"></a>
 ## `RandomnessDistribution`
@@ -297,6 +336,7 @@ Here, the state's default is Gaussian, but `randint` in `uniform3_branching_func
 
 `Player` is an enum with two values: MIN and MAX. It is used by the API to identify the current player and can also be utilized by users in search algorithms.
 For a more detailed usage, see the [minimax example](#minimax-search).
+
 # API Reference
 
 | Method              | Description                                                                 | Arguments                                   |
@@ -312,12 +352,10 @@ For a more detailed usage, see the [minimax example](#minimax-search).
 | `undo()`            | Undoes the last action taken.                                               | None                                        |
 | `draw()`            | Visualizes the current state and its immediate children.                    | None                                        |
 
-  
+
 
 # License
 
-  
 
-  
 
 GPL3 ?
