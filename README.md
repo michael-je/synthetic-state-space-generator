@@ -64,16 +64,15 @@ The true value of the root node
 Stores tree in memory, used to draw tree
 
 -  **`branching_factor_base`** (`int`, default: `2`, range: `Positive Integers`)
-  Sets the base branching factor, it represents the typical number of children each state will generate in the graph. This value serves as the starting point for determining how many child nodes are created per state.
-
+  Sets the base branching factor, it represents the typical number of children each state will generate in the graph. This parameter goes in hand with the `branching_factor_variance` to determine the actual number of children generated.
 
 -  **`branching_factor_variance`** (`int`, default: `0`, range: `Positive Integer`)
 Specifies how much the branching factor can vary around the base value. A value of `0` means all states have exactly `branching_factor_base` children. Higher values introduce randomness into the number of children each state generates.
 
-	> By default, the graph generator uses these two values in the `default_branching_function`
+	> By default, the graph generator uses these two values in the [`default_branching_function`](#branching-function)
   
 -  **`terminal_minimum_depth`** (`int`, default: `0`, range: `Positive Integer`)
-Defines how deep a state must be before it can be considered terminal. // TODO: improve
+  Specifies the minimum depth a state must be before it can be become a terminal node. This ensures that early states in the graph cannot terminate prematurely.
 
 -  **`child_depth_minimum`** (`int`, default: `1`)
 Defines the minimum depth of a child relative to its parent.
@@ -95,26 +94,26 @@ After meeting the minimum forced match requirement, this sets the chance that a 
 -  **`true_value_tie_chance `** (`float`, default: `0.2`, range: `[0, 1]`)
 For children not covered by `forced value` or `similarity chance`, this sets the probability of the child being assigned a draw. (NOTE: the actual expected number og draws is dependent on `true_value_forced_ratio` and `true_value_similarity_chance`)
 
-    ![True Value Graph](./documentation_images/value_propagation.gif)
-	// TODO: fix "_ratio" -> "_chance"
-	// TODO: put somewhere else and link to it, shouldn't be in the middle of this list
+	> **Note:** For better visualization click [here](#True-Value-Graph)
 
--  **`symmetry_factor`** (`float`, default: `1.0`, range: `[0, 1]`)
-// TODO: description
 
--  **`symmetry_frequency`** (`float`, default: `0.0`, range: `[0, 1]`)
-// TODO: description
+- **`symmetry_factor`** (`float`, default: `1.0`, range: `[0, 1]`)  
+Controls how much the branching factor is reduced for symmetric states. A value of `1.0` means no reduction, while lower values simulate symmetry by proportionally reducing the number of generated states. For example, a symmetry factor of `0.5` will halve the branching factor when symmetry applies.
+
+- **`symmetry_frequency`** (`float`, default: `0.0`, range: `[0, 1]`)  
+  Specifies the likelihood that a given state is considered symmetric. If a state is determined to be symmetric (based on this probability), the branching factor is reduced according to the `symmetry_factor`.
 
 -  **`heuristic_accuracy_base`** (`float`, default: `0.7`, range: `[0, 1]`)
-// TODO: description
+  Controls the baseline accuracy of the `heuristic_value` relative to the `true_value`.  
+  A value of `1.0` means the heuristic always matches the true value. A value of `0.0` means the heuristic is completely random
 
 -  **`heuristic_depth_scaling`** (`float`, default: `0.5`, range: `[0, 1]`)
-// TODO: description
+Determines how depth effects the accuracy of the `hueristic value`. A value of `0.0` means depth has no effect, while higher values cause heuristic accuracy to improve as depth increases.
 
 -  **`heuristic_locality_scaling`** (`float`, default: `0.5`, range: `[0, 1]`)
-// TODO: description
+Determines how locality effects the accuracy of the `hueristic value`. Aims to simulates how some parts of the graph have a worse hueristic than others.
 
-
+<a name="branching-function"></a>
 -  **`branching_function`** (`function`, default: [`default_branching_function`](#default_branching_function))
 A custom function provided by the user to determine the branching factor of states.
 
@@ -129,7 +128,6 @@ A custom function provided by the user to define the upper bound of unique state
 
 -  **`heuristic_value_function`** (`function`, default: [`default_heuristic_value_function`](#default_heuristic_value_function))
 A custom function provided by the user to determine the heuristic values of states.
-
 
 
 # Default Behavioural Functions
@@ -155,7 +153,10 @@ Following is a list of the available functions. They all accept the arguments li
 	-  `self_branching_factor` (`int`): *An additional parameter.* The number of children associated with the current state.
 	-  `child_true_value_information` (`ChildTrueValueInformation`): *An additional parameter.* Stores data on the true values of all children generated so far.
 -  **Return Type : `int`**
--  **Description:** Generates a true value for a child state. Ensures that the values behave in a sensible manner by adhering to the rules and the [true value parameters](#true-value-parameters).
+-  **Description:** Generates a true value for a child state. Ensures that the values behave in a sensible, consistent, manner and following the true value parameters [true_value_forced_ratio](#true-value-parameters), [true_value_similarity_chance](#true-value-parameters) and [true_value_tie_chance](#true-value-parameters). Below is a more detailed visualization of how these parameters work together to generate child values.
+
+	<a name="True-Value-Graph"></a>
+	![True Value Graph](./documentation_images/value_propagation.gif)
 
 
 ### `default_child_depth_function()`
@@ -289,50 +290,6 @@ For a more detailed usage, see the [minimax example](#minimax-search).
 | `undo()`            | Undoes the last action taken.                                               | None                                        |
 | `draw()`            | Visualizes the current state and its immediate children.                    | None                                        |
 
-<a name="minimax-search"></a>
-# Code Examples
-
-```python
-from State import State
-from custom_types import Player
-
-INF = 1000
-visited: dict[int, int] = {}
-def minimax(state: State, depth: int) -> int:
-	if state.id() in visited.keys():
-		return state.true_value()
-	if state.is_terminal():
-		return state.true_value()
-	if depth == 0:
-		return state.heuristic_value()
-	
-	if state.player() == Player.MAX:
-		max_eval = -INF
-		for action in state.actions():
-			state.make(action)
-			s_eval = minimax(state, depth-1)
-			state.undo()
-			max_eval = max(max_eval, s_eval)
-		visited[state.id()] = max_eval
-		return max_eval
-	else:
-		min_eval = INF
-		for action in state.actions():
-			state.make(action)
-			s_eval = minimax(state, depth-1)
-			state.undo()
-			min_eval = min(min_eval, s_eval)			
-		visited[state.id()] = min_eval
-		return min_eval
-
-def main():
-	state = State(max_depth=9)
-	val = minimax(state, 9)
-	print(f"Minimax Value: {val}")
-	print(f"True value: {state.true_value()}")
-
-main()
-```
 
 # License
 
