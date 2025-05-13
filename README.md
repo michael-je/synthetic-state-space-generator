@@ -47,13 +47,8 @@ An accompanying research paper can be found [here](www.example.org).
 
 First, you install it:
 
-  
 
 ....
-
-  
-
-  
 
 # Basic Usage
 
@@ -331,6 +326,7 @@ Here, the state's default is Gaussian, but `randint` in `uniform3_branching_func
 
 ___
 **`Player`**
+
 Player is an enum with two values: MIN and MAX. It is used by the API to identify the current player and can also be utilized by users in search algorithms.
 For a more detailed usage, see the [minimax example](#minimax-search).
 # API Reference
