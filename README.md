@@ -207,7 +207,7 @@ Following is a list of the available functions. They must all accept the argumen
 -  **Parameters:**
 	-  `randint` ([`RandomIntFunction`](#use-of-deterministic-randomness-in-behavioral-functions)): See [`RandomIntFunction`](#use-of-deterministic-randomness-in-behavioral-functions) for a description.
 	-  `randf` ([`RandomFloatFunction`](#use-of-deterministic-randomness-in-behavioral-functions)): See [`RandomFloatFunction`](#use-of-deterministic-randomness-in-behavioral-functions) for a description. 
-	-  `params` (`StateParams`): A container holding global and local state information.
+	-  `params` ([`StateParams`](#stateparams)): See [`StateParams`](#stateparams) for a description.
   
 
 ### `default_branching_function()`
