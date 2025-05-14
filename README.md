@@ -190,6 +190,8 @@ A custom function able to be overriden by the user to define the upper bound of 
 -  **`heuristic_value_function`** (`function`, default: [`default_heuristic_value_function`](#default_heuristic_value_function))
 A custom function able to be overriden by the user to determine the heuristic values of states.
 
+	> **NOTE**: Most of these parameters are only used by the behavioral functions (discussed in the next section) rather than interacting strongly with the software's internal logic. This means that the user is free to change how they affect the graph.
+
 
 # Default Behavioural Functions
 
