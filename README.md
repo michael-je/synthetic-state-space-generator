@@ -119,11 +119,10 @@ Sets the maximum depth of the graph.
 
 -  **`distribution`** ([`RandomnessDistribution`](#RandomnessDistribution), default: `UNIFORM`, option: `UNIFORM` or `GAUSSIAN`)Determines what distribution the random number generator follows.
 
--  **`root_value`** (`int`, default: `0`, Allowed Values: `[-1, 0, 1]`)
+-  **`root_true_value`** (`int`, default: `0`, Allowed Values: `[-1, 0, 1]`)
 The true value of the root node
 
--  **`retain_tree`** (`bool`, default: `False`)
-Stores tree in memory, used to draw tree
+<a name="branching-factor-parameters"></a>
 
 -  **`branching_factor_base`** (`int`, default: `2`, range: `Positive Integers`)
   Sets the base branching factor, it represents the typical number of children each state will generate in the graph. This parameter goes in hand with the `branching_factor_variance` to determine the actual number of children generated.
@@ -131,8 +130,11 @@ Stores tree in memory, used to draw tree
 -  **`branching_factor_variance`** (`int`, default: `0`, range: `Positive Integer`)
 Specifies how much the branching factor can vary around the base value. A value of `0` means all states have exactly `branching_factor_base` children. Higher values introduce randomness into the number of children each state generates.
 
+
 -  **`terminal_minimum_depth`** (`int`, default: `0`, range: `Positive Integer`)
   Specifies the minimum depth a state must be before it can be become a terminal node. This ensures that early states in the graph cannot terminate prematurely.
+
+<a name="child-depth-parameters"></a>
 
 -  **`child_depth_minimum`** (`int`, default: `1`)
 Defines the minimum depth of a child relative to its parent.
@@ -160,6 +162,8 @@ Controls how much the branching factor is reduced for symmetric states. A value 
 
 - **`symmetry_frequency`** (`float`, default: `0.0`, range: `[0, 1]`)  
   Specifies the likelihood that a given state is considered symmetric. If a state is determined to be symmetric (based on this probability), the branching factor is reduced according to the `symmetry_factor`.
+
+<a name="heuristic-value-parameters"></a>
 
 -  **`heuristic_accuracy_base`** (`float`, default: `0.7`, range: `[0, 1]`)
   Controls the baseline accuracy of the `heuristic_value` relative to the `true_value`. A value of `1.0` means the heuristic always matches the true value. A value of `0.0` means the heuristic is completely random
@@ -202,7 +206,7 @@ Following is a list of the available functions. They must all accept the argumen
 
 ### `default_branching_function()`
 -  **Return Type : `int`**
--  **Description:** Uses the `randf` function to add random variance (bounded by `branching_factor_variance`) to the `base_branching_factor` and returns this value.
+-  **Description:** Uses the `randf` function to add random variance (bounded by `branching_factor_variance`) to the `base_branching_factor` and returns this value. The branching factor is calculated using the [branching_factor_base](#branching-factor-parameters), [branching_factor_variance](#branching-factor-parameters) and [terminal_minimum_depth](#branching-factor-parameters) parameters.
 
 
 ### `default_value_function()`
@@ -210,7 +214,7 @@ Following is a list of the available functions. They must all accept the argumen
 	-  `self_branching_factor` (`int`): *An additional parameter.* The number of children associated with the current state.
 	-  `child_true_value_information` (`ChildTrueValueInformation`): *An additional parameter.* Stores data on the true values of all children generated so far.
 -  **Return Type : `int`**
--  **Description:** Generates a true value for a child state. Ensures that the values behave in a sensible, consistent, manner and following the true value parameters [true_value_forced_ratio](#true-value-parameters), [true_value_similarity_chance](#true-value-parameters) and [true_value_tie_chance](#true-value-parameters). Below is a more detailed visualization of how these parameters work together to generate child values.
+-  **Description:** Generates a true value for a child state. Ensures that the values behave in a sensible and consistent manner, following the true value parameters [true_value_forced_ratio](#true-value-parameters), [true_value_similarity_chance](#true-value-parameters) and [true_value_tie_chance](#true-value-parameters). Below is a more detailed visualization of how these parameters work together to generate child values.
 
 	<a name="True-Value-Graph"></a>
 	![True Value Graph](./documentation_images/value_propagation.gif)
@@ -218,7 +222,7 @@ Following is a list of the available functions. They must all accept the argumen
 
 ### `default_child_depth_function()`
 -  **Return Type : `int`**
--  **Description:** Uses the `randint` to randomly generate a depth between minimum and maximum child depth and returns that value.
+-  **Description:** Uses the `randint` to randomly generate a depth between minimum and maximum child depth and returns that value. The depth is calculated using the [child_minimum_depth](#child-depth-parameters) and [child_maximum_depth](#child-depth-parameters) parameters.
 
 
 ### `default_transposition_space_function()`
@@ -233,7 +237,7 @@ Following is a list of the available functions. They must all accept the argumen
 ### `default_heuristic_value_function()`
 
 -  **Return Type : `int`**
--  **Description:** Simulates a heuristic function with 70%-85% accuracy depending on depth. // TODO: change
+-  **Description:** Simluates a heuristic evaluation function by calculating an "estimated value" based on the state's true value. The heuristic is generated using the [heuristic_accuracy_base](#heuristic-value-parameters), [heuristic_depth_scaling](#heuristic-value-parameters) and [heuristic_locality_scaling](#heuristic-value-parameters) parameters.
 
   
 
