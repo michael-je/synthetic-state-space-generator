@@ -9,8 +9,9 @@ def default_branching_function(randint: RandomIntFunction, randf: RandomFloatFun
     variance = randf(low=-params.globals.branching_factor_variance, high=params.globals.branching_factor_variance)
     branching_factor = max(0, params.globals.branching_factor_base + round(variance))
     # make sure we do not prematurely create a terminal
-    if params.self.depth < params.globals.terminal_minimum_depth:
-        branching_factor = min(1, branching_factor)
+    if params.self.depth >= params.globals.terminal_minimum_depth:
+        if randf() < params.globals.terminal_chance:
+            branching_factor = 0
     return branching_factor
 
 

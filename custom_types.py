@@ -25,6 +25,7 @@ class GlobalVariables:
     branching_factor_base: int
     branching_factor_variance: int
     terminal_minimum_depth: int
+    terminal_chance: float
     # TODO: add something to control value
     # TODO: add something to control heuristic value
     # terminal_minimum_density: float
