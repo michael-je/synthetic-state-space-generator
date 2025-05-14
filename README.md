@@ -198,7 +198,7 @@ A custom function able to be overriden by the user to determine the heuristic va
 
 # Default Behavioural Functions
 
-Certain functionality is controlled by what we call "behavioral functions". These functions are used to generate certain values based on other currently observed values in the graph. For example, deciding on the branching factor of a state given its depth. We provide sane defaults which can be found in [default_behavior_functions.p.py](sssg/default_behavior_functions.py).
+Certain functionality is controlled by what we call "behavioral functions". These functions are used to generate certain values based on other currently observed values in the graph. For example, deciding on the branching factor of a state given its depth. We provide sane defaults which can be found in [default_behavior_functions.py](sssg/default_behavior_functions.py).
 
 However, since these rules can vary so wildly between different kinds of graphs, we allow user-defined functions to be passed to the API during initialization. We recommend having a look at the default functions, as well as the [example functions](examples/example_behavior_functions.py), to get a better idea of how to construct your own. 
 
