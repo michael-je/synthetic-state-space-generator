@@ -2,30 +2,33 @@ from sssg import SyntheticGraph
 from sssg.custom_types import Player
 from collections import deque
 
+
 def bfs(state: SyntheticGraph):
+	"""explanation"""
+	visited: set[int] = set()
+	queue: deque[int] = deque()
+	queue.append(state.id())
+	visited.add(state.id())
 
-    visited = set()
-    queue = deque()
+	root_id = state.id() 
+	while queue:
+		current = queue.popleft()
+		state.set_root(current)
+		# do something
+		for action in state.actions():
+			state.make(action)
+			if state.id() not in visited:
+				visited.add(state.id())
+				queue.append(state.id())
+			state.undo()
+	state.set_root(root_id)
 
-    queue.append(state.id())
-    visited.add(state.id())
 
-    root_id = state.id() 
-    while queue:
-        current = queue.popleft()
-        state.set_root(current)
-
-        for action in state.actions():
-            state.make(action)
-            if state.id() not in visited:
-                visited.add(state.id())
-                queue.append(state.id())
-            state.undo()
-    state.set_root(root_id)
 
 INF = 1000
-visited: dict[int, int] = {}
-def minimax(state: SyntheticGraph, depth: int) -> int:
+visited: dict[int, float|int] = {}
+def minimax(state: SyntheticGraph, depth: int) -> float|int:
+	"""explanation"""
 	if state.id() in visited.keys():
 		return state.true_value()
 	if state.is_terminal():
@@ -51,10 +54,3 @@ def minimax(state: SyntheticGraph, depth: int) -> int:
 			min_eval = min(min_eval, s_eval)			
 		visited[state.id()] = min_eval
 		return min_eval
-
-def main():
-	state = SyntheticGraph(max_depth=5)
-	val = minimax(state, 5)     #Searches for true value at depth 5
-	bfs(state)                  #Executes Breadth-First Search from root
-	
-main()
