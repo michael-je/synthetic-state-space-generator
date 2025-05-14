@@ -124,8 +124,6 @@ Stores tree in memory, used to draw tree
 -  **`branching_factor_variance`** (`int`, default: `0`, range: `Positive Integer`)
 Specifies how much the branching factor can vary around the base value. A value of `0` means all states have exactly `branching_factor_base` children. Higher values introduce randomness into the number of children each state generates.
 
-	> By default, the graph generator uses these two values in the [`default_branching_function`](#branching-function)
-  
 -  **`terminal_minimum_depth`** (`int`, default: `0`, range: `Positive Integer`)
   Specifies the minimum depth a state must be before it can be become a terminal node. This ensures that early states in the graph cannot terminate prematurely.
 
@@ -135,7 +133,7 @@ Defines the minimum depth of a child relative to its parent.
 -  **`child_depth_maximum`** (`int`, default: `1`)
 Defines the maximum depth of a child relative to its parent.
 
--  **`locality `** (`float`, default: `0`, range: `[0, 1]`)
+-  **`locality_grouping `** (`float`, default: `0`, range: `[0, 1]`)
 Controls how much of the available state space can be used when generating children. A value of `0` allows use of the full space at each depth; higher values restrict generation to a smaller portion centered around the parent node.
 
 <a name="true-value-parameters"></a>
@@ -147,10 +145,7 @@ Controls the ratio of children that are `forced` to share the same true value as
 After meeting the minimum forced match requirement, this sets the chance that a remaining child will also take on the parent’s true value (A value of `0` means only forced nodes inherit the parent’s value; `1` means all children do).
 
 -  **`true_value_tie_chance `** (`float`, default: `0.2`, range: `[0, 1]`)
-For children not covered by `forced value` or `similarity chance`, this sets the probability of the child being assigned a draw. (NOTE: the actual expected number og draws is dependent on `true_value_forced_ratio` and `true_value_similarity_chance`)
-
-	> **Note:** For better visualization click [here](#True-Value-Graph)
-
+For children not covered by `forced value` or `similarity chance`, this sets the probability of the child being assigned a draw. (**NOTE**: the actual expected number of draws is dependent on `true_value_forced_ratio` and `true_value_similarity_chance`)
 
 - **`symmetry_factor`** (`float`, default: `1.0`, range: `[0, 1]`)  
 Controls how much the branching factor is reduced for symmetric states. A value of `1.0` means no reduction, while lower values simulate symmetry by proportionally reducing the number of generated states. For example, a symmetry factor of `0.5` will halve the branching factor when symmetry applies.
@@ -159,30 +154,29 @@ Controls how much the branching factor is reduced for symmetric states. A value 
   Specifies the likelihood that a given state is considered symmetric. If a state is determined to be symmetric (based on this probability), the branching factor is reduced according to the `symmetry_factor`.
 
 -  **`heuristic_accuracy_base`** (`float`, default: `0.7`, range: `[0, 1]`)
-  Controls the baseline accuracy of the `heuristic_value` relative to the `true_value`.  
-  A value of `1.0` means the heuristic always matches the true value. A value of `0.0` means the heuristic is completely random
+  Controls the baseline accuracy of the `heuristic_value` relative to the `true_value`. A value of `1.0` means the heuristic always matches the true value. A value of `0.0` means the heuristic is completely random
 
 -  **`heuristic_depth_scaling`** (`float`, default: `0.5`, range: `[0, 1]`)
-Determines how depth effects the accuracy of the `hueristic value`. A value of `0.0` means depth has no effect, while higher values cause heuristic accuracy to improve as depth increases.
+Determines how depth affects the accuracy of the `hueristic value`. A value of `0.0` means depth has no effect, while higher values cause heuristic accuracy to improve as depth increases.
 
 -  **`heuristic_locality_scaling`** (`float`, default: `0.5`, range: `[0, 1]`)
-Determines how locality effects the accuracy of the `hueristic value`. Aims to simulates how some parts of the graph have a worse hueristic than others.
+Determines how locality affects the accuracy of the `hueristic value`. This aims to simulate how some parts of the graph have a worse hueristic than others.
 
 <a name="branching-function"></a>
 -  **`branching_function`** (`function`, default: [`default_branching_function`](#default_branching_function))
-A custom function provided by the user to determine the branching factor of states.
+A custom function able to be overriden by the user to determine the branching factor of states.
 
--  **`value_function`** (`function`, default: [`default_value_function`](#default_value_function))
-A custom function provided by the user to determine the true values of states.
+-  **`child_value_function`** (`function`, default: [`default_value_function`](#default_value_function))
+A custom function able to be overriden by the user to determine the true values of a state's child.
 
 -  **`child_depth_function`** (`function`, default: [`default_child_depth_function`](#default_child_depth_function))
-A custom function provided by the user to determine the depth of each child.
+A custom function able to be overriden by the user to determine the depth of a child relative to its parent.
 
 -  **`transposition_space_function`** (`function`, default: [`default_transposition_space_function`](#default_transposition_space_function))
-A custom function provided by the user to define the upper bound of unique states at each depth (returns a dictionary).
+A custom function able to be overriden by the user to define the upper bound of unique states at each depth.
 
 -  **`heuristic_value_function`** (`function`, default: [`default_heuristic_value_function`](#default_heuristic_value_function))
-A custom function provided by the user to determine the heuristic values of states.
+A custom function able to be overriden by the user to determine the heuristic values of states.
 
 
 # Default Behavioural Functions
