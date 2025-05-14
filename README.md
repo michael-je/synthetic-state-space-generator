@@ -198,14 +198,14 @@ A custom function able to be overriden by the user to determine the heuristic va
 
 # Default Behavioural Functions
 
-Certain functionality is controlled by what we call "behavioral functions". These functions are used to generate certain values based on other currently observed values in the graph. For example, deciding on the branching factor of a state given its depth. We provide sane defaults which can be found in [default_functions.py](default_functions.py).
+Certain functionality is controlled by what we call "behavioral functions". These functions are used to generate certain values based on other currently observed values in the graph. For example, deciding on the branching factor of a state given its depth. We provide sane defaults which can be found in [default_behavior_functions.p.py](sssg/default_behavior_functions.py).
 
 However, since these rules can vary so wildly between different kinds of graphs, we allow user-defined functions to be passed to the API during initialization. We recommend having a look at the default functions, as well as the [example functions](examples/example_behavior_functions.py), to get a better idea of how to construct your own. 
 
 Following is a list of the available functions. They must all accept the arguments listed directly below, unless explicitely stated otherwise: 
 -  **Parameters:**
-	-  `randint` ([`RandomIntFunction`](#use-of-deterministic-randomness-in-custom-functionality)): See [`RandomIntFunction`](#use-of-deterministic-randomness-in-custom-functionality) for a description.
-	-  `randf` ([`RandomFloatFunction`](#use-of-deterministic-randomness-in-custom-functionality)): See [`RandomFloatFunction`](#use-of-deterministic-randomness-in-custom-functionality) for a description. 
+	-  `randint` ([`RandomIntFunction`](#use-of-deterministic-randomness-in-behavioral-functions)): See [`RandomIntFunction`](#use-of-deterministic-randomness-in-behavioral-functions) for a description.
+	-  `randf` ([`RandomFloatFunction`](#use-of-deterministic-randomness-in-behavioral-functions)): See [`RandomFloatFunction`](#use-of-deterministic-randomness-in-behavioral-functions) for a description. 
 	-  `params` (`StateParams`): A container holding global and local state information.
   
 
@@ -213,11 +213,12 @@ Following is a list of the available functions. They must all accept the argumen
 -  **Return Type : `int`**
 -  **Description:** Uses the `randf` function to add random variance (bounded by `branching_factor_variance`) to the `base_branching_factor` and returns this value. The branching factor is calculated using the [branching_factor_base](#branching-factor-parameters), [branching_factor_variance](#branching-factor-parameters) and [terminal_minimum_depth](#branching-factor-parameters) parameters.
 
+<a name="value-function"></a>
 
 ### `default_value_function()`
 -  **Parameters:**
 	-  `self_branching_factor` (`int`): *An additional parameter.* The number of children associated with the current state.
-	-  `child_true_value_information` (`ChildTrueValueInformation`): *An additional parameter.* Stores data on the true values of all children generated so far.
+	-  `child_true_value_information` ([`ChildTrueValueInformation`](#ChildTrueValueInformation)): *An additional parameter.* Stores data on the true values of all children generated so far.
 -  **Return Type : `int`**
 -  **Description:** Generates a true value for a child state. Ensures that the values behave in a sensible and consistent manner, following the true value parameters [true_value_forced_ratio](#true-value-parameters), [true_value_similarity_chance](#true-value-parameters) and [true_value_tie_chance](#true-value-parameters). Below is a more detailed visualization of how these parameters work together to generate child values.
 
@@ -311,6 +312,12 @@ state = State(branching_function=uniform3_branching_function)
 
 `StateParamsSelf` is a dataclass containing local information about the current `StateNode`, such as its depth, parent relationship, or node-specific values.
 
+<a name="ChildTrueValueInformation"></a>
+### `ChildTrueValueInformation`
+
+`ChildTrueValueInformation` is a dataclass that holds information about the current state of true value generation for a node’s children. It is used by the [`default_child_depth_function()`](#value-function).
+
+
 
 <a name="RandomnessDistribution"></a>
 ### `RandomnessDistribution`
@@ -339,6 +346,8 @@ Here, the state's default is Gaussian, but `randint` in `uniform3_branching_func
 ### `Player`
 
 `Player` is an enum with two values: `MIN` and `MAX`. It is used by the API to identify the current player and can also be utilized by users in search algorithms.
+
+
 
 # API Reference
 
