@@ -174,3 +174,4 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+examples/connect_4_example_graphs.py

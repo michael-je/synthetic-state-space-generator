@@ -25,8 +25,8 @@ class SyntheticGraph():
                  child_depth_maximum: int=1,
                  locality_grouping: float=0,
                  true_value_forced_ratio: float=0.1,
-                 true_value_similarity_chance: float=0.5,
                  true_value_tie_chance: float=0.2,
+                 true_value_similarity_chance: float=0.5,
                  symmetry_factor: float=1.0,
                  symmetry_frequency: float=0.0,
                  heuristic_accuracy_base: float=0.7,
@@ -34,7 +34,7 @@ class SyntheticGraph():
                  heuristic_locality_scaling: float=0.5,
 
                  branching_function: BranchingFunction=default_branching_function, 
-                 child_value_function: ChildTrueValueFunction=default_child_true_value_function, 
+                 child_true_value_function: ChildTrueValueFunction=default_child_true_value_function, 
                  child_depth_function: ChildDepthFunction=default_child_depth_function,
                  transposition_space_function: TranspositionSpaceFunction=default_transposition_space_function,
                  heuristic_value_function: HeuristicValueFunction=default_heuristic_value_function):
@@ -61,10 +61,10 @@ class SyntheticGraph():
             raise ValueError("locality must be in [0, 1].")
         if not 0 <= true_value_forced_ratio <= 1:
             raise ValueError("true_value_forced_ratio must be in [0, 1].")
-        if not 0 <= true_value_similarity_chance <= 1:
-            raise ValueError("true_value_similarity_chance must be in [0, 1].")
         if not 0 <= true_value_tie_chance <= 1:
             raise ValueError("true_value_tie_chance must be in [0, 1].")
+        if not 0 <= true_value_similarity_chance <= 1:
+            raise ValueError("true_value_similarity_chance must be in [0, 1].")
         if not 0 < symmetry_factor <= 1:
             raise ValueError("symmetry_factor must be in (0, 1].")
         if not 0 <= symmetry_frequency <= 1:
@@ -104,8 +104,8 @@ class SyntheticGraph():
             child_depth_maximum = child_depth_maximum,
             locality_grouping = locality_grouping,
             true_value_forced_ratio = true_value_forced_ratio,
-            true_value_similarity_chance = true_value_similarity_chance,
             true_value_tie_chance = true_value_tie_chance,
+            true_value_similarity_chance = true_value_similarity_chance,
             symmetry_factor = symmetry_factor,
             symmetry_frequency = symmetry_frequency,
             heuristic_accuracy_base = heuristic_accuracy_base,
@@ -115,7 +115,7 @@ class SyntheticGraph():
         )
         global_funcs = GlobalFunctions(
             branching_function = branching_function,
-            child_true_value_function = child_value_function,
+            child_true_value_function = child_true_value_function,
             child_depth_function = child_depth_function,
             transposition_space_function = transposition_space_function_wrapper,
             heuristic_value_function = heuristic_value_function

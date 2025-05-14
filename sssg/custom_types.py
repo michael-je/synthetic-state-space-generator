@@ -30,8 +30,8 @@ class GlobalVariables:
     child_depth_maximum: int
     locality_grouping: float
     true_value_forced_ratio: float
-    true_value_similarity_chance: float
     true_value_tie_chance: float
+    true_value_similarity_chance: float
     symmetry_factor: float
     symmetry_frequency: float
     heuristic_accuracy_base: float
