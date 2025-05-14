@@ -286,7 +286,7 @@ Graph where each state has a uniform branching factor between 0 and 3
 def  uniform3_branching_function(randint: RandomIntFunction, randf: RandomFloatFunction, params: StateParams) -> int:
 	return randint(low=0, high=3, distribution=RandomnessDistribution.UNIFORM)
 
-state = State(branching_function=uniform3_branching_function)
+state = SyntheticGraph(branching_function=uniform3_branching_function)
 ```
 
 # Custom Types and Containers
@@ -316,7 +316,7 @@ state = State(branching_function=uniform3_branching_function)
 <a name="ChildTrueValueInformation"></a>
 ### `ChildTrueValueInformation`
 
-`ChildTrueValueInformation` is a dataclass that holds information about the current state of true value generation for a node’s children. It is used by the during child's true value generation.
+`ChildTrueValueInformation` is a dataclass that holds information about the current state of true value generation for a node’s children. It is used during child's true value generation.
 
 
 
@@ -325,9 +325,8 @@ state = State(branching_function=uniform3_branching_function)
 
 `RandomnessDistribution` is an enum with two options: UNIFORM and GAUSSIAN. It specifies the distribution type used by the random number generator.
 ```python
-from custom_types import RandomnessDistribution
-
-state = State(distribution=RandomnessDistribution.GAUSSIAN)
+from sssg.custom_types import RandomnessDistribution
+state = SyntheticGraph(distribution=RandomnessDistribution.GAUSSIAN)
 ```
 In this case, all random number generation will default to a Gaussian distribution unless overridden.
 
@@ -337,7 +336,7 @@ If the distribution must be overriden for specific behavioral function, it can b
 def uniform3_branching_function(randint:RandomIntFunction, randf: RandomFloatFunction, params: StateParams) -> int:
 	return randint(low=0, high=3, distribution=RandomnessDistribution.UNIFORM)
 
-state = State(
+state = SyntheticGraph(
 	distribution=RandomnessDistribution.GAUSSIAN,
 	branching_function=uniform3_branching_function,
 )
