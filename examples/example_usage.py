@@ -24,7 +24,6 @@ def bfs(state: SyntheticGraph):
 	state.set_root(root_id)
 
 
-
 INF = 1000
 visited: dict[int, float|int] = {}
 def minimax(state: SyntheticGraph, depth: int) -> float|int:
