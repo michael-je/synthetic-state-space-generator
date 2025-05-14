@@ -25,12 +25,12 @@
 # Introduction
 This API allows users to generate a variety of synthetic state-space graphs which simulate real games, and to interact with them in ways that game solvers typically would. 
 
-The tool is aimed at researchers in the field of AI and games (specifically *two-player, deterministic, perfect-information, zero-sum games*). The hope is that it will assist in quick and intuitive prototyping of synthetic game-spaces, in order to test the comparative effectiveness of different algorithms to games with varying properties.
+The tool is aimed at researchers in the field of AI and games (specifically *two-player, deterministic, perfect-information, zero-sum games*). The hope is that it will assist in quick and intuitive prototyping of synthetic state-spaces, in order to test the comparative effectiveness of different algorithms on games with varying properties.
 
 The main principles of the tool are:
 - 1. **Memory efficiency**: Graphs are generated implicitly. This means that once initialized with initial parameters and seed, the graph is generated on the fly as it is being traversed.
 - 2. **Reproducability**: Being able to replicate results is very important. Since graphs are not stored in memory, the approach is to ensure that they behave completely deterministically no matter how they are traversed. 
-- 3. **Easy to use, but powerful**: Ideally, a wide variety of games can be imitated somewhat intuitievly by the default behavior and parameters we have provided. However, the scope of different games and their rules is too large to be able to cover every case. Therefore, in order to strike a balance between complexity and ease of use, the tool has a modular design to allow users to pass custom functions that control certain aspects of its behavior.
+- 3. **Easy to use, but powerful**: Ideally, a wide variety of games can be imitated somewhat intuitively by the default behavior and parameters we have provided. However, the scope of different games and their rules is too large to be able to cover every case. Therefore, in order to strike a balance between complexity and ease of use, the tool has a modular design to allow users to pass custom functions that control certain aspects of its behavior.
 
 This document serves mainly as a guide on the use of software itself. For a deeper conceptional understanding on its design, an accompanying research paper will be linked here once available.
 
@@ -173,26 +173,26 @@ Controls how much the branching factor is reduced for symmetric states. A value 
   Controls the baseline accuracy of the `heuristic_value` relative to the `true_value`. A value of `1.0` means the heuristic always matches the true value. A value of `0.0` means the heuristic is completely random
 
 -  **`heuristic_depth_scaling`** (`float`, default: `0.5`, range: `[0, 1]`)
-Determines how depth affects the accuracy of the `hueristic value`. A value of `0.0` means depth has no effect, while higher values cause heuristic accuracy to improve as depth increases.
+Determines how depth affects the accuracy of the `heuristic value`. A value of `0.0` means depth has no effect, while higher values cause heuristic accuracy to improve as depth increases.
 
 -  **`heuristic_locality_scaling`** (`float`, default: `0.5`, range: `[0, 1]`)
-Determines how locality affects the accuracy of the `hueristic value`. This aims to simulate how some parts of the graph have a worse hueristic than others.
+Determines how locality affects the accuracy of the `heuristic value`. This aims to simulate how some parts of the graph have a worse heuristic than others.
 
 <a name="branching-function"></a>
 -  **`branching_function`** (`function`, default: [`default_branching_function`](#default_branching_function))
-A custom function able to be overriden by the user to determine the branching factor of states.
+A custom function able to be overridden by the user to determine the branching factor of states.
 
 -  **`child_value_function`** (`function`, default: [`default_value_function`](#default_value_function))
-A custom function able to be overriden by the user to determine the true values of a state's child.
+A custom function able to be overridden by the user to determine the true values of a state's child.
 
 -  **`child_depth_function`** (`function`, default: [`default_child_depth_function`](#default_child_depth_function))
-A custom function able to be overriden by the user to determine the depth of a child relative to its parent.
+A custom function able to be overridden by the user to determine the depth of a child relative to its parent.
 
 -  **`transposition_space_function`** (`function`, default: [`default_transposition_space_function`](#default_transposition_space_function))
-A custom function able to be overriden by the user to define the upper bound of unique states at each depth.
+A custom function able to be overridden by the user to define the upper bound of unique states at each depth.
 
 -  **`heuristic_value_function`** (`function`, default: [`default_heuristic_value_function`](#default_heuristic_value_function))
-A custom function able to be overriden by the user to determine the heuristic values of states.
+A custom function able to be overridden by the user to determine the heuristic values of states.
 
 	> **NOTE**: Most of these parameters are only used by the behavioral functions (discussed in the next section) rather than interacting strongly with the software's internal logic. This means that the user is free to change how they affect the graph.
 
@@ -330,7 +330,7 @@ state = SyntheticGraph(distribution=RandomnessDistribution.GAUSSIAN)
 ```
 In this case, all random number generation will default to a Gaussian distribution unless overridden.
 
-If the distribution must be overriden for specific behavioral function, it can be done like so:
+If the distribution must be overridden for specific behavioral function, it can be done like so:
 
 ```python
 def uniform3_branching_function(randint:RandomIntFunction, randf: RandomFloatFunction, params: StateParams) -> int:
