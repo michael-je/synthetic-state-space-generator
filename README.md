@@ -57,7 +57,7 @@ pip3 install .
 ## Methods
 To initialize a new state-space graph, use the `SyntheticGraph` constructor. The default graph is a simple binary tree:
 ```python
-from sssg import SyntheticGraph
+from sssg.SyntheticGraph import SyntheticGraph
 state = SyntheticGraph()   # initialize a new graph
 ```
 
