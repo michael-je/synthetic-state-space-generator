@@ -155,7 +155,9 @@ Controls how much of the available state space can be used when generating child
 <a name="true-value-parameters"></a>
 
 -  **`true_value_forced_ratio`** (`float`, default: `0.1`, range: `[0, 1]`)
-Controls the ratio of children that are `forced` to share the same true value as their parent state. (NOTE: this is a strict lower bound and setting this to zero breaks the integrity of true value propagation.)
+Controls the ratio of children that are *forced* to share the same true value as their parent state. This is a strict lower bound.
+
+	> **NOTE**: Setting this parameter to 0 breaks the integrity of true value propagation.
 
 -  **`true_value_similarity_chance`** (`float`, default: `0.5`, range: `[0, 1]`)
 After meeting the minimum forced match requirement, this sets the chance that a remaining child will also take on the parent’s true value (A value of `0` means only forced nodes inherit the parent’s value; `1` means all children do).
@@ -241,7 +243,7 @@ Following is a list of the available functions. They must all accept the argumen
 -  **Return Type : `int`**
 -  **Description:** Returns the maximum number of possible states per depth, ensuring minimal transpositions.
 
-	> **NOTE**: Since describing an exact transposition space is quite difficult using parameters alone, the default function simply behaves as if transpositions are non-existent. If you wish to describe a state-space with transpositions, you will have to pass in your own function to replace this one.
+	> **NOTE**: Since describing an exact transposition space is quite difficult using parameters alone, the default function simply behaves as if transpositions are non-existent. If you wish to describe a state-space with transpositions, you will have to pass in your own functpass in your own function to replace this one.
 
 
 ### `default_heuristic_value_function()`
