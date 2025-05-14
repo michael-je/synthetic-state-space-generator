@@ -234,7 +234,7 @@ Following is a list of the available functions. They must all accept the argumen
 ### `default_transposition_space_function()`
 
 -  **Parameters:**
-	-  `globals` (`GlobalVariables`): *Replaces the `params` parameter.* A container holding global state information.
+	-  `globals` ([`GlobalVariables`](#globalvariables)): *Replaces the `params` parameter.* A container holding global state information.
 	-  `depth` (`int`): *An additional parameter.* An integer specifying the depth of the current state.
 -  **Return Type : `int`**
 -  **Description:** Uses `globals` to return the maximum number of different states per depth, ensuring minimal transpositions.
@@ -315,7 +315,7 @@ state = State(branching_function=uniform3_branching_function)
 <a name="ChildTrueValueInformation"></a>
 ### `ChildTrueValueInformation`
 
-`ChildTrueValueInformation` is a dataclass that holds information about the current state of true value generation for a node’s children. It is used by the [`default_child_depth_function()`](#value-function).
+`ChildTrueValueInformation` is a dataclass that holds information about the current state of true value generation for a node’s children. It is used by the during child's true value generation.
 
 
 
@@ -356,14 +356,15 @@ Here, the state's default is Gaussian, but `randint` in `uniform3_branching_func
 | `id()`              | Returns the ID of the current state.                                        | None                                        |
 | `is_terminal()`     | Returns `True` if the current state is terminal (a leaf node), else `False`. | None                                        |
 | `is_root()`         | Returns `True` if the current state is the root of the graph, else `False`. | None                                        |
-| `value()`           | Returns the true (actual) value of the current state.                       | None                                        |
+| `true_value()`           | Returns the true value of the current state.                       | None                                        |
 | `heuristic_value()` | Returns the heuristic estimate of the state's value.                        | None                                        |
 | `actions()`         | Returns a list of integers representing available actions from this state.  | None                                        |
 | `make(action)`      | Transitions the current state by applying the specified action.             | `action` (int): The action to apply.       |
 | `make_random()`     | Randomly applies one of the available actions.                              | None                                        |
 | `undo()`            | Undoes the last action taken.                                               | None                                        |
-| `draw()`            | Visualizes the current state and its immediate children.                    | None                                        |
-
+| `depth()`            | Returns the depth of the current node| None                                        |
+| `player()`            | Returns the player whose turn it is to play (Min or Max node).       | None                                        |
+| `set_root(state_id)`      | Transitions the current state by applying the specified action.             | `state_id` (int): Id of a node to set as the new root.       |
 
 # License
 
