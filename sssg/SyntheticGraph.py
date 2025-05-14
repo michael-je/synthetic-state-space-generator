@@ -2,21 +2,19 @@ from typing import Self
 
 from .StateNode import StateNode
 from .RNGHasher import RNGHasher
-from .utils import bit_size
-from .constants import ID_BIT_SIZE
+from .constants import ID_BIT_LENGTH
 from .custom_types import *
-from .custom_types import RandomnessDistribution as Dist
 from .custom_exceptions import *
 from .default_behavior_functions import *
 
 
 class SyntheticGraph():
     """Based on initial parameters, generates a synthetic state-space graph, keeps track
-    of the current state and allows interaction with the them via public methods."""
+    of the current state and allows interaction with the it via public methods."""
     def __init__(self,
                  seed: int=0, 
                  max_depth: int=2**8-1,
-                 distribution: RandomnessDistribution=Dist.UNIFORM,
+                 distribution: RandomnessDistribution=RandomnessDistribution.UNIFORM,
                  root_true_value: int=0,
                  
                  branching_factor_base: int=2,
@@ -46,7 +44,7 @@ class SyntheticGraph():
             raise ValueError("max_depth must be > 0.")
         if not root_true_value in [-1, 0, 1]:
             raise ValueError("root_value must be -1, 0, or 1.")
-        if bit_size(max_depth) >= ID_BIT_SIZE - ID_TRUE_VALUE_BIT_SIZE - ID_PLAYER_BIT_SIZE:
+        if max_depth.bit_length() >= ID_BIT_LENGTH - ID_TRUE_VALUE_BIT_LENGTH - ID_PLAYER_BIT_LENGTH:
             raise ValueError("max_depth too large.")
         if not child_depth_maximum >= child_depth_minumum:
             raise ValueError("child_depth_maximum must be >= child_depth_minimum.")
@@ -76,7 +74,7 @@ class SyntheticGraph():
             raise ValueError("heuristic_locality_scaling must be in [0, 1].")
         
         self._RNG = RNGHasher(distribution=distribution, seed=seed)
-        max_transposition_space = 2**(ID_BIT_SIZE - ID_TRUE_VALUE_BIT_SIZE - ID_PLAYER_BIT_SIZE - bit_size(max_depth)) - 1
+        max_transposition_space = 2**(ID_BIT_LENGTH - ID_TRUE_VALUE_BIT_LENGTH - ID_PLAYER_BIT_LENGTH - max_depth.bit_length()) - 1
         
         self.transposition_space_map: dict[int, int] = dict()
         def transposition_space_function_wrapper(
@@ -171,7 +169,7 @@ class SyntheticGraph():
         return self._current.actions()
 
     def make(self, action: int) -> Self:
-        """Transition to the next state via action (represented as an index into the states children)."""
+        """Transition to the next state via `action` (represented as an index into the states children)."""
         if self.is_terminal():
             raise TerminalHasNoChildren
         actions = self._current.actions()
@@ -192,7 +190,7 @@ class SyntheticGraph():
     def undo(self) -> Self:
         """Move back to previous state."""
         if self._current.parent is None:
-            raise RootHasNoParent()
+            raise RootHasNoParent
         self._current = self._current.parent
         self._current.reset() # release memory as we climb back up the tree
         return self
@@ -202,9 +200,9 @@ class SyntheticGraph():
         generated."""
         true_value = extract_true_value_from_id(state_id)
         player = extract_player_from_id(state_id)
-        depth = extract_depth_from_id(state_id, bit_size(self.globals.vars.max_depth))
+        depth = extract_depth_from_id(state_id, self.globals.vars.max_depth.bit_length())
         tspace_record = extract_tspace_record_from_id(state_id, 
-                            bit_size(self.globals.vars.max_transposition_space_size))
+                            self.globals.vars.max_transposition_space_size.bit_length())
         self._root = StateNode(
             stateid=state_id, globals=self.globals, true_value=true_value, 
             player=player, depth=depth, tspace_record=tspace_record, parent=None)

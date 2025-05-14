@@ -29,15 +29,6 @@ class SeedGenerator():
 seeds = SeedGenerator()
 
 
-class TestBitSize(unittest.TestCase):
-    
-    def test_bit_size(self):
-        self.assertEqual(64, bit_size(2**64-1))
-        self.assertEqual(65, bit_size(2**64))
-        self.assertEqual(1,  bit_size(2**0))
-        self.assertEqual(2,  bit_size(2**1))
-
-
 class TestRNG(unittest.TestCase):
 
     def test_basic_rng_determinism(self):
@@ -195,7 +186,7 @@ class TestRNG(unittest.TestCase):
             rng.next_float(low=low, high=high)
 
 
-class TestState(unittest.TestCase):
+class TestSyntheticGraph(unittest.TestCase):
     
     def _walk_graph(self, state: SyntheticGraph, walk_seed: int=0):
         """Helper function to take a deterministic walk through the graph."""
@@ -248,8 +239,8 @@ class TestState(unittest.TestCase):
         self.assertRaises(ValueError, lambda: SyntheticGraph(seed=0xFFFFFFFF + 1))
         self.assertRaises(ValueError, lambda: SyntheticGraph(max_depth=-1))
         self.assertRaises(ValueError, lambda: SyntheticGraph(max_depth=0))
-        self.assertRaises(ValueError, lambda: SyntheticGraph(max_depth=2**ID_BIT_SIZE))
-        self.assertRaises(ValueError, lambda: SyntheticGraph(max_depth=2**(ID_BIT_SIZE - ID_TRUE_VALUE_BIT_SIZE - ID_PLAYER_BIT_SIZE)))
+        self.assertRaises(ValueError, lambda: SyntheticGraph(max_depth=2**ID_BIT_LENGTH))
+        self.assertRaises(ValueError, lambda: SyntheticGraph(max_depth=2**(ID_BIT_LENGTH - ID_TRUE_VALUE_BIT_LENGTH - ID_PLAYER_BIT_LENGTH)))
         self.assertRaises(ValueError, lambda: SyntheticGraph(root_true_value=-2))
         self.assertRaises(ValueError, lambda: SyntheticGraph(root_true_value=2))
         self.assertRaises(ValueError, lambda: SyntheticGraph(root_true_value=0.2)) # type: ignore
@@ -342,18 +333,18 @@ class TestState(unittest.TestCase):
     def test_id_bit_partitioning_1(self):
         """The bit partition of the transition space record should adapt to 
         the bit partition of the max depth."""
-        OCCUPIED_BITS = ID_TRUE_VALUE_BIT_SIZE + ID_PLAYER_BIT_SIZE
-        state = SyntheticGraph(max_depth=2**(ID_BIT_SIZE - OCCUPIED_BITS -  1) - 1)
+        OCCUPIED_BITS = ID_TRUE_VALUE_BIT_LENGTH + ID_PLAYER_BIT_LENGTH
+        state = SyntheticGraph(max_depth=2**(ID_BIT_LENGTH - OCCUPIED_BITS -  1) - 1)
         self.assertEqual(2**1 -  1, state.globals.vars.max_transposition_space_size)
-        state = SyntheticGraph(max_depth=2**(ID_BIT_SIZE - OCCUPIED_BITS -  2) - 1)
+        state = SyntheticGraph(max_depth=2**(ID_BIT_LENGTH - OCCUPIED_BITS -  2) - 1)
         self.assertEqual(2**2 -  1, state.globals.vars.max_transposition_space_size)
-        state = SyntheticGraph(max_depth=2**(ID_BIT_SIZE - OCCUPIED_BITS - 32) - 1)
+        state = SyntheticGraph(max_depth=2**(ID_BIT_LENGTH - OCCUPIED_BITS - 32) - 1)
         self.assertEqual(2**32 - 1, state.globals.vars.max_transposition_space_size)
     
     def test_id_bit_partitioning_2(self):
-        state1 = SyntheticGraph(max_depth=2**(ID_BIT_SIZE-5))
-        state2 = SyntheticGraph(max_depth=2**(ID_BIT_SIZE-20))
-        state3 = SyntheticGraph(max_depth=2**(ID_BIT_SIZE-60))
+        state1 = SyntheticGraph(max_depth=2**(ID_BIT_LENGTH-5))
+        state2 = SyntheticGraph(max_depth=2**(ID_BIT_LENGTH-20))
+        state3 = SyntheticGraph(max_depth=2**(ID_BIT_LENGTH-60))
         self.assertEqual(
             state1.globals.vars.max_depth * (state1.globals.vars.max_transposition_space_size + 1),
             state2.globals.vars.max_depth * (state2.globals.vars.max_transposition_space_size + 1))
@@ -466,12 +457,12 @@ class TestState(unittest.TestCase):
         # create id
         true_value = decode_true_value_bits(1)
         id = state_node._encode_id(true_value, Player(1), 1, 1)
-        bin_str = str(bin(id))[2:].zfill(HASH_OUTPUT_BIT_SIZE - 1)
+        bin_str = str(bin(id))[2:].zfill(HASH_OUTPUT_BIT_LENGTH - 1)
         # define margins
         id_true_value_offset = 0
-        id_player_offset = ID_TRUE_VALUE_BIT_SIZE
-        id_depth_offset = id_player_offset + ID_PLAYER_BIT_SIZE
-        id_record_offset = id_depth_offset + bit_size(state_node.globals.vars.max_depth)
+        id_player_offset = ID_TRUE_VALUE_BIT_LENGTH
+        id_depth_offset = id_player_offset + ID_PLAYER_BIT_LENGTH
+        id_record_offset = id_depth_offset + state_node.globals.vars.max_depth.bit_length()
         # run assertions
         self.assertEqual(int(bin_str[id_true_value_offset:id_player_offset], 2), 1)
         self.assertEqual(int(bin_str[id_player_offset:id_depth_offset], 2), 1)
@@ -492,12 +483,12 @@ class TestState(unittest.TestCase):
             tspace_record = rng.next_int(0, state_node.globals.vars.max_transposition_space_size)
             # create id
             id = state_node._encode_id(true_value, player, depth, tspace_record)
-            bin_str = str(bin(id))[2:].zfill(HASH_OUTPUT_BIT_SIZE - 1)
+            bin_str = str(bin(id))[2:].zfill(HASH_OUTPUT_BIT_LENGTH - 1)
             # define margins
             id_value_offset = 0
-            id_player_offset = ID_TRUE_VALUE_BIT_SIZE
-            id_depth_offset = id_player_offset + ID_PLAYER_BIT_SIZE
-            id_record_offset = id_depth_offset + bit_size(state_node.globals.vars.max_depth)
+            id_player_offset = ID_TRUE_VALUE_BIT_LENGTH
+            id_depth_offset = id_player_offset + ID_PLAYER_BIT_LENGTH
+            id_record_offset = id_depth_offset + state_node.globals.vars.max_depth.bit_length()
             # run assertions
             self.assertEqual(int(bin_str[id_value_offset:id_player_offset], 2), encode_true_value_to_bits(true_value))
             self.assertEqual(int(bin_str[id_player_offset:id_depth_offset], 2), player.value)

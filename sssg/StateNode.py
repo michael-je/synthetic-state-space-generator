@@ -9,7 +9,8 @@ from .custom_exceptions import IdOverflow
 
 
 class StateNode():
-    def __init__(self, stateid: int,
+    def __init__(self, 
+                 stateid: int,
                  globals: GlobalParameters, 
                  true_value: int,
                  player: Player,
@@ -34,7 +35,6 @@ class StateNode():
     
     def __str__(self) -> str:
         return f"true_value: {self.true_value}, player: {self.player.name}, depth: {self.depth}, tspace_record: {self.tspace_record}"
-        # return ""
 
     def __repr__(self) -> str:
         return str(self)
@@ -52,9 +52,9 @@ class StateNode():
             raise IdOverflow(f"depth {depth}.")
         if not 0 <= tspace_record <= self.globals.vars.max_transposition_space_size:
             raise IdOverflow(f"state_space_record {tspace_record}.")
-        true_value_bit_shift = ID_BIT_SIZE - ID_TRUE_VALUE_BIT_SIZE
-        player_bit_shift = true_value_bit_shift - ID_PLAYER_BIT_SIZE
-        depth_bit_shift = player_bit_shift - bit_size(self.globals.vars.max_depth)
+        true_value_bit_shift = ID_BIT_LENGTH - ID_TRUE_VALUE_BIT_LENGTH
+        player_bit_shift = true_value_bit_shift - ID_PLAYER_BIT_LENGTH
+        depth_bit_shift = player_bit_shift - self.globals.vars.max_depth.bit_length()
         player_bits = player.value << player_bit_shift
         true_value_bits = encode_true_value_to_bits(true_value) << true_value_bit_shift
         depth_bits = depth << depth_bit_shift
@@ -80,12 +80,12 @@ class StateNode():
         )
         return state_params
     
-    def _calculate_child_true_value(self, sibling_true_value_information: ChildTrueValueInformation) -> int:
+    def _calculate_child_true_value(self, child_true_value_information: ChildTrueValueInformation) -> int:
         """Wrapper function to calculate a true value for a child state, by calling the
         child_true_value_function."""
         true_value = self.globals.funcs.child_true_value_function(
             self._RNG.next_int, self._RNG.next_float, self.get_state_params(), 
-            self.branching_factor(), sibling_true_value_information)
+            self.branching_factor(), child_true_value_information)
         return true_value
     
     def _calculate_child_player(self) -> Player:
@@ -97,9 +97,9 @@ class StateNode():
         child_depth = self.globals.funcs.child_depth_function(
             self._RNG.next_int, self._RNG.next_float, self.get_state_params())
         if child_depth < 0:
-            raise IdOverflow(f"Depth can not be negative.")
+            raise IdOverflow("Depth can not be negative.")
         if child_depth > self.globals.vars.max_depth:
-            raise IdOverflow(f"Depth can not exceed max_depth.")
+            raise IdOverflow("Depth can not exceed max_depth.")
         return child_depth
     
     def _calculate_child_tspace_record(self, child_depth: int) -> int:
@@ -120,9 +120,9 @@ class StateNode():
         child_tspace_record %= (child_tspace_size + 1) # +1 because the maximum is inclusive
         return child_tspace_record
     
-    def _generate_child(self, sibling_value_information: ChildTrueValueInformation) -> "StateNode":
+    def _generate_child(self, child_true_value_information: ChildTrueValueInformation) -> "StateNode":
         """Generate a child id using values for depth and random bits."""
-        child_true_value = self._calculate_child_true_value(sibling_value_information)
+        child_true_value = self._calculate_child_true_value(child_true_value_information)
         child_player = self._calculate_child_player()
         child_depth = self._calculate_child_depth()
         child_tspace_record = self._calculate_child_tspace_record(child_depth)
@@ -199,8 +199,8 @@ class StateNode():
     
     def _execute_all_randomness_dependant_functions(self) -> Self:
         """To ensure determinism, all calls to the RNG within the state must be taken in the 
-        same order each time. When a random calculation is needed, we frist call this function 
-        to ensure that all other calculations are also performed in a specific sequence."""
+        same order each time. When any random calculation is needed, this function is called
+        first to ensure that all random calculations are performed in a specific sequence."""
         if self._random_values_generated:
             return self
         self._random_values_generated = True
