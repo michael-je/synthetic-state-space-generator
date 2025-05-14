@@ -147,6 +147,7 @@ Defines the minimum depth of a child relative to its parent.
   
 -  **`child_depth_maximum`** (`int`, default: `1`)
 Defines the maximum depth of a child relative to its parent
+	
 	> **NOTE**: `child_depth_minimum` and `child_depth_maximum` can take negative values. In this case, children may be generated "above" their parent, creating cycles in the graph.
 
 -  **`locality_grouping `** (`float`, default: `0.0`, range: `[0, 1]`)
@@ -159,11 +160,13 @@ Controls the ratio of children that are *forced* to share the same true value as
 
 	> **NOTE**: Setting this parameter to 0 breaks the integrity of true value propagation.
 
--  **`true_value_similarity_chance`** (`float`, default: `0.5`, range: `[0, 1]`)
-After meeting the minimum forced match requirement, this sets the chance that a remaining child will also take on the parent’s true value (A value of `0` means only forced nodes inherit the parent’s value; `1` means all children do).
-
 -  **`true_value_tie_chance `** (`float`, default: `0.2`, range: `[0, 1]`)
-For children not covered by `forced value` or `similarity chance`, this sets the probability of the child being assigned a draw. (**NOTE**: the actual expected number of draws is dependent on `true_value_forced_ratio` and `true_value_similarity_chance`)
+After meeting the minimum forced match requirement, this parameter controls the chance that remaining children will assigned a tie. 
+
+-  **`true_value_similarity_chance`** (`float`, default: `0.5`, range: `[0, 1]`)
+Children that are neither forced to take their parent's value, nor become a tie, are then finally assigned their parent's true value with a probability equal to this parameter. (`0` meaning that no remaining children will take their parent's value, and `1` meaning that they all will.)
+
+	> **NOTE**: `true_value_tie_chance` and `true_value_similarity_chance` do *not* define the *exact ratio* of children that will take a tie, or their parent's value. See the [default child true value function](#default_value_function) for a more descriptive visualization.
 
 - **`symmetry_factor`** (`float`, default: `1.0`, range: `[0, 1]`)  
 Controls how much the branching factor is reduced for symmetric states. A value of `1.0` means no reduction, while lower values simulate symmetry by proportionally reducing the number of generated states. For example, a symmetry factor of `0.5` will halve the branching factor when symmetry applies.
@@ -186,7 +189,7 @@ Determines how locality affects the accuracy of the `heuristic value`. This aims
 -  **`branching_function`** (`function`, default: [`default_branching_function`](#default_branching_function))
 A custom function able to be overridden by the user to determine the branching factor of states.
 
--  **`child_value_function`** (`function`, default: [`default_value_function`](#default_value_function))
+-  **`child_true_value_function`** (`function`, default: [`default_child_true_value_function`](#default_value_function))
 A custom function able to be overridden by the user to determine the true values of a state's child.
 
 -  **`child_depth_function`** (`function`, default: [`default_child_depth_function`](#default_child_depth_function))
@@ -219,7 +222,7 @@ Following is a list of the available functions. They must all accept the argumen
  
 <a name="value-function"></a>
 
-### `default_value_function()`
+### `default_child_true_value_function()`
 -  **Arguments:**
 	-  `self_branching_factor` (`int`): *An additional parameter.* The number of children associated with the current state.
 	-  `child_true_value_information` ([`ChildTrueValueInformation`](#ChildTrueValueInformation)): *An additional parameter.* Stores data on the true values of all children generated so far.
