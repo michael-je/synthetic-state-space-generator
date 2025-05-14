@@ -141,7 +141,7 @@ class StateNode():
 
     def is_terminal(self) -> bool:
         """Return true if the state is a terminal."""
-        return self.depth >= self.globals.vars.max_depth - 1 or self.branching_factor() < 1
+        return self.depth >= self.globals.vars.max_depth or self.branching_factor() < 1
     
     def is_root(self) -> bool:
         """Return true if the state is the root."""

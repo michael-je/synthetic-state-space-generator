@@ -294,8 +294,13 @@ class TestSyntheticGraph(unittest.TestCase):
             state2.make(state2.actions()[0])
         self.assertEqual(state1.id(), state2.id())
     
-    def test_maxdepth(self):
+    def test_maxdepth_1(self):
         state = SyntheticGraph(max_depth=1)
+        state.make_random()
+    
+    def test_maxdepth_error(self):
+        state = SyntheticGraph(max_depth=1)
+        state.make_random()
         self.assertRaises(TerminalHasNoChildren, lambda: state.make_random())
     
     def test_negative_branching_function(self):
@@ -759,7 +764,7 @@ class TestSyntheticGraph(unittest.TestCase):
             transposition_space_function=lambda *args: 100, # type: ignore
             child_depth_function=child_depth_function_cycles_allowed,
             branching_factor_base=10,
-            max_depth=7)
+            max_depth=5)
         rng_test = RNG(RandomnessDistribution.UNIFORM)
         state_info_from_root: dict[int, dict[str, int|float|bool]] = dict()
         set_root_tests: list[int] = []
