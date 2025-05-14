@@ -13,7 +13,10 @@
 
 - [Default Behavioural Functions](#default-behavioural-functions)
 
-- [Use of Deterministic Randomness in Custom Functionality](#use-of-deterministic-randomness-in-custom-functionality)
+
+- [Use of Deterministic Randomness in Behavioral Functions](#use-of-deterministic-randomness-in-behavioral-functions)
+
+- [Custom Types and Containers](#custom-types-and-containers)
 
 - [API Reference](#api-reference)
 
@@ -294,7 +297,7 @@ state = State(branching_function=uniform3_branching_function)
 - [`GlobalVariables`](#globalvariables): global parameters shared across the entire graph.
 - [`StateParamsSelf`](#stateparamsself): local information specific to the current state node.
 
-> **Note:** This separation exists because not all custom functions require access to both global and local data. Separating them helps ensure that functions only receive the data they actually need.
+> **NOTE:** This separation exists because not all custom functions require access to both global and local data. Separating them helps ensure that functions only receive the data they actually need.
 
 
 
