@@ -30,17 +30,16 @@ def transposition_space_function_simple_constant(randint: RandomIntFunction, ran
 
 
 def branching_function_connect_four_complex(randint: RandomIntFunction, randf: RandomFloatFunction, params: StateParams) -> int:
-    """
-    Approximates the branching factor of the real Connect-4 game tree using hardcoded statistics 
-    gathered from analysis of actual game data.
+    """Approximates the branching factor of the real Connect-4 game tree using hard-coded
+    statistics gathered from analysis of actual game data.
 
-    This function is intended for use in synthetic game graph generation and mimics the observed 
-    distribution of branching factors at different depths of real Connect-4 gameplay. It provides 
-    branching behavior for depths 0 through 10, based on empirical frequencies of nodes with 0, 6, 
-    or 7 children in the actual game graph. 
+    This function is intended for use in synthetic game graph generation and mimics the 
+    observed distribution of branching factors at different depths of real Connect-4 
+    gameplay. It provides branching behavior for depths 0 through 10, based on empirical 
+    frequencies of nodes with 0, 6, or 7 children in the actual game graph. 
     
-    This function is meant as a proof of concept and is not a complete model of branching factor for Connect-4
-    """
+    This function is intended as a proof of concept and is not a complete model of 
+    branching factor for Connect-4"""
     rand_num = randf()
     if params.self.depth < 6 :
         return 7
@@ -72,9 +71,12 @@ def branching_function_connect_four_complex(randint: RandomIntFunction, randf: R
 
 
 def transposition_space_function_connect_four_complex(randint: RandomIntFunction, randf: RandomFloatFunction, globals: GlobalVariables, depth: int) -> int:
-    """Uses the statistics from the real game to explicitly make the transpositon space behave correctly in the synthetic game graph.
-    Only has information on the first 10 levels of Connect-4
-    This function is meant as a proof of concept and is not a complete model of transposition space for Connect-4"""
+    """Uses the statistics from the real game to explicitly make the transpositon space 
+    behave correctly in the synthetic game graph. Only has information on the first 10 
+    levels of Connect-4 
+    
+    This function is intended as a proof of concept and is not a complete model of 
+    transposition space for Connect-4"""
     trans_map = {0: 1,
                  1: globals.max_transposition_space_size,  # No transpositions
                  2: globals.max_transposition_space_size,
@@ -90,7 +92,8 @@ def transposition_space_function_connect_four_complex(randint: RandomIntFunction
 
 
 def transposition_space_function_connect_four_simple(randint: RandomIntFunction, randf: RandomFloatFunction, globals: GlobalVariables, depth: int) -> int:
-    """Simple transposition space function, which uses an estimation of the transposition-space at each level"""
+    """Simple transposition space function, which uses an estimation of the 
+    transposition-space at each level"""
     if depth <= 1:
         return globals.max_transposition_space_size # No transpositions when depth < 2
     else:
