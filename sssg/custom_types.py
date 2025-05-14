@@ -24,6 +24,7 @@ class GlobalVariables:
     distribution: RandomnessDistribution
     branching_factor_base: int
     branching_factor_variance: int
+    terminal_chance: float
     terminal_minimum_depth: int
     child_depth_minumum: int # depth can be negative
     child_depth_maximum: int

@@ -818,6 +818,32 @@ class TestSyntheticGraph(unittest.TestCase):
         state.set_root(state.id())
         self.assertRaises(TerminalHasNoChildren, lambda: state.make_random())
         self.assertRaises(RootHasNoParent, lambda: state.undo())
+    
+    def test_terminal_depth(self):
+        TERMINAL_MINIMUM_DEPTH = 10
+        state = SyntheticGraph(
+            max_depth=20,
+            terminal_minimum_depth=TERMINAL_MINIMUM_DEPTH,
+            branching_factor_base=0)
+        for _ in range(TERMINAL_MINIMUM_DEPTH):
+            state.make_random()
+        self.assertRaises(TerminalHasNoChildren, lambda: state.make_random())
+    
+    def test_terminal_chance(self):
+        MAX_DEPTH = 10000
+        state1 = SyntheticGraph(
+            max_depth=MAX_DEPTH,
+            terminal_chance=0
+        )
+        for _ in range(MAX_DEPTH-1):
+            state1.make_random()
+        state2 = SyntheticGraph(
+            max_depth=MAX_DEPTH,
+            terminal_chance=1,
+            terminal_minimum_depth=0,
+        )
+        self.assertRaises(TerminalHasNoChildren, lambda: state2.make_random())
+
 
 if __name__ == '__main__':
     unittest.main()

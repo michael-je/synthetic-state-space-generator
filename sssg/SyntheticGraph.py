@@ -19,6 +19,7 @@ class SyntheticGraph():
                  
                  branching_factor_base: int=2,
                  branching_factor_variance: int=0,
+                 terminal_chance: float=0.0,
                  terminal_minimum_depth: int=0,
                  child_depth_minumum: int=1,
                  child_depth_maximum: int=1,
@@ -48,6 +49,8 @@ class SyntheticGraph():
             raise ValueError("max_depth too large.")
         if not child_depth_maximum >= child_depth_minumum:
             raise ValueError("child_depth_maximum must be >= child_depth_minimum.")
+        if not 0 <= terminal_chance <= 1:
+            raise ValueError("terminal_chance must be in [0, 1].")
         if not terminal_minimum_depth >= 0:
             raise ValueError("terminal_minimum_depth must be >= 0.")
         if not branching_factor_base >= 0:
@@ -95,6 +98,7 @@ class SyntheticGraph():
             distribution = distribution,
             branching_factor_base = branching_factor_base,
             branching_factor_variance = branching_factor_variance,
+            terminal_chance = terminal_chance,
             terminal_minimum_depth = terminal_minimum_depth,
             child_depth_minumum = child_depth_minumum,
             child_depth_maximum = child_depth_maximum,
