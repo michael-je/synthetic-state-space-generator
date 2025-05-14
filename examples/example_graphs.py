@@ -3,9 +3,8 @@ from examples.example_behavior_functions import *
 
 
 def connect_four_example_simple():
-    """Example creation of synthetic Connect-4 graph. This is a simple and naive 
-    approximation of the graph.  For more detailed and accurate Connect-4 graph, see the 
-    connect_four_example_complex() function"""
+    """Example creation of synthetic Connect-4 graph. This is a simpler approximation
+    than the more complex example below."""
     state = SyntheticGraph(
         max_depth = 42,
         branching_factor_base = 7,
@@ -16,6 +15,7 @@ def connect_four_example_simple():
         symmetry_frequency=0.01, # Assuming that 1% states are reflections
     )
 
+
 def connect_four_example_complex():
     """More complex version of the synthetic Connect-4 graph. This was made by studying 
     how the Connect-4 game-tree behaves, and uses functions where detailed and explicit 
@@ -24,4 +24,15 @@ def connect_four_example_complex():
         max_depth = 42,
         branching_function = branching_function_connect_four_complex,
         transposition_space_function = transposition_space_function_connect_four_complex,
+    )
+
+
+def pgame_with_critical_moves():
+    """Example implementation of a "P-game with critical moves" as described in 
+    "Lookahead Pathology in Monte-Carlo Tree Search" By Nguyen and Ramanujan."""
+    state = SyntheticGraph(
+        branching_factor_base=20,
+        branching_factor_variance=5,
+        true_value_forced_ratio=0.001,   # Ensures at least one shared true value if we are a win
+        true_value_tie_chance=0,         # p-game has no ties
     )
