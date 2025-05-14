@@ -239,7 +239,9 @@ Following is a list of the available functions. They must all accept the argumen
 	-  `globals` ([`GlobalVariables`](#globalvariables)): *Replaces the `params` parameter.* A container holding global state information.
 	-  `depth` (`int`): *An additional parameter.* An integer specifying the depth of the current state.
 -  **Return Type : `int`**
--  **Description:** Uses `globals` to return the maximum number of different states per depth, ensuring minimal transpositions.
+-  **Description:** Returns the maximum number of possible states per depth, ensuring minimal transpositions.
+
+	> **NOTE**: Since describing an exact transposition space is quite difficult using parameters alone, the default function simply behaves as if transpositions are non-existent. If you wish to describe a state-space with transpositions, you will have to pass in your own function to replace this one.
 
 
 ### `default_heuristic_value_function()`
