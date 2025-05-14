@@ -364,7 +364,7 @@ Here, the state's default is Gaussian, but `randint` in `uniform3_branching_func
 | `undo()`            | Undoes the last action taken.                                               | None                                        |
 | `depth()`            | Returns the depth of the current node| None                                        |
 | `player()`            | Returns the player whose turn it is to play (Min or Max node).       | None                                        |
-| `set_root(state_id)`      | Transitions the current state by applying the specified action.             | `state_id` (int): Id of a node to set as the new root.       |
+| `set_root(state_id)`      | Set node with state_id as the new root.             | `state_id` (int): Id of a node to set as the new root.       |
 
 # License
 
