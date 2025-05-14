@@ -204,7 +204,7 @@ Certain functionality is controlled by what we call "behavioral functions". Thes
 However, since these rules can vary so wildly between different kinds of graphs, we allow user-defined functions to be passed to the API during initialization. We recommend having a look at the default functions, as well as the [example functions](examples/example_behavior_functions.py), to get a better idea of how to construct your own. 
 
 Following is a list of the available functions. They must all accept the arguments listed directly below, unless explicitely stated otherwise: 
--  **Parameters:**
+-  **Arguments:**
 	-  `randint` ([`RandomIntFunction`](#use-of-deterministic-randomness-in-behavioral-functions)): See [`RandomIntFunction`](#use-of-deterministic-randomness-in-behavioral-functions) for a description.
 	-  `randf` ([`RandomFloatFunction`](#use-of-deterministic-randomness-in-behavioral-functions)): See [`RandomFloatFunction`](#use-of-deterministic-randomness-in-behavioral-functions) for a description. 
 	-  `params` ([`StateParams`](#stateparams)): See [`StateParams`](#stateparams) for a description.
@@ -217,7 +217,7 @@ Following is a list of the available functions. They must all accept the argumen
 <a name="value-function"></a>
 
 ### `default_value_function()`
--  **Parameters:**
+-  **Arguments:**
 	-  `self_branching_factor` (`int`): *An additional parameter.* The number of children associated with the current state.
 	-  `child_true_value_information` ([`ChildTrueValueInformation`](#ChildTrueValueInformation)): *An additional parameter.* Stores data on the true values of all children generated so far.
 -  **Return Type : `int`**
@@ -234,7 +234,7 @@ Following is a list of the available functions. They must all accept the argumen
 
 ### `default_transposition_space_function()`
 
--  **Parameters:**
+-  **Arguments:**
 	-  `globals` ([`GlobalVariables`](#globalvariables)): *Replaces the `params` parameter.* A container holding global state information.
 	-  `depth` (`int`): *An additional parameter.* An integer specifying the depth of the current state.
 -  **Return Type : `int`**
@@ -268,7 +268,7 @@ If no distribution is provided, the default distribution set during initializati
 
   
 
--  **Parameters:**
+-  **Arguments:**
 
 	-  `low`: The minimum value to sample from (`int` for `RandomIntFunction`, `float` for `RandomFloatFunction`).
 
