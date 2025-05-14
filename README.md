@@ -358,6 +358,7 @@ Here, the state's default is Gaussian, but `randint` in `uniform3_branching_func
 
 
 # API Reference
+The `SyntheticGraph` class provides the following public methods:
 
 | Method              | Description                                                                 | Arguments                                   |
 |---------------------|-----------------------------------------------------------------------------|---------------------------------------------|
