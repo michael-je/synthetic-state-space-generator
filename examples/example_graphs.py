@@ -1,7 +1,7 @@
 from sssg.SyntheticGraph import SyntheticGraph
 from example_behavior_functions import *
 
-
+"""Example of creating a synthetic graph the mimics tic-tac-toe"""
 state = SyntheticGraph(
     max_depth=10,
     transposition_space_function=tictactoe_transposition_space_function,
@@ -9,10 +9,10 @@ state = SyntheticGraph(
     true_value_forced_ratio=0.5,
     true_value_tie_chance=0.2,
     true_value_similarity_chance=0.7,
-    symmetry_factor=0.35,
-    symmetry_frequency=0.2,
-    terminal_minimum_depth=5,
-    terminal_chance = 0.75)
+    symmetry_factor=0.25,     # The symmetry factor is around 1/4
+    symmetry_frequency=0.2,   # Assuming that 20% of states are reflextion
+    terminal_minimum_depth=5, # Cant win/loose until move 5
+    terminal_chance = 0.75)   # After depth 5, terminal chance is around 75%
 
 
 """Example creation of synthetic Connect-4 graph. This is a simpler approximation
