@@ -20,9 +20,16 @@
 - [License](#license)
 
 # Introduction
-This API allows users to generate variety of state-space graphs. The tool allows the user to use simple predefined graphs, or to fine-tune the graph by using user-defined function passing. Using Hashing and a starting seed, reproducability is ensured for each graph. This tool supports user control over branching factor, depth, values of states, heuristic values of states, cycles and transpositions among other features.
+This API allows users to generate a variety of synthetic state-space graphs which simulate real games, and to interact with them in ways that game solvers typically would. 
 
-An accompanying research paper will be linked here once available.
+The tool is aimed at researchers in the field of AI and games (specifically *two-player, deterministic, perfect-information, zero-sum games*). The hope is that it will assist in quick and intuitive prototyping of synthetic game-spaces, in order to test the comparative effectiveness of different algorithms to games with varying properties.
+
+The main principles of the tool are:
+- 1. **Memory efficiency**: Graphs are generated implicitly. This means that once initialized with initial parameters and seed, the graph is generated on the fly as it is being traversed.
+- 2. **Reproducability**: Being able to replicate results is very important. Since graphs are not stored in memory, the approach is to ensure that they behave completely deterministically no matter how they are traversed. 
+- 3. **Easy to use, but powerful**: Ideally, a wide variety of games can be imitated somewhat intuitievly by the default behavior and parameters we have provided. However, the scope of different games and their rules is too large to be able to cover every case. Therefore, in order to strike a balance between complexity and ease of use, the tool has a modular design to allow users to pass custom functions that control certain aspects of its behavior.
+
+This document serves mainly as a guide on the use of software itself. For a deeper conceptional understanding on its design, an accompanying research paper will be linked here once available.
 
 # Getting Started
 To install the API, simply,
@@ -131,7 +138,8 @@ Specifies how much the branching factor can vary around the base value. A value 
 Defines the minimum depth of a child relative to its parent.
   
 -  **`child_depth_maximum`** (`int`, default: `1`)
-Defines the maximum depth of a child relative to its parent.
+Defines the maximum depth of a child relative to its parent
+	> **NOTE**: `child_depth_minimum` and `child_depth_maximum` can take negative values. In this case, children may be generated "above" their parent, creating cycles in the graph.
 
 -  **`locality_grouping `** (`float`, default: `0`, range: `[0, 1]`)
 Controls how much of the available state space can be used when generating children. A value of `0` allows use of the full space at each depth; higher values restrict generation to a smaller portion centered around the parent node.
@@ -229,7 +237,7 @@ Following is a list of the available functions. They must all accept the argumen
 
   
 
-# Use of Deterministic Randomness in Custom Functionality
+# Use of Deterministic Randomness in Behavioral Functions
 
   
 
@@ -294,10 +302,9 @@ state = State(branching_function=uniform3_branching_function)
 
 `StateParamsSelf` is a dataclass containing local information about the current `StateNode`, such as its depth, parent relationship, or node-specific values.
 
-___
 
 <a name="RandomnessDistribution"></a>
-## `RandomnessDistribution`
+### `RandomnessDistribution`
 
 `RandomnessDistribution` is an enum with two options: UNIFORM and GAUSSIAN. It specifies the distribution type used by the random number generator.
 ```python
@@ -320,7 +327,7 @@ state = State(
 ```
 Here, the state's default is Gaussian, but `randint` in `uniform3_branching_function` explicitly uses a uniform distribution.
 
-## `Player`
+### `Player`
 
 `Player` is an enum with two values: `MIN` and `MAX`. It is used by the API to identify the current player and can also be utilized by users in search algorithms.
 
