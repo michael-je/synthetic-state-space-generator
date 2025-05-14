@@ -134,6 +134,8 @@ The true value of the root node
 -  **`branching_factor_variance`** (`int`, default: `0`, range: `Positive Integer`)
 Specifies how much the branching factor can vary around the base value. A value of `0` means all states have exactly `branching_factor_base` children. Higher values introduce randomness into the number of children each state generates.
 
+-  **`terminal_chance`** (`float`, default: `0.0`, range: `[0, 1]`)
+  Specifies the probability that a node is terminal. (**NOTE**: This chance is seperate from any other calculations that would otherwise cause the branching factor to become 0.)
 
 -  **`terminal_minimum_depth`** (`int`, default: `0`, range: `Positive Integer`)
   Specifies the minimum depth a state must be before it can be become a terminal node. This ensures that early states in the graph cannot terminate prematurely.
@@ -147,7 +149,7 @@ Defines the minimum depth of a child relative to its parent.
 Defines the maximum depth of a child relative to its parent
 	> **NOTE**: `child_depth_minimum` and `child_depth_maximum` can take negative values. In this case, children may be generated "above" their parent, creating cycles in the graph.
 
--  **`locality_grouping `** (`float`, default: `0`, range: `[0, 1]`)
+-  **`locality_grouping `** (`float`, default: `0.0`, range: `[0, 1]`)
 Controls how much of the available state space can be used when generating children. A value of `0` allows use of the full space at each depth; higher values restrict generation to a smaller portion centered around the parent node.
 
 <a name="true-value-parameters"></a>
@@ -209,11 +211,10 @@ Following is a list of the available functions. They must all accept the argumen
 	-  `randf` ([`RandomFloatFunction`](#use-of-deterministic-randomness-in-behavioral-functions)): See [`RandomFloatFunction`](#use-of-deterministic-randomness-in-behavioral-functions) for a description. 
 	-  `params` ([`StateParams`](#stateparams)): See [`StateParams`](#stateparams) for a description.
   
-
 ### `default_branching_function()`
 -  **Return Type : `int`**
--  **Description:** Uses the `randf` function to add random variance (bounded by `branching_factor_variance`) to the `base_branching_factor` and returns this value. The branching factor is calculated using the [branching_factor_base](#branching-factor-parameters), [branching_factor_variance](#branching-factor-parameters) and [terminal_minimum_depth](#branching-factor-parameters) parameters.
-
+-  **Description:** Uses the `randf` function to add random variance (bounded by `branching_factor_variance`) to the `base_branching_factor` and returns this value. The branching factor is calculated using the [branching_factor_base](#branching-factor-parameters), [branching_factor_variance](#branching-factor-parameters), [terminal_minimum_depth](#branching-factor-parameters) and [terminal_chance](#branching-factor-parameters) parameters.
+ 
 <a name="value-function"></a>
 
 ### `default_value_function()`
