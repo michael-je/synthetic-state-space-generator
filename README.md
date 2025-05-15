@@ -35,7 +35,7 @@ The main principles of the tool are:
 This document serves mainly as a guide on the use of software itself. For a deeper conceptional understanding on its design, an accompanying research paper will be linked here once available.
 
 # Getting Started
-To install the API, simply,
+To install the API, simply:
 1. Clone the repository:
 ```
 git clone git@github.com:michael-je/synthetic-state-space-generator.git
@@ -118,10 +118,10 @@ These parameters can of course be combined in interesting ways to construct all 
 -  **`seed`** (`int`, default: `0`, range: `[0, 0xFFFFFFFF]`)
 Determines the starting seed for the graph generator. Ensures reproducibility.
 
--  **`max_depth`** (`int`, default: `2^8 - 1`)
+-  **`max_depth`** (`int`, default: `255`)
 Sets the maximum depth of the graph.
 
--  **`distribution`** ([`RandomnessDistribution`](#RandomnessDistribution), default: `UNIFORM`, option: `UNIFORM` or `GAUSSIAN`)Determines what distribution the random number generator follows.
+-  **`distribution`** ([`RandomnessDistribution`](#RandomnessDistribution), default: `UNIFORM`, option: `UNIFORM` or `GAUSSIAN`) Determines what distribution the random number generator follows.
 
 -  **`root_true_value`** (`int`, default: `0`, Allowed Values: `[-1, 0, 1]`)
 The true value of the root node
@@ -135,7 +135,9 @@ The true value of the root node
 Specifies how much the branching factor can vary around the base value. A value of `0` means all states have exactly `branching_factor_base` children. Higher values introduce randomness into the number of children each state generates.
 
 -  **`terminal_chance`** (`float`, default: `0.0`, range: `[0, 1]`)
-  Specifies the probability that a node is terminal. (**NOTE**: This chance is seperate from any other calculations that would otherwise cause the branching factor to become 0.)
+  Specifies the probability that a node is terminal.
+
+  	> **NOTE**: This chance is seperate from any other calculations that would otherwise cause the branching factor to become 0.
 
 -  **`terminal_minimum_depth`** (`int`, default: `0`, range: `Positive Integer`)
   Specifies the minimum depth a state must be before it can be become a terminal node. This ensures that early states in the graph cannot terminate prematurely.
@@ -151,7 +153,7 @@ Defines the maximum depth of a child relative to its parent
 	> **NOTE**: `child_depth_minimum` and `child_depth_maximum` can take negative values. In this case, children may be generated "above" their parent, creating cycles in the graph.
 
 -  **`locality_grouping `** (`float`, default: `0.0`, range: `[0, 1]`)
-Controls how much of the available state space can be used when generating children. A value of `0` allows use of the full space at each depth; higher values restrict generation to a smaller portion centered around the parent node.
+Controls how much of the available state space can be used when generating children. A value of `0` allows use of the full space at each depth; higher values restrict generation to a smaller range centered around the parent node.
 
 <a name="true-value-parameters"></a>
 

@@ -2,7 +2,7 @@ from sssg.SyntheticGraph import SyntheticGraph
 from example_behavior_functions import *
 
 
-"""Example of creating a synthetic graph the mimics Tic-Tac-Toe"""
+"""Example of creating a synthetic graph which mimics Tic-Tac-Toe"""
 state = SyntheticGraph(
     max_depth=9,
     transposition_space_function=tictactoe_transposition_space_function,
@@ -10,7 +10,7 @@ state = SyntheticGraph(
     true_value_forced_ratio=0.5,
     true_value_tie_chance=0.2,
     true_value_similarity_chance=0.7,
-    symmetry_factor=0.25,     # Symmetry works best when modelled to reflect around 4 axis
+    symmetry_factor=0.25,     # Symmetry works best when modelled to reflect around 4 axes
     symmetry_frequency=0.2,   # Assuming that 20% of states are reflections
     terminal_minimum_depth=5, # There are no wins/losses until at least turn 5
     terminal_chance = 0.75)   # After that, the terminal chance is estimated to be around 75%

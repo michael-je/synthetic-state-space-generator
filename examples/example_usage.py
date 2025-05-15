@@ -4,7 +4,7 @@ from collections import deque
 
 
 def bfs(state: SyntheticGraph):
-	"""explanation"""
+	"""explanation""" # TODO
 	visited: set[int] = set()
 	queue: deque[int] = deque()
 	queue.append(state.id())
@@ -27,7 +27,7 @@ def bfs(state: SyntheticGraph):
 INF = 1000
 visited: dict[int, float|int] = {}
 def minimax(state: SyntheticGraph, depth: int) -> float|int:
-	"""explanation"""
+	"""explanation""" # TODO
 	if state.id() in visited.keys():
 		return state.true_value()
 	if state.is_terminal():
