@@ -58,3 +58,4 @@ def minimax(state: SyntheticGraph, depth: int) -> float|int:
 			min_eval = min(min_eval, s_eval)			
 		visited[state.id()] = min_eval
 		return min_eval
+		
